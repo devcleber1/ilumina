@@ -5,6 +5,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
+  PanelLeftClose,
   Settings,
   Shield,
   Users,
@@ -22,7 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
+  useSidebar,
 } from './ui/sidebar'
 
 import logo from '../assets/logo.png'
@@ -40,11 +41,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  {
-    title: 'Dashboard',
-    icon: LayoutDashboard,
-    url: '#',
-  },
+  { title: 'Dashboard', icon: LayoutDashboard, url: '#' },
   {
     title: 'Cadastros',
     icon: Users,
@@ -71,6 +68,7 @@ const menuItems: MenuItem[] = [
 
 export function AppSidebar() {
   const [openMenus, setOpenMenus] = useState<string[]>(['Cadastros', 'Controle Acesso'])
+  const { toggleSidebar } = useSidebar()
 
   const toggleMenu = (title: string) => {
     setOpenMenus(prev => (prev.includes(title) ? prev.filter(m => m !== title) : [...prev, title]))
@@ -127,7 +125,14 @@ export function AppSidebar() {
               Iluminando o Futuro
             </p>
           </div>
-          <SidebarTrigger className="cursor-pointer text-gray-500 hover:text-gray-900 transition" />
+
+          <button
+            onClick={toggleSidebar}
+            className="cursor-pointer p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition"
+            title="Fechar menu"
+          >
+            <PanelLeftClose className="h-5 w-5" />
+          </button>
         </div>
       </SidebarHeader>
 
