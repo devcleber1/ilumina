@@ -3,7 +3,7 @@ import Cropper, { type Area } from 'react-easy-crop'
 import { NavLink } from 'react-router-dom'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
-import { Camera, ChevronRight, FileText, Mail, User, UserPlus } from 'lucide-react'
+import { Camera, ChevronRight, FileText, Mail, Shield, User, UserPlus } from 'lucide-react'
 
 interface ProfessorAttributes {
   id?: number
@@ -427,29 +427,37 @@ function RegisterTeacherContent() {
                   <option value="licenca">Licença</option>
                 </select>
               </label>
-              <label className="space-y-2 lg:col-span-2">
-                <span className="font-body text-sm font-semibold text-gray-700">Senha virtual</span>
-                <input
-                  type="password"
-                  value={form.senha ?? ''}
-                  onChange={event => handleChange('senha', event.target.value)}
-                  className={fieldClass}
-                  placeholder="Digite uma senha segura"
-                />
-              </label>
-              <label className="space-y-2 lg:col-span-2">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-body text-sm font-semibold text-gray-700">
-                    Forçar troca no primeiro login
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={form.precisa_trocar_senha ?? false}
-                    onChange={event => handleChange('precisa_trocar_senha', event.target.checked)}
-                    className="h-4 w-4 accent-yellow-400"
-                  />
+              <div className="rounded-3xl border border-gray-200 bg-white p-6 lg:col-span-2 shadow-sm">
+                <div className="mb-4 flex items-center gap-3 text-sm font-semibold text-gray-700">
+                  <Shield className="h-4 w-4 text-yellow-400" />
+                  Dados de acesso opcional
                 </div>
-              </label>
+                <div className="grid gap-5 lg:grid-cols-2">
+                  <label className="space-y-2">
+                    <span className="font-body text-sm font-semibold text-gray-700">Senha virtual</span>
+                    <input
+                      type="password"
+                      value={form.senha ?? ''}
+                      onChange={event => handleChange('senha', event.target.value)}
+                      className={fieldClass}
+                      placeholder="Digite uma senha segura"
+                    />
+                  </label>
+                  <label className="space-y-2 lg:col-span-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-body text-sm font-semibold text-gray-700">
+                        Forçar troca no primeiro login
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={form.precisa_trocar_senha ?? false}
+                        onChange={event => handleChange('precisa_trocar_senha', event.target.checked)}
+                        className="h-4 w-4 accent-yellow-400"
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
