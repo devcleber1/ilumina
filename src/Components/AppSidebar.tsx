@@ -49,8 +49,8 @@ const menuItems: MenuItem[] = [
     icon: Users,
     subItems: [
       { title: 'Pais', url: '/dashboard/cadastro-pais' },
-      { title: 'Alunos', url: '#' },
-      { title: 'Professores', url: '#' },
+      { title: 'Alunos', url: '/dashboard/cadastro-alunos' },
+      { title: 'Professores', url: '/dashboard/cadastro-professores' },
     ],
   },
   { title: 'Oficinas', icon: Wrench, url: '#' },
@@ -86,7 +86,9 @@ export function AppSidebar() {
           to={sub.url}
           className={({ isActive }) =>
             `font-menu text-sm px-3 py-1.5 rounded-lg transition cursor-pointer ${
-              isActive ? 'text-[#FBC329] font-semibold' : 'text-gray-900 hover:bg-yellow-300'
+              isActive
+                ? 'text-white font-semibold'
+                : 'text-gray-900 hover:bg-yellow-300 hover:text-white'
             }`
           }
         >
