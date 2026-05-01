@@ -434,7 +434,9 @@ function RegisterTeacherContent() {
                 </div>
                 <div className="grid gap-5 lg:grid-cols-2">
                   <label className="space-y-2">
-                    <span className="font-body text-sm font-semibold text-gray-700">Senha virtual</span>
+                    <span className="font-body text-sm font-semibold text-gray-700">
+                      Senha virtual
+                    </span>
                     <input
                       type="password"
                       value={form.senha ?? ''}
@@ -451,7 +453,9 @@ function RegisterTeacherContent() {
                       <input
                         type="checkbox"
                         checked={form.precisa_trocar_senha ?? false}
-                        onChange={event => handleChange('precisa_trocar_senha', event.target.checked)}
+                        onChange={event =>
+                          handleChange('precisa_trocar_senha', event.target.checked)
+                        }
                         className="h-4 w-4 accent-yellow-400"
                       />
                     </div>
