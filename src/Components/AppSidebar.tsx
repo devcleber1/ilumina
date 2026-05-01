@@ -48,7 +48,7 @@ const menuItems: MenuItem[] = [
     title: 'Cadastros',
     icon: Users,
     subItems: [
-      { title: 'Pais', url: '#' },
+      { title: 'Pais', url: '/dashboard/cadastro-pais' },
       { title: 'Alunos', url: '#' },
       { title: 'Professores', url: '#' },
     ],
@@ -79,6 +79,22 @@ export function AppSidebar() {
   }
 
   const renderSubItem = (sub: SubItem) => {
+    if (sub.url?.startsWith('/')) {
+      return (
+        <NavLink
+          key={sub.title}
+          to={sub.url}
+          className={({ isActive }) =>
+            `font-menu text-sm px-3 py-1.5 rounded-lg transition cursor-pointer ${
+              isActive ? 'text-[#FBC329] font-semibold' : 'text-gray-900 hover:bg-yellow-300'
+            }`
+          }
+        >
+          {sub.title}
+        </NavLink>
+      )
+    }
+
     return (
       <a
         key={sub.title}
