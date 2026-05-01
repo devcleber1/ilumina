@@ -53,7 +53,7 @@ const menuItems: MenuItem[] = [
       { title: 'Professores', url: '/dashboard/cadastro-professores' },
     ],
   },
-  { title: 'Oficinas', icon: Wrench, url: '#' },
+  { title: 'Oficinas', icon: Wrench, url: '/dashboard/cadastro-oficinas' },
   { title: 'Presenca', icon: CalendarCheck, url: '#' },
   { title: 'Advertencia', icon: AlertTriangle, url: '#' },
   { title: 'Reuniao', icon: GraduationCap, url: '#' },
