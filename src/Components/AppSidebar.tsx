@@ -12,6 +12,8 @@ import {
   Wrench,
 } from 'lucide-react'
 import { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 import {
   Sidebar,
@@ -41,7 +43,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { title: 'Dashboard', icon: LayoutDashboard, url: '#' },
+  { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard' },
   {
     title: 'Cadastros',
     icon: Users,
@@ -69,6 +71,8 @@ const menuItems: MenuItem[] = [
 export function AppSidebar() {
   const [openMenus, setOpenMenus] = useState<string[]>(['Cadastros', 'Controle Acesso'])
   const { toggleSidebar } = useSidebar()
+  const { logout } = useAuth()
+  const navigate = useNavigate()
 
   const toggleMenu = (title: string) => {
     setOpenMenus(prev => (prev.includes(title) ? prev.filter(m => m !== title) : [...prev, title]))
@@ -99,14 +103,19 @@ export function AppSidebar() {
   }
 
   const renderSairLink = () => {
+    const handleLogout = () => {
+      logout()
+      navigate('/')
+    }
+
     return (
-      <a
-        href="#"
-        className="font-menu flex items-center gap-2 text-sm px-2 py-2 rounded-lg text-red-600 hover:bg-red-50 transition cursor-pointer"
+      <button
+        onClick={handleLogout}
+        className="font-menu flex items-center gap-2 text-sm px-2 py-2 rounded-lg text-red-600 hover:bg-red-50 transition cursor-pointer w-full text-left"
       >
         <LogOut className="h-4 w-4" />
         Sair
-      </a>
+      </button>
     )
   }
 
@@ -166,16 +175,29 @@ export function AppSidebar() {
                         </div>
                       )}
                     </>
-                  ) : (
-                    <SidebarMenuButton
-                      asChild
-                      className="font-menu text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  ) : item.url?.startsWith('/') ? (
+                    <NavLink
+                      to={item.url}
+                      end
+                      className={({ isActive }) =>
+                        `font-menu flex items-center gap-2 w-full rounded-md px-2 py-2 text-sm transition ${
+                          isActive
+                            ? 'text-[#FBC329] font-semibold'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`
+                      }
                     >
-                      <a href={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  ) : (
+                    <a
+                      href={item.url}
+                      className="flex items-center gap-2 w-full text-gray-700 hover:bg-gray-100 rounded-md px-2 py-2"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </a>
                   )}
                 </SidebarMenuItem>
               ))}

@@ -1,9 +1,41 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import { useAuth } from '../../contexts/AuthContext'
 import logo from '../../assets/logo.png'
 import kids from '../../assets/kidsL.png'
 
+const schema = yup.object({
+  email: yup.string().email('Email inválido').required('Email é obrigatório'),
+  password: yup.string().required('Senha é obrigatória'),
+})
+
+type FormData = {
+  email: string
+  password: string
+}
+
 export default function Auth() {
   const [showPassword, setShowPassword] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: yupResolver(schema),
+  })
+
+  const onSubmit = async (data: FormData) => {
+    const success = await login(data.email, data.password)
+    if (success) {
+      navigate('/dashboard')
+    }
+    // O alert de erro já é mostrado pelo AuthContext
+  }
 
   return (
     <div
@@ -39,7 +71,7 @@ export default function Auth() {
             </p>
           </div>
 
-          <div className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Email */}
             <div>
               <label
@@ -50,12 +82,12 @@ export default function Auth() {
               </label>
               <input
                 id="email"
-                name="email"
+                {...register('email')}
                 type="email"
                 placeholder="seu.email@exemplo.com"
-                required
                 className="font-body block w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 outline-none placeholder:text-gray-300 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition"
               />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
             </div>
 
             {/* Senha */}
@@ -77,16 +109,15 @@ export default function Auth() {
               <div className="relative">
                 <input
                   id="password"
-                  name="password"
+                  {...register('password')}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Digite sua senha"
-                  required
                   className="font-body block w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 outline-none placeholder:text-gray-300 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(prev => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-gray-600 transition cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition cursor-pointer"
                   aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                 >
                   {showPassword ? (
@@ -127,17 +158,20 @@ export default function Auth() {
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+              )}
             </div>
 
             {/* Botão */}
             <button
-              type="button"
+              type="submit"
               className="font-body flex w-full justify-center rounded-xl px-4 py-3 text-sm tracking-widest text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg hover:brightness-90 active:translate-y-0 cursor-pointer"
               style={{ background: '#FFD700' }}
             >
               SIGN IN
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>
