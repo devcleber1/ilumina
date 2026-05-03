@@ -118,14 +118,14 @@ function WorkshopsContent() {
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
                     <button 
-                      className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition"
+                      className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition cursor-pointer"
                       title="Editar"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
                     <button 
                       onClick={() => handleDelete(workshop.id)}
-                      className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition"
+                      className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition cursor-pointer"
                       title="Excluir"
                     >
                       <Trash2 className="h-4 w-4" />

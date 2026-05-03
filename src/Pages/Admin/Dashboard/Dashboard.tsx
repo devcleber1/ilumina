@@ -305,22 +305,25 @@ function DashboardContent() {
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <NavLink
                   to="/dashboard/cadastro-alunos"
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group"
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group cursor-pointer"
                 >
                   <UserPlus className="h-6 w-6 text-gray-600 group-hover:text-yellow-600 mb-2" />
                   <span className="text-[10px] font-bold text-gray-700">Novo Aluno</span>
                 </NavLink>
                 <NavLink
                   to="/dashboard/cadastro-oficinas"
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group"
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group cursor-pointer"
                 >
                   <Plus className="h-6 w-6 text-gray-600 group-hover:text-yellow-600 mb-2" />
                   <span className="text-[10px] font-bold text-gray-700">Nova Oficina</span>
                 </NavLink>
-                <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group cursor-pointer">
+                <NavLink
+                  to="/dashboard/presenca"
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group cursor-pointer"
+                >
                   <ClipboardList className="h-6 w-6 text-gray-600 group-hover:text-yellow-600 mb-2" />
                   <span className="text-[10px] font-bold text-gray-700">Presenças</span>
-                </button>
+                </NavLink>
                 <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group cursor-pointer">
                   <AlertTriangle className="h-6 w-6 text-gray-600 group-hover:text-yellow-600 mb-2" />
                   <span className="text-[10px] font-bold text-gray-700">Advertência</span>
