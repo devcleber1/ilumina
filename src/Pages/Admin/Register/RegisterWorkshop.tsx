@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
-import { ChevronRight, GraduationCap, Search, Wrench, Plus, Users, Clock, Calendar } from 'lucide-react'
+import {
+  ChevronRight,
+  GraduationCap,
+  Search,
+  Wrench,
+  Plus,
+  Users,
+  Clock,
+  Calendar,
+} from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -42,7 +51,7 @@ const fieldClass =
 function RegisterWorkshopContent() {
   const { open } = useSidebar()
   const navigate = useNavigate()
-  
+
   const {
     register,
     handleSubmit,
@@ -83,7 +92,7 @@ function RegisterWorkshopContent() {
     const nextDays = selectedDays.includes(day)
       ? selectedDays.filter(current => current !== day)
       : [...selectedDays, day]
-    
+
     setValue('dias_semana', nextDays.join(','))
   }
 
@@ -106,7 +115,7 @@ function RegisterWorkshopContent() {
       if (selectedTeacher) {
         try {
           await api.post(`/oficinas/${oficinaId}/vincular-professor`, {
-            professor_id: selectedTeacher.id
+            professor_id: selectedTeacher.id,
           })
         } catch (linkError) {
           console.error('Erro ao vincular professor:', linkError)
@@ -118,7 +127,9 @@ function RegisterWorkshopContent() {
       navigate('/dashboard/oficinas')
     } catch (error: any) {
       console.error('Erro ao criar oficina:', error)
-      const message = error.response?.data?.message || 'Erro ao criar oficina. Verifique os dados e tente novamente.'
+      const message =
+        error.response?.data?.message ||
+        'Erro ao criar oficina. Verifique os dados e tente novamente.'
       alert(message)
     }
   }
@@ -129,7 +140,9 @@ function RegisterWorkshopContent() {
     >
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
         <div className="flex-1">
-          <h1 className="font-title text-xl font-extrabold text-gray-900">Nova Oficina</h1>
+          <h1 className="font-title text-xl font-extrabold uppercase text-gray-900">
+            Nova Oficina
+          </h1>
           <p className="font-body text-xs text-gray-400">
             Criação de atividades e oficinas — ONG Iluminando o Futuro
           </p>
@@ -145,14 +158,21 @@ function RegisterWorkshopContent() {
 
       <div className="p-6 flex flex-col gap-6">
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
-          <form onSubmit={handleSubmit(onFormSubmit)} className="rounded-3xl bg-white p-8 shadow-sm h-fit">
+          <form
+            onSubmit={handleSubmit(onFormSubmit)}
+            className="rounded-3xl bg-white p-8 shadow-sm h-fit"
+          >
             <div className="mb-8 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-400 text-white shadow-md">
                 <Wrench className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-title text-lg font-extrabold text-gray-900">Informações da Oficina</h2>
-                <p className="font-body text-xs text-gray-400">Configure os detalhes da atividade</p>
+                <h2 className="font-title text-lg font-extrabold text-gray-900">
+                  Informações da Oficina
+                </h2>
+                <p className="font-body text-xs text-gray-400">
+                  Configure os detalhes da atividade
+                </p>
               </div>
             </div>
 
@@ -168,7 +188,11 @@ function RegisterWorkshopContent() {
                   placeholder="Ex: Oficina de Pintura"
                   className={`${fieldClass} ${errors.nome_oficina ? 'border-red-500' : ''}`}
                 />
-                {errors.nome_oficina && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.nome_oficina.message}</p>}
+                {errors.nome_oficina && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.nome_oficina.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5 md:col-span-2">
@@ -189,12 +213,12 @@ function RegisterWorkshopContent() {
                   <Users className="h-3.5 w-3.5 text-yellow-500" />
                   Capacidade Máxima
                 </span>
-                <input
-                  type="number"
-                  {...register('capacidade_maxima')}
-                  className={fieldClass}
-                />
-                {errors.capacidade_maxima && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.capacidade_maxima.message}</p>}
+                <input type="number" {...register('capacidade_maxima')} className={fieldClass} />
+                {errors.capacidade_maxima && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.capacidade_maxima.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">
@@ -265,14 +289,14 @@ function RegisterWorkshopContent() {
               <GraduationCap className="h-4 w-4 text-yellow-400" />
               Professor Responsável
             </div>
-            
+
             <div className="space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={e => setSearch(e.target.value)}
                   placeholder="Buscar professor..."
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 py-2.5 text-xs outline-none focus:border-yellow-400"
                 />

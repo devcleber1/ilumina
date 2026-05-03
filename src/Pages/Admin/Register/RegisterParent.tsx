@@ -9,28 +9,31 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { api } from '../../../lib/api'
 
-interface ProfessorAttributes {
+interface PaiAttributes {
   id?: number
   nome_completo: string
-  cpf: string
+  documento: string
+  tipo_documento: 'CPF' | 'CNH'
   email: string
   telefone: string
-  formacao: string
-  status_professor: 'ativo' | 'inativo' | 'licenca'
   data_nascimento: string
+  profissao: string
+  recebe_beneficio_social: boolean
   foto_perfil_url?: string | File | Blob
   documento_frente_url?: string | File
   documento_verso_url?: string | File
+  senha?: string
 }
 
 const schema = yup.object({
   nome_completo: yup.string().required('Nome completo é obrigatório'),
-  cpf: yup.string().required('CPF é obrigatório'),
+  documento: yup.string().required('Documento é obrigatório'),
+  tipo_documento: yup.string().oneOf(['CPF', 'CNH']).required(),
   email: yup.string().email('Email inválido').required('Email é obrigatório'),
   telefone: yup.string().required('Telefone é obrigatório'),
-  formacao: yup.string().required('Formação é obrigatória'),
-  status_professor: yup.string().oneOf(['ativo', 'inativo', 'licenca']).required(),
   data_nascimento: yup.string().required('Data de nascimento é obrigatória'),
+  profissao: yup.string().required('Profissão é obrigatória'),
+  recebe_beneficio_social: yup.boolean().required(),
 })
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -81,35 +84,37 @@ const getCroppedImage = async (imageSrc: string, pixelCrop: Area): Promise<Blob>
 const fieldClass =
   'w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200'
 
-function RegisterTeacherContent() {
+function RegisterParentContent() {
   const { open } = useSidebar()
   const navigate = useNavigate()
-  
+
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm<ProfessorAttributes>({
+  } = useForm<PaiAttributes>({
     resolver: yupResolver(schema) as any,
     defaultValues: {
-      status_professor: 'ativo',
+      tipo_documento: 'CPF',
+      recebe_beneficio_social: false,
     },
   })
 
   const [profilePhotoSrc, setProfilePhotoSrc] = useState<string | null>(null)
   const [profilePhotoBlob, setProfilePhotoBlob] = useState<Blob | null>(null)
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null)
-  
+
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-  
+
   const [documentFrontFile, setDocumentFrontFile] = useState<File | null>(null)
   const [documentBackFile, setDocumentBackFile] = useState<File | null>(null)
   const [documentFrontPreview, setDocumentFrontPreview] = useState<string | null>(null)
   const [documentBackPreview, setDocumentBackPreview] = useState<string | null>(null)
-  
+
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const handleOpenFilePicker = () => {
@@ -171,24 +176,25 @@ function RegisterTeacherContent() {
     }
   }, [profilePhotoSrc, croppedAreaPixels])
 
-  const onFormSubmit = async (data: ProfessorAttributes) => {
+  const onFormSubmit = async (data: PaiAttributes) => {
     try {
       const formData = new FormData()
-      
-      // Formatar CPF para incluir pontos e hífen (backend exige 14 caracteres: 000.000.000-00)
-      let formattedCpf = data.cpf.replace(/\D/g, '')
-      if (formattedCpf.length === 11) {
-        formattedCpf = formattedCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+
+      // Formatar documento para incluir pontos e hífen se for CPF
+      let formattedDoc = data.documento.replace(/\D/g, '')
+      if (data.tipo_documento === 'CPF' && formattedDoc.length === 11) {
+        formattedDoc = formattedDoc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
       }
 
       // Adicionar campos de texto
       formData.append('nome_completo', data.nome_completo)
-      formData.append('cpf', formattedCpf)
+      formData.append('tipo_documento', data.tipo_documento)
+      formData.append('documento', formattedDoc)
       formData.append('email', data.email)
       formData.append('telefone', data.telefone)
-      formData.append('formacao', data.formacao)
-      formData.append('status_professor', data.status_professor)
-      formData.append('data_nascimento', data.data_nascimento) // Já está em YYYY-MM-DD (formato esperado)
+      formData.append('profissao', data.profissao)
+      formData.append('recebe_beneficio_social', String(data.recebe_beneficio_social))
+      formData.append('data_nascimento', data.data_nascimento) // Já em YYYY-MM-DD
 
       // Adicionar arquivos
       if (profilePhotoBlob) {
@@ -201,17 +207,19 @@ function RegisterTeacherContent() {
         formData.append('documento_verso_url', documentBackFile)
       }
 
-      await api.post('/professores/create', formData, {
+      await api.post('/pais/create', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       })
 
-      alert('Professor cadastrado com sucesso!')
+      alert('Pai cadastrado com sucesso!')
       navigate('/dashboard')
     } catch (error: any) {
-      console.error('Erro ao salvar professor:', error)
-      const message = error.response?.data?.message || 'Erro ao cadastrar professor. Verifique os dados e tente novamente.'
+      console.error('Erro ao salvar pai:', error)
+      const message =
+        error.response?.data?.message ||
+        'Erro ao cadastrar pai. Verifique os dados e tente novamente.'
       alert(message)
     }
   }
@@ -222,9 +230,11 @@ function RegisterTeacherContent() {
     >
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
         <div className="flex-1">
-          <h1 className="font-title text-xl font-extrabold text-gray-900">Cadastro de Professores</h1>
+          <h1 className="font-title text-xl font-extrabold text-gray-900 uppercase">
+            Cadastro de Pais
+          </h1>
           <p className="font-body text-xs text-gray-400">
-            Cadastro de docentes — ONG Iluminando o Futuro
+            Cadastro de responsável familiar — ONG Iluminando o Futuro
           </p>
         </div>
         <NavLink
@@ -242,6 +252,10 @@ function RegisterTeacherContent() {
             <h2 className="font-title mb-3 text-base font-extrabold text-gray-900">
               Foto de Perfil
             </h2>
+            <p className="font-body mb-4 text-sm text-gray-400">
+              Clique na foto para selecionar e ajustar o corte.
+            </p>
+
             <div
               onClick={handleProfilePhotoClick}
               className="group relative mx-auto h-48 w-48 cursor-pointer overflow-hidden rounded-full border-4 border-yellow-50 bg-gray-50 shadow-inner transition hover:border-yellow-200"
@@ -269,11 +283,22 @@ function RegisterTeacherContent() {
               />
             </div>
 
+            {profilePhotoPreview && (
+              <p
+                className="text-center mt-4 text-[11px] font-bold text-yellow-600 uppercase cursor-pointer hover:underline"
+                onClick={handleProfilePhotoClick}
+              >
+                Ajustar ou Trocar
+              </p>
+            )}
+
             {isCropModalOpen && profilePhotoSrc && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
                 <div className="w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl">
                   <div className="border-b border-gray-100 p-6">
-                    <h3 className="font-title text-lg font-extrabold text-gray-900">Ajustar Imagem</h3>
+                    <h3 className="font-title text-lg font-extrabold text-gray-900">
+                      Ajustar Imagem
+                    </h3>
                   </div>
                   <div className="relative h-80 w-full bg-gray-100">
                     <Cropper
@@ -295,7 +320,7 @@ function RegisterTeacherContent() {
                         max={3}
                         step={0.1}
                         value={zoom}
-                        onChange={(e) => setZoom(Number(e.target.value))}
+                        onChange={e => setZoom(Number(e.target.value))}
                         className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-400"
                       />
                     </div>
@@ -319,14 +344,17 @@ function RegisterTeacherContent() {
             )}
           </div>
 
-          <form onSubmit={handleSubmit(onFormSubmit)} className="rounded-3xl bg-white p-8 shadow-sm">
+          <form
+            onSubmit={handleSubmit(onFormSubmit)}
+            className="rounded-3xl bg-white p-8 shadow-sm"
+          >
             <div className="mb-8 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-400 text-white shadow-md">
                 <UserPlus className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-title text-lg font-extrabold text-gray-900">Dados do Professor</h2>
-                <p className="font-body text-xs text-gray-400">Informe os dados cadastrais</p>
+                <h2 className="font-title text-lg font-extrabold text-gray-900">Dados Pessoais</h2>
+                <p className="font-body text-xs text-gray-400">Informe os dados do responsável</p>
               </div>
             </div>
 
@@ -339,25 +367,47 @@ function RegisterTeacherContent() {
                 <input
                   type="text"
                   {...register('nome_completo')}
-                  placeholder="Ex: Carlos Alberto"
+                  placeholder="Ex: João da Silva"
                   className={`${fieldClass} ${errors.nome_completo ? 'border-red-500' : ''}`}
                 />
-                {errors.nome_completo && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.nome_completo.message}</p>}
+                {errors.nome_completo && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.nome_completo.message}
+                  </p>
+                )}
               </label>
 
-              <label className="space-y-1.5">
-                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
-                  <Shield className="h-3.5 w-3.5 text-yellow-500" />
-                  CPF
-                </span>
-                <input
-                  type="text"
-                  {...register('cpf')}
-                  placeholder="000.000.000-00"
-                  className={`${fieldClass} ${errors.cpf ? 'border-red-500' : ''}`}
-                />
-                {errors.cpf && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.cpf.message}</p>}
-              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4 md:col-span-2">
+                <label className="space-y-1.5">
+                  <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                    <Shield className="h-3.5 w-3.5 text-yellow-500" />
+                    Tipo
+                  </span>
+                  <select {...register('tipo_documento')} className={fieldClass}>
+                    <option value="CPF">CPF</option>
+                    <option value="CNH">CNH</option>
+                  </select>
+                </label>
+
+                <label className="space-y-1.5">
+                  <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide text-transparent">
+                    .
+                  </span>
+                  <input
+                    type="text"
+                    {...register('documento')}
+                    placeholder={
+                      watch('tipo_documento') === 'CPF' ? '000.000.000-00' : '00000000000'
+                    }
+                    className={`${fieldClass} ${errors.documento ? 'border-red-500' : ''}`}
+                  />
+                  {errors.documento && (
+                    <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                      {errors.documento.message}
+                    </p>
+                  )}
+                </label>
+              </div>
 
               <label className="space-y-1.5">
                 <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
@@ -367,10 +417,14 @@ function RegisterTeacherContent() {
                 <input
                   type="email"
                   {...register('email')}
-                  placeholder="professor@email.com"
+                  placeholder="exemplo@email.com"
                   className={`${fieldClass} ${errors.email ? 'border-red-500' : ''}`}
                 />
-                {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.email.message}</p>}
+                {errors.email && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.email.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">
@@ -384,7 +438,11 @@ function RegisterTeacherContent() {
                   placeholder="(00) 00000-0000"
                   className={`${fieldClass} ${errors.telefone ? 'border-red-500' : ''}`}
                 />
-                {errors.telefone && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.telefone.message}</p>}
+                {errors.telefone && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.telefone.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">
@@ -397,37 +455,46 @@ function RegisterTeacherContent() {
                   {...register('data_nascimento')}
                   className={`${fieldClass} ${errors.data_nascimento ? 'border-red-500' : ''}`}
                 />
-                {errors.data_nascimento && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.data_nascimento.message}</p>}
+                {errors.data_nascimento && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.data_nascimento.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">
                 <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
                   <User className="h-3.5 w-3.5 text-yellow-500" />
-                  Formação
+                  Profissão
                 </span>
                 <input
                   type="text"
-                  {...register('formacao')}
-                  placeholder="Ex: Graduação em Educação Física"
-                  className={`${fieldClass} ${errors.formacao ? 'border-red-500' : ''}`}
+                  {...register('profissao')}
+                  placeholder="Ex: Professor"
+                  className={`${fieldClass} ${errors.profissao ? 'border-red-500' : ''}`}
                 />
-                {errors.formacao && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.formacao.message}</p>}
+                {errors.profissao && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.profissao.message}
+                  </p>
+                )}
               </label>
 
-              <label className="space-y-1.5">
-                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
-                  <Shield className="h-3.5 w-3.5 text-yellow-500" />
-                  Status
-                </span>
-                <select
-                  {...register('status_professor')}
-                  className={fieldClass}
-                >
-                  <option value="ativo">Ativo</option>
-                  <option value="inativo">Inativo</option>
-                  <option value="licenca">Licença</option>
-                </select>
-              </label>
+              <div className="md:col-span-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 mt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      {...register('recebe_beneficio_social')}
+                      className="peer sr-only"
+                    />
+                    <div className="h-6 w-11 rounded-full bg-gray-200 transition-colors peer-checked:bg-yellow-400 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+                  </div>
+                  <span className="font-body text-sm font-semibold text-gray-700">
+                    Recebe benefício social?
+                  </span>
+                </label>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 border-t border-gray-100 pt-8">
@@ -436,16 +503,34 @@ function RegisterTeacherContent() {
                   <FileText className="h-3.5 w-3.5 text-yellow-500" />
                   Documento (Frente)
                 </div>
-                <div 
+
+                <div
                   onClick={() => document.getElementById('doc-frente')?.click()}
-                  className="relative h-40 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
+                  className="relative h-48 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
                 >
                   {documentFrontPreview ? (
-                    <img src={documentFrontPreview} alt="Frente" className="w-full h-full object-cover" />
+                    <img
+                      src={documentFrontPreview}
+                      alt="Frente"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <Plus className="h-6 w-6 text-gray-300" />
+                    <div className="text-center">
+                      <Plus className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">
+                        Enviar Frente
+                      </span>
+                    </div>
                   )}
-                  <input id="doc-frente" type="file" className="hidden" accept="image/*" onChange={(e) => handleDocumentUpload(e, setDocumentFrontFile, setDocumentFrontPreview)} />
+                  <input
+                    id="doc-frente"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={e =>
+                      handleDocumentUpload(e, setDocumentFrontFile, setDocumentFrontPreview)
+                    }
+                  />
                 </div>
               </div>
 
@@ -454,16 +539,34 @@ function RegisterTeacherContent() {
                   <FileText className="h-3.5 w-3.5 text-yellow-500" />
                   Documento (Verso)
                 </div>
-                <div 
+
+                <div
                   onClick={() => document.getElementById('doc-verso')?.click()}
-                  className="relative h-40 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
+                  className="relative h-48 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
                 >
                   {documentBackPreview ? (
-                    <img src={documentBackPreview} alt="Verso" className="w-full h-full object-cover" />
+                    <img
+                      src={documentBackPreview}
+                      alt="Verso"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <Plus className="h-6 w-6 text-gray-300" />
+                    <div className="text-center">
+                      <Plus className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">
+                        Enviar Verso
+                      </span>
+                    </div>
                   )}
-                  <input id="doc-verso" type="file" className="hidden" accept="image/*" onChange={(e) => handleDocumentUpload(e, setDocumentBackFile, setDocumentBackPreview)} />
+                  <input
+                    id="doc-verso"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={e =>
+                      handleDocumentUpload(e, setDocumentBackFile, setDocumentBackPreview)
+                    }
+                  />
                 </div>
               </div>
             </div>
@@ -504,13 +607,13 @@ function OpenSidebarButton() {
   )
 }
 
-export default function RegisterTeacher() {
+export default function RegisterParent() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <OpenSidebarButton />
-        <RegisterTeacherContent />
+        <RegisterParentContent />
       </div>
     </SidebarProvider>
   )

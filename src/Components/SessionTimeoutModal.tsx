@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Clock, RefreshCw, LogOut, ShieldAlert } from 'lucide-react'
+import { Clock, RefreshCw, LogOut, ShieldAlert, X } from 'lucide-react'
 
 interface SessionTimeoutModalProps {
   isOpen: boolean
   onRenew: () => Promise<void>
   onLogout: () => void
+  onClose?: () => void
   expiresInSeconds: number
 }
 
-export function SessionTimeoutModal({ isOpen, onRenew, onLogout, expiresInSeconds }: SessionTimeoutModalProps) {
+export function SessionTimeoutModal({ isOpen, onRenew, onLogout, onClose, expiresInSeconds }: SessionTimeoutModalProps) {
   const [timeLeft, setTimeLeft] = useState(expiresInSeconds)
   const [isRenewing, setIsRenewing] = useState(false)
 
@@ -48,7 +49,15 @@ export function SessionTimeoutModal({ isOpen, onRenew, onLogout, expiresInSecond
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white rounded-[32px] w-full max-w-md p-8 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-300">
+      <div className="bg-white rounded-[32px] w-full max-w-md p-8 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-300 relative">
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
         <div className="flex flex-col items-center text-center">
           <div className="bg-yellow-50 p-4 rounded-3xl mb-6 relative">
              <Clock className="h-10 w-10 text-yellow-500 animate-pulse" />

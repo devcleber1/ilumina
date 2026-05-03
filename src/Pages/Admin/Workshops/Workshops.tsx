@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
-import { 
-  ChevronRight, 
-  Edit, 
-  Plus, 
-  Search, 
-  Trash2, 
+import {
+  ChevronRight,
+  Edit,
+  Plus,
+  Search,
+  Trash2,
   Wrench,
   Clock,
   Users as UsersIcon,
-  Calendar
+  Calendar,
 } from 'lucide-react'
 import { api } from '../../../lib/api'
 
@@ -60,7 +60,7 @@ function WorkshopsContent() {
     }
   }
 
-  const filteredWorkshops = workshops.filter(w => 
+  const filteredWorkshops = workshops.filter(w =>
     w.nome_oficina.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -70,7 +70,7 @@ function WorkshopsContent() {
     >
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
         <div className="flex-1">
-          <h1 className="font-title text-xl font-extrabold text-gray-900">Oficinas</h1>
+          <h1 className="font-title text-xl uppercase font-extrabold text-gray-900">Oficinas</h1>
           <p className="font-body text-xs text-gray-400">
             Listagem e gestão de oficinas — ONG Iluminando o Futuro
           </p>
@@ -87,8 +87,8 @@ function WorkshopsContent() {
       <div className="p-6 flex flex-col gap-6">
         <div className="rounded-3xl bg-white p-4 shadow-sm flex items-center gap-3">
           <Search className="h-5 w-5 text-gray-400" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Buscar oficina por nome..."
             className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900"
             value={search}
@@ -111,19 +111,22 @@ function WorkshopsContent() {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredWorkshops.map(workshop => (
-              <div key={workshop.id} className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100 flex flex-col group hover:shadow-md transition">
+              <div
+                key={workshop.id}
+                className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100 flex flex-col group hover:shadow-md transition"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="p-3 rounded-2xl bg-yellow-50 text-yellow-500">
                     <Wrench className="h-6 w-6" />
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                    <button 
+                    <button
                       className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition cursor-pointer"
                       title="Editar"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDelete(workshop.id)}
                       className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition cursor-pointer"
                       title="Excluir"
@@ -133,8 +136,12 @@ function WorkshopsContent() {
                   </div>
                 </div>
 
-                <h3 className="font-title text-lg font-bold text-gray-900 mb-2">{workshop.nome_oficina}</h3>
-                <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">{workshop.descricao}</p>
+                <h3 className="font-title text-lg font-bold text-gray-900 mb-2">
+                  {workshop.nome_oficina}
+                </h3>
+                <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">
+                  {workshop.descricao}
+                </p>
 
                 <div className="space-y-2 pt-4 border-t border-gray-50">
                   <div className="flex items-center gap-2 text-xs text-gray-600">

@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
   
   const [showSessionModal, setShowSessionModal] = useState(false)
+  const [isModalDismissed, setIsModalDismissed] = useState(false)
   const [expiresAt, setExpiresAt] = useState<number | null>(() => {
     const saved = localStorage.getItem('expiresAt')
     return saved ? Number(saved) : null
@@ -45,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const timeLeft = expiresAt - now
       
       // Mostrar aviso faltando 2 minutos (120.000 ms)
-      if (timeLeft <= 120000 && timeLeft > 0 && !showSessionModal) {
+      if (timeLeft <= 120000 && timeLeft > 0 && !showSessionModal && !isModalDismissed) {
         setShowSessionModal(true)
       }
       
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (saved) {
         setExpiresAt(Number(saved))
         setShowSessionModal(false)
+        setIsModalDismissed(false)
       }
     }
 
@@ -70,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearInterval(interval)
       window.removeEventListener('session-renewed', handleSessionRenewed)
     }
-  }, [isAuthenticated, expiresAt, showSessionModal])
+  }, [isAuthenticated, expiresAt, showSessionModal, isModalDismissed])
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -122,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsAuthenticated(true)
           setUser(data.user)
           setShowSessionModal(false)
+          setIsModalDismissed(false)
           
           showAlert('success', 'Login realizado com sucesso!', 'Bem-vindo ao sistema.')
           return true
@@ -146,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     setExpiresAt(null)
     setShowSessionModal(false)
+    setIsModalDismissed(false)
     showAlert('warning', 'Sessão encerrada', 'Você foi desconectado por segurança.')
   }
 
@@ -162,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('expiresAt', String(newExpiresAt))
         setExpiresAt(newExpiresAt)
         setShowSessionModal(false)
+        setIsModalDismissed(false)
         window.dispatchEvent(new Event('session-renewed'))
         showAlert('success', 'Sessão renovada', 'Sua conexão permanecerá ativa.')
       }
@@ -178,6 +183,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isOpen={showSessionModal}
         onRenew={renewSession}
         onLogout={logout}
+        onClose={() => {
+          setShowSessionModal(false)
+          setIsModalDismissed(true)
+        }}
         expiresInSeconds={expiresAt ? Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)) : 0}
       />
     </AuthContext.Provider>

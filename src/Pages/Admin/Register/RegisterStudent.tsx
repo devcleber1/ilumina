@@ -3,7 +3,18 @@ import Cropper, { type Area } from 'react-easy-crop'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
-import { Camera, ChevronRight, FileText, Mail, Shield, User, UserPlus, Search, Users, Plus } from 'lucide-react'
+import {
+  Camera,
+  ChevronRight,
+  FileText,
+  Mail,
+  Shield,
+  User,
+  UserPlus,
+  Search,
+  Users,
+  Plus,
+} from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -90,7 +101,7 @@ const fieldClass =
 function RegisterStudentContent() {
   const { open } = useSidebar()
   const navigate = useNavigate()
-  
+
   const {
     register,
     handleSubmit,
@@ -109,17 +120,17 @@ function RegisterStudentContent() {
   const [profilePhotoSrc, setProfilePhotoSrc] = useState<string | null>(null)
   const [profilePhotoBlob, setProfilePhotoBlob] = useState<Blob | null>(null)
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null)
-  
+
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-  
+
   const [documentFrontFile, setDocumentFrontFile] = useState<File | null>(null)
   const [documentBackFile, setDocumentBackFile] = useState<File | null>(null)
   const [documentFrontPreview, setDocumentFrontPreview] = useState<string | null>(null)
   const [documentBackPreview, setDocumentBackPreview] = useState<string | null>(null)
-  
+
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -197,7 +208,7 @@ function RegisterStudentContent() {
   const onFormSubmit = async (data: AlunoAttributes) => {
     try {
       const formData = new FormData()
-      
+
       // Formatar data de nascimento de YYYY-MM-DD para DD/MM/AAAA
       const [year, month, day] = data.data_nascimento.split('-')
       const formattedDate = `${day}/${month}/${year}`
@@ -207,7 +218,7 @@ function RegisterStudentContent() {
       if (formattedCpf.length === 11) {
         formattedCpf = formattedCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
       }
-      
+
       // Adicionar apenas os campos esperados pelo backend
       formData.append('nome_completo', data.nome_completo)
       formData.append('cpf', formattedCpf)
@@ -241,7 +252,7 @@ function RegisterStudentContent() {
         try {
           await api.post(`/pais/vincular-aluno/${studentId}`, {
             pai_id: selectedPai.id,
-            relacao: 'responsavel' // Backend exige este campo
+            relacao: 'responsavel', // Backend exige este campo
           })
         } catch (linkError) {
           console.error('Erro ao vincular pai:', linkError)
@@ -253,7 +264,9 @@ function RegisterStudentContent() {
       navigate('/dashboard')
     } catch (error: any) {
       console.error('Erro ao salvar aluno:', error)
-      const message = error.response?.data?.message || 'Erro ao cadastrar aluno. Verifique os dados e tente novamente.'
+      const message =
+        error.response?.data?.message ||
+        'Erro ao cadastrar aluno. Verifique os dados e tente novamente.'
       alert(message)
     }
   }
@@ -270,7 +283,9 @@ function RegisterStudentContent() {
     >
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
         <div className="flex-1">
-          <h1 className="font-title text-xl font-extrabold text-gray-900">Cadastro de Alunos</h1>
+          <h1 className="font-title text-xl font-extrabold text-gray-900 uppercase">
+            Cadastro de Alunos
+          </h1>
           <p className="font-body text-xs text-gray-400">
             Cadastro de estudantes — ONG Iluminando o Futuro
           </p>
@@ -322,7 +337,9 @@ function RegisterStudentContent() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
                   <div className="w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl">
                     <div className="border-b border-gray-100 p-6">
-                      <h3 className="font-title text-lg font-extrabold text-gray-900">Ajustar Imagem</h3>
+                      <h3 className="font-title text-lg font-extrabold text-gray-900">
+                        Ajustar Imagem
+                      </h3>
                     </div>
                     <div className="relative h-80 w-full bg-gray-100">
                       <Cropper
@@ -344,7 +361,7 @@ function RegisterStudentContent() {
                           max={3}
                           step={0.1}
                           value={zoom}
-                          onChange={(e) => setZoom(Number(e.target.value))}
+                          onChange={e => setZoom(Number(e.target.value))}
                           className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-400"
                         />
                       </div>
@@ -379,12 +396,12 @@ function RegisterStudentContent() {
                   <input
                     type="text"
                     value={paiSearch}
-                    onChange={(e) => setPaiSearch(e.target.value)}
+                    onChange={e => setPaiSearch(e.target.value)}
                     placeholder="Buscar pai por nome ou CPF"
                     className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 py-2.5 text-xs outline-none focus:border-yellow-400"
                   />
                 </div>
-                
+
                 <div className="max-h-[300px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
                   {filteredParents.map(pai => (
                     <button
@@ -411,7 +428,10 @@ function RegisterStudentContent() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(onFormSubmit)} className="rounded-3xl bg-white p-8 shadow-sm">
+          <form
+            onSubmit={handleSubmit(onFormSubmit)}
+            className="rounded-3xl bg-white p-8 shadow-sm"
+          >
             <div className="mb-8 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-400 text-white shadow-md">
                 <UserPlus className="h-5 w-5" />
@@ -434,7 +454,11 @@ function RegisterStudentContent() {
                   placeholder="Ex: Pedro Henrique"
                   className={`${fieldClass} ${errors.nome_completo ? 'border-red-500' : ''}`}
                 />
-                {errors.nome_completo && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.nome_completo.message}</p>}
+                {errors.nome_completo && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.nome_completo.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">
@@ -448,7 +472,11 @@ function RegisterStudentContent() {
                   placeholder="000.000.000-00"
                   className={`${fieldClass} ${errors.cpf ? 'border-red-500' : ''}`}
                 />
-                {errors.cpf && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.cpf.message}</p>}
+                {errors.cpf && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.cpf.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">
@@ -462,7 +490,11 @@ function RegisterStudentContent() {
                   placeholder="aluno@email.com"
                   className={`${fieldClass} ${errors.email ? 'border-red-500' : ''}`}
                 />
-                {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.email.message}</p>}
+                {errors.email && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.email.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">
@@ -476,7 +508,11 @@ function RegisterStudentContent() {
                   placeholder="(00) 00000-0000"
                   className={`${fieldClass} ${errors.telefone ? 'border-red-500' : ''}`}
                 />
-                {errors.telefone && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.telefone.message}</p>}
+                {errors.telefone && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.telefone.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">
@@ -489,7 +525,11 @@ function RegisterStudentContent() {
                   {...register('data_nascimento')}
                   className={`${fieldClass} ${errors.data_nascimento ? 'border-red-500' : ''}`}
                 />
-                {errors.data_nascimento && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.data_nascimento.message}</p>}
+                {errors.data_nascimento && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.data_nascimento.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5 md:col-span-2">
@@ -497,10 +537,7 @@ function RegisterStudentContent() {
                   <Shield className="h-3.5 w-3.5 text-yellow-500" />
                   Status
                 </span>
-                <select
-                  {...register('status_aluno')}
-                  className={fieldClass}
-                >
+                <select {...register('status_aluno')} className={fieldClass}>
                   <option value="ativo">Ativo</option>
                   <option value="inativo">Inativo</option>
                   <option value="transferido">Transferido</option>
@@ -514,16 +551,28 @@ function RegisterStudentContent() {
                   <FileText className="h-3.5 w-3.5 text-yellow-500" />
                   Documento (Frente)
                 </div>
-                <div 
+                <div
                   onClick={() => document.getElementById('doc-frente')?.click()}
                   className="relative h-40 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
                 >
                   {documentFrontPreview ? (
-                    <img src={documentFrontPreview} alt="Frente" className="w-full h-full object-cover" />
+                    <img
+                      src={documentFrontPreview}
+                      alt="Frente"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <Plus className="h-6 w-6 text-gray-300" />
                   )}
-                  <input id="doc-frente" type="file" className="hidden" accept="image/*" onChange={(e) => handleDocumentUpload(e, setDocumentFrontFile, setDocumentFrontPreview)} />
+                  <input
+                    id="doc-frente"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={e =>
+                      handleDocumentUpload(e, setDocumentFrontFile, setDocumentFrontPreview)
+                    }
+                  />
                 </div>
               </div>
 
@@ -532,16 +581,28 @@ function RegisterStudentContent() {
                   <FileText className="h-3.5 w-3.5 text-yellow-500" />
                   Documento (Verso)
                 </div>
-                <div 
+                <div
                   onClick={() => document.getElementById('doc-verso')?.click()}
                   className="relative h-40 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
                 >
                   {documentBackPreview ? (
-                    <img src={documentBackPreview} alt="Verso" className="w-full h-full object-cover" />
+                    <img
+                      src={documentBackPreview}
+                      alt="Verso"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <Plus className="h-6 w-6 text-gray-300" />
                   )}
-                  <input id="doc-verso" type="file" className="hidden" accept="image/*" onChange={(e) => handleDocumentUpload(e, setDocumentBackFile, setDocumentBackPreview)} />
+                  <input
+                    id="doc-verso"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={e =>
+                      handleDocumentUpload(e, setDocumentBackFile, setDocumentBackPreview)
+                    }
+                  />
                 </div>
               </div>
             </div>
