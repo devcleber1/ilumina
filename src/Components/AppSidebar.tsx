@@ -72,7 +72,7 @@ const menuItems: MenuItem[] = [
 export function AppSidebar() {
   const [openMenus, setOpenMenus] = useState<string[]>(['Cadastros', 'Controle Acesso'])
   const { toggleSidebar } = useSidebar()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const navigate = useNavigate()
 
   const toggleMenu = (title: string) => {
@@ -228,11 +228,25 @@ export function AppSidebar() {
       <SidebarFooter>
         <div className="px-3 py-2 border-t border-gray-200">
           <div className="flex items-center gap-3 mb-3">
-            <img src={logo} alt="Avatar" className="h-9 w-9 rounded-full object-cover" />
+            <div className="h-9 w-9 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden border border-gray-200">
+              {user?.foto_perfil_url ? (
+                <img 
+                  src={user.foto_perfil_url.startsWith('http') ? user.foto_perfil_url : `http://localhost:3001${user.foto_perfil_url}`} 
+                  alt="Avatar" 
+                  className="h-full w-full object-cover" 
+                />
+              ) : (
+                <span className="text-xs font-bold text-gray-900">
+                  {user?.nome_completo ? user.nome_completo.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'AD'}
+                </span>
+              )}
+            </div>
             <div>
-              <p className="font-body text-sm font-semibold text-gray-900">Marisa Queiroz</p>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-gray-900">
-                Admin
+              <p className="font-body text-sm font-semibold text-gray-900 truncate max-w-[120px]">
+                {user?.nome_completo || 'Administrador'}
+              </p>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-gray-900 capitalize">
+                {user?.tipo || 'Admin'}
               </span>
             </div>
           </div>

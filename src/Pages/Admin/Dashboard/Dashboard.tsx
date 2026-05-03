@@ -17,6 +17,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { api } from '../../../lib/api'
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../../contexts/AuthContext'
 
 interface Stats {
   summary: {
@@ -32,7 +33,8 @@ interface Stats {
 
 interface Log {
   acao: string
-  usuario_email: string
+  usuario_nome: string
+  usuario_foto_url?: string
   timestamp: string
 }
 
@@ -77,6 +79,7 @@ function SectionTitle({ title, sub }: { title: string; sub?: string }) {
 
 function DashboardContent() {
   const { open } = useSidebar()
+  const { user } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentLogs, setRecentLogs] = useState<Log[]>([])
   const [loading, setLoading] = useState(true)
@@ -95,7 +98,7 @@ function DashboardContent() {
 
       // Carregar logs
       try {
-        const logsRes = await api.get('/logs/find?limite=5')
+        const logsRes = await api.get('/logs?limite=5')
         setRecentLogs(logsRes.data.logs || [])
       } catch (error) {
         console.error('Erro ao carregar logs:', error)
@@ -268,15 +271,29 @@ function DashboardContent() {
               </div>
               <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-50">
                 {recentLogs.map((log, idx) => (
-                  <div key={idx} className="relative pl-8">
-                    <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full border-2 border-white bg-yellow-400 shadow-sm" />
+                  <div key={idx} className="relative pl-10">
+                    <div className="absolute left-0 top-0.5 h-7 w-7 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden border border-gray-100 shadow-sm">
+                       {log.usuario_foto_url ? (
+                         <img 
+                           src={log.usuario_foto_url.startsWith('http') ? log.usuario_foto_url : `http://localhost:3001${log.usuario_foto_url}`} 
+                           alt="Avatar" 
+                           className="h-full w-full object-cover" 
+                         />
+                       ) : (
+                         <span className="text-[8px] font-bold text-gray-900">
+                           {log.usuario_nome ? log.usuario_nome.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'SY'}
+                         </span>
+                       )}
+                    </div>
+                    <div className="absolute left-[24px] top-[20px] h-2.5 w-2.5 rounded-full border-2 border-white bg-yellow-400 shadow-sm" />
+                    
                     <p className="text-xs font-bold text-gray-900 leading-tight mb-0.5">
                       {log.acao}
                     </p>
                     <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                      <span className="font-medium">{log.usuario_email || 'Sistema'}</span>
+                      <span className="font-medium">{log.usuario_nome || 'Sistema'}</span>
                       <span>•</span>
-                      <span>{new Date(log.timestamp).toLocaleTimeString('pt-BR', { hour: '2-8', minute: '2-8' })}</span>
+                      <span>{new Date(log.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   </div>
                 ))}
