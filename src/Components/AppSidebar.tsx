@@ -56,7 +56,7 @@ const menuItems: MenuItem[] = [
   },
   { title: 'Oficinas', icon: Wrench, url: '/dashboard/oficinas' },
   { title: 'Presenca', icon: CalendarCheck, url: '/dashboard/presenca' },
-  { title: 'Advertencia', icon: AlertTriangle, url: '#' },
+  { title: 'Advertencia', icon: AlertTriangle, url: '/dashboard/advertencia' },
   { title: 'Reuniao', icon: GraduationCap, url: '#' },
   {
     title: 'Controle Acesso',

@@ -30,6 +30,11 @@ api.interceptors.response.use(
 
         if (accessToken) {
           localStorage.setItem('token', accessToken)
+          
+          // Atualiza o tempo de expiração para o AuthContext
+          const newExpiresAt = Date.now() + (15 * 60 * 1000)
+          localStorage.setItem('expiresAt', String(newExpiresAt))
+          window.dispatchEvent(new Event('session-renewed'))
 
           // Atualiza o header da requisição original e repete
           originalRequest.headers.Authorization = `Bearer ${accessToken}`

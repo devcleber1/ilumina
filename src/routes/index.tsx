@@ -1,12 +1,13 @@
 import { Routes, Route } from 'react-router-dom'
 import Auth from '../Pages/Auth/Auth'
-import Dashboard from '../Pages/Admin/Dashboard/Dashboard'
+import { Dashboard } from '../Pages/Admin/Dashboard/Dashboard'
 import RegisterParent from '../Pages/Admin/Dashboard/RegisterParent'
 import RegisterStudent from '../Pages/Admin/Dashboard/RegisterStudent'
 import RegisterTeacher from '../Pages/Admin/Dashboard/RegisterTeacher'
 import RegisterWorkshop from '../Pages/Admin/Dashboard/RegisterWorkshop'
 import Workshops from '../Pages/Admin/Dashboard/Workshops'
 import { Presenca } from '../Pages/Admin/Presenca/Presenca'
+import { Advertencia } from '../Pages/Admin/Advertencia/Advertencia'
 
 export default function AppRoutes() {
   return (
@@ -19,6 +20,7 @@ export default function AppRoutes() {
       <Route path="/dashboard/cadastro-oficinas" element={<RegisterWorkshop />} />
       <Route path="/dashboard/oficinas" element={<Workshops />} />
       <Route path="/dashboard/presenca" element={<Presenca />} />
+      <Route path="/dashboard/advertencia" element={<Advertencia />} />
     </Routes>
   )
 }
