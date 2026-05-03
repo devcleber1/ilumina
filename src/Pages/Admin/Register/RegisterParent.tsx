@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { api } from '../../../lib/api'
+import { formatCPF, formatCNH, formatPhone } from '../../../utils/formatters'
 
 interface PaiAttributes {
   id?: number
@@ -395,7 +396,12 @@ function RegisterParentContent() {
                   </span>
                   <input
                     type="text"
-                    {...register('documento')}
+                    {...register('documento', {
+                      onChange: (e) => {
+                        const tipo = watch('tipo_documento')
+                        e.target.value = tipo === 'CPF' ? formatCPF(e.target.value) : formatCNH(e.target.value)
+                      }
+                    })}
                     placeholder={
                       watch('tipo_documento') === 'CPF' ? '000.000.000-00' : '00000000000'
                     }
@@ -433,8 +439,12 @@ function RegisterParentContent() {
                   Telefone
                 </span>
                 <input
-                  type="tel"
-                  {...register('telefone')}
+                  type="text"
+                  {...register('telefone', {
+                    onChange: (e) => {
+                      e.target.value = formatPhone(e.target.value)
+                    }
+                  })}
                   placeholder="(00) 00000-0000"
                   className={`${fieldClass} ${errors.telefone ? 'border-red-500' : ''}`}
                 />

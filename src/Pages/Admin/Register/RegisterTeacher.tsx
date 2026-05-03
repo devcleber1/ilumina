@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { api } from '../../../lib/api'
+import { formatCPF, formatPhone } from '../../../utils/formatters'
 
 interface ProfessorAttributes {
   id?: number
@@ -367,7 +368,11 @@ function RegisterTeacherContent() {
                 </span>
                 <input
                   type="text"
-                  {...register('cpf')}
+                  {...register('cpf', {
+                    onChange: (e) => {
+                      e.target.value = formatCPF(e.target.value)
+                    }
+                  })}
                   placeholder="000.000.000-00"
                   className={`${fieldClass} ${errors.cpf ? 'border-red-500' : ''}`}
                 />
@@ -402,8 +407,12 @@ function RegisterTeacherContent() {
                   Telefone
                 </span>
                 <input
-                  type="tel"
-                  {...register('telefone')}
+                  type="text"
+                  {...register('telefone', {
+                    onChange: (e) => {
+                      e.target.value = formatPhone(e.target.value)
+                    }
+                  })}
                   placeholder="(00) 00000-0000"
                   className={`${fieldClass} ${errors.telefone ? 'border-red-500' : ''}`}
                 />
