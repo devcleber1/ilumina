@@ -1,8 +1,12 @@
-import { useState, type FormEvent } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
-import { ChevronRight, GraduationCap, Search, Wrench } from 'lucide-react'
+import { ChevronRight, GraduationCap, Search, Wrench, Plus, Users, Clock, Calendar } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import { api } from '../../../lib/api'
 
 interface OficinaAttributes {
   id?: number
@@ -13,80 +17,111 @@ interface OficinaAttributes {
   horario_fim: string
   dias_semana: string
   status_oficina: 'ativa' | 'inativa'
-  data_cadastro?: Date
-  data_atualizacao?: Date
 }
 
 interface ProfessorCard {
   id: number
-  nome: string
-  disciplina: string
-  experiencia: string
+  nome_completo: string
+  formacao: string
 }
 
-type WorkshopForm = Omit<OficinaAttributes, 'data_cadastro' | 'data_atualizacao'> & {
-  professor_responsavel?: ProfessorCard | null
-}
+const schema = yup.object({
+  nome_oficina: yup.string().required('Nome da oficina é obrigatório'),
+  descricao: yup.string().required('Descrição é obrigatória'),
+  capacidade_maxima: yup.number().min(1, 'Mínimo 1 vaga').required('Capacidade é obrigatória'),
+  horario_inicio: yup.string().required('Horário de início é obrigatório'),
+  horario_fim: yup.string().required('Horário de fim é obrigatório'),
+  status_oficina: yup.string().oneOf(['ativa', 'inativa']).required(),
+})
+
+const daysOfWeek = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 const fieldClass =
   'w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200'
 
-const daysOfWeek = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
-
-const suggestedTeachers: ProfessorCard[] = [
-  { id: 1, nome: 'Ana Souza', disciplina: 'Matemática', experiencia: '8 anos' },
-  { id: 2, nome: 'Carlos Pereira', disciplina: 'Artes', experiencia: '6 anos' },
-  { id: 3, nome: 'Mariana Silva', disciplina: 'Ciências', experiencia: '10 anos' },
-]
-
 function RegisterWorkshopContent() {
   const { open } = useSidebar()
-  const [form, setForm] = useState<WorkshopForm>({
-    nome_oficina: '',
-    descricao: '',
-    capacidade_maxima: 20,
-    horario_inicio: '09:00',
-    horario_fim: '10:30',
-    dias_semana: '',
-    status_oficina: 'ativa',
-    professor_responsavel: null,
+  const navigate = useNavigate()
+  
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<OficinaAttributes>({
+    resolver: yupResolver(schema) as any,
+    defaultValues: {
+      capacidade_maxima: 20,
+      horario_inicio: '09:00',
+      horario_fim: '10:30',
+      status_oficina: 'ativa',
+      dias_semana: '',
+    },
   })
-  const [search, setSearch] = useState('')
 
-  const handleChange = (field: keyof WorkshopForm, value: any) => {
-    setForm(prev => ({ ...prev, [field]: value }))
+  const [search, setSearch] = useState('')
+  const [teachers, setTeachers] = useState<ProfessorCard[]>([])
+  const [selectedTeacher, setSelectedTeacher] = useState<ProfessorCard | null>(null)
+  const currentDays = watch('dias_semana')
+
+  useEffect(() => {
+    fetchTeachers()
+  }, [])
+
+  const fetchTeachers = async () => {
+    try {
+      const response = await api.get('/professores/find')
+      setTeachers(response.data)
+    } catch (error) {
+      console.error('Erro ao buscar professores:', error)
+    }
   }
 
   const toggleDay = (day: string) => {
-    const selectedDays = form.dias_semana ? form.dias_semana.split(',') : []
+    const selectedDays = currentDays ? currentDays.split(',') : []
     const nextDays = selectedDays.includes(day)
       ? selectedDays.filter(current => current !== day)
       : [...selectedDays, day]
-
-    setForm(prev => ({ ...prev, dias_semana: nextDays.join(',') }))
+    
+    setValue('dias_semana', nextDays.join(','))
   }
 
-  const filteredTeachers = suggestedTeachers.filter(
+  const filteredTeachers = teachers.filter(
     teacher =>
-      teacher.nome.toLowerCase().includes(search.toLowerCase()) ||
-      teacher.disciplina.toLowerCase().includes(search.toLowerCase())
+      teacher.nome_completo.toLowerCase().includes(search.toLowerCase()) ||
+      teacher.formacao.toLowerCase().includes(search.toLowerCase())
   )
 
-  const handleSelectProfessor = (teacher: ProfessorCard) => {
-    setForm(prev => ({ ...prev, professor_responsavel: teacher }))
-  }
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const payload = {
-      ...form,
-      professor_responsavel: form.professor_responsavel,
+  const onFormSubmit = async (data: OficinaAttributes) => {
+    if (!data.dias_semana) {
+      alert('Selecione pelo menos um dia da semana.')
+      return
     }
-    console.log('Salvar oficina:', payload)
-    alert('Cadastro de oficina salvo localmente. Implementar envio ao backend.')
-  }
 
-  const selectedDays = form.dias_semana ? form.dias_semana.split(',') : []
+    try {
+      const response = await api.post('/oficinas/create', data)
+      const oficinaId = response.data.id
+
+      if (selectedTeacher) {
+        try {
+          await api.post(`/oficinas/${oficinaId}/vincular-professor`, {
+            professor_id: selectedTeacher.id
+          })
+        } catch (linkError) {
+          console.error('Erro ao vincular professor:', linkError)
+          alert('Oficina criada, mas houve um erro ao vincular o professor responsável.')
+        }
+      }
+
+      alert('Oficina criada com sucesso!')
+      navigate('/dashboard/oficinas')
+    } catch (error: any) {
+      console.error('Erro ao criar oficina:', error)
+      const message = error.response?.data?.message || 'Erro ao criar oficina. Verifique os dados e tente novamente.'
+      alert(message)
+    }
+  }
 
   return (
     <main
@@ -94,218 +129,183 @@ function RegisterWorkshopContent() {
     >
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
         <div className="flex-1">
-          <h1 className="font-title text-xl font-extrabold text-gray-900">Cadastro de Oficinas</h1>
+          <h1 className="font-title text-xl font-extrabold text-gray-900">Nova Oficina</h1>
           <p className="font-body text-xs text-gray-400">
-            Cadastro de oficina — ONG Iluminando o Futuro
+            Criação de atividades e oficinas — ONG Iluminando o Futuro
           </p>
         </div>
         <NavLink
-          to="/dashboard"
+          to="/dashboard/oficinas"
           className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-yellow-400 hover:bg-yellow-50"
         >
           <ChevronRight className="h-4 w-4 rotate-180 text-gray-600" />
-          Voltar ao dashboard
+          Voltar à listagem
         </NavLink>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-3 text-sm font-semibold text-gray-900">
-            <Wrench className="h-4 w-4 text-yellow-400" />
-            Dados da oficina
-          </div>
+      <div className="p-6 flex flex-col gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
+          <form onSubmit={handleSubmit(onFormSubmit)} className="rounded-3xl bg-white p-8 shadow-sm h-fit">
+            <div className="mb-8 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-400 text-white shadow-md">
+                <Wrench className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-title text-lg font-extrabold text-gray-900">Informações da Oficina</h2>
+                <p className="font-body text-xs text-gray-400">Configure os detalhes da atividade</p>
+              </div>
+            </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
-            <label className="space-y-2 lg:col-span-2">
-              <span className="font-body text-sm font-semibold text-gray-700">Nome da oficina</span>
-              <input
-                type="text"
-                value={form.nome_oficina}
-                onChange={event => handleChange('nome_oficina', event.target.value)}
-                className={fieldClass}
-                placeholder="Ex: Oficina de Robótica"
-                required
-              />
-            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <label className="space-y-1.5 md:col-span-2">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <Wrench className="h-3.5 w-3.5 text-yellow-500" />
+                  Nome da Oficina
+                </span>
+                <input
+                  type="text"
+                  {...register('nome_oficina')}
+                  placeholder="Ex: Oficina de Pintura"
+                  className={`${fieldClass} ${errors.nome_oficina ? 'border-red-500' : ''}`}
+                />
+                {errors.nome_oficina && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.nome_oficina.message}</p>}
+              </label>
 
-            <label className="space-y-2 lg:col-span-2">
-              <span className="font-body text-sm font-semibold text-gray-700">Descrição</span>
-              <textarea
-                value={form.descricao ?? ''}
-                onChange={event => handleChange('descricao', event.target.value)}
-                className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200"
-                placeholder="Descrição breve da oficina"
-              />
-            </label>
+              <label className="space-y-1.5 md:col-span-2">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <Plus className="h-3.5 w-3.5 text-yellow-500" />
+                  Descrição (Opcional)
+                </span>
+                <textarea
+                  {...register('descricao')}
+                  rows={3}
+                  placeholder="Descreva o que será ensinado nesta oficina..."
+                  className={fieldClass}
+                />
+              </label>
 
-            <label className="space-y-2">
-              <span className="font-body text-sm font-semibold text-gray-700">
-                Capacidade máxima
-              </span>
-              <input
-                type="number"
-                value={form.capacidade_maxima}
-                onChange={event => handleChange('capacidade_maxima', Number(event.target.value))}
-                className={fieldClass}
-                min={1}
-                placeholder="25"
-                required
-              />
-            </label>
+              <label className="space-y-1.5">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <Users className="h-3.5 w-3.5 text-yellow-500" />
+                  Capacidade Máxima
+                </span>
+                <input
+                  type="number"
+                  {...register('capacidade_maxima')}
+                  className={fieldClass}
+                />
+                {errors.capacidade_maxima && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.capacidade_maxima.message}</p>}
+              </label>
 
-            <label className="space-y-2">
-              <span className="font-body text-sm font-semibold text-gray-700">
-                Status da oficina
-              </span>
-              <select
-                value={form.status_oficina}
-                onChange={event =>
-                  handleChange('status_oficina', event.target.value as 'ativa' | 'inativa')
-                }
-                className={fieldClass}
-              >
-                <option value="ativa">Ativa</option>
-                <option value="inativa">Inativa</option>
-              </select>
-            </label>
+              <label className="space-y-1.5">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <Plus className="h-3.5 w-3.5 text-yellow-500" />
+                  Status
+                </span>
+                <select {...register('status_oficina')} className={fieldClass}>
+                  <option value="ativa">Ativa</option>
+                  <option value="inativa">Inativa</option>
+                </select>
+              </label>
 
-            <div className="space-y-2 lg:col-span-2">
-              <span className="font-body text-sm font-semibold text-gray-700">Dias da semana</span>
-              <div className="grid grid-cols-7 gap-2">
-                {daysOfWeek.map(day => {
-                  const isSelected = selectedDays.includes(day)
-                  return (
+              <div className="md:col-span-2 space-y-3">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <Clock className="h-3.5 w-3.5 text-yellow-500" />
+                  Horários
+                </span>
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="time" {...register('horario_inicio')} className={fieldClass} />
+                  <input type="time" {...register('horario_fim')} className={fieldClass} />
+                </div>
+              </div>
+
+              <div className="md:col-span-2 space-y-3">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <Calendar className="h-3.5 w-3.5 text-yellow-500" />
+                  Dias da Semana
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {daysOfWeek.map(day => (
                     <button
                       key={day}
                       type="button"
                       onClick={() => toggleDay(day)}
-                      className={`rounded-2xl border px-3 py-2 text-xs font-semibold transition ${
-                        isSelected
-                          ? 'border-yellow-400 bg-yellow-400 text-gray-900'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-yellow-400 hover:bg-yellow-50 hover:text-gray-900'
-                      } cursor-pointer`}
+                      className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
+                        currentDays?.includes(day)
+                          ? 'bg-yellow-400 text-gray-900 shadow-sm'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
                     >
                       {day}
                     </button>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-gray-400">
-                Selecione os dias em que a oficina acontecerá.
-              </p>
             </div>
 
-            <label className="space-y-2">
-              <span className="font-body text-sm font-semibold text-gray-700">
-                Horário de início
-              </span>
-              <input
-                type="time"
-                value={form.horario_inicio}
-                onChange={event => handleChange('horario_inicio', event.target.value)}
-                className={fieldClass}
-                required
-              />
-            </label>
+            <div className="mt-10 flex gap-4">
+              <button
+                type="submit"
+                className="flex-1 rounded-2xl bg-yellow-400 px-6 py-4 text-sm font-bold text-gray-900 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+              >
+                CRIAR OFICINA
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard/oficinas')}
+                className="rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-500 transition hover:bg-gray-50"
+              >
+                CANCELAR
+              </button>
+            </div>
+          </form>
 
-            <label className="space-y-2">
-              <span className="font-body text-sm font-semibold text-gray-700">
-                Horário de término
-              </span>
-              <input
-                type="time"
-                value={form.horario_fim}
-                onChange={event => handleChange('horario_fim', event.target.value)}
-                className={fieldClass}
-                required
-              />
-            </label>
-          </div>
-        </div>
-
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-3 text-sm font-semibold text-gray-900">
-            <GraduationCap className="h-4 w-4 text-yellow-400" />
-            Professor responsável
-          </div>
-
-          <div className="space-y-5">
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4">
-              <div className="flex items-center gap-3 text-gray-700">
-                <Search className="h-4 w-4" />
+          <div className="rounded-3xl bg-white p-6 shadow-sm h-fit">
+            <div className="mb-4 flex items-center gap-3 text-sm font-semibold text-gray-900">
+              <GraduationCap className="h-4 w-4 text-yellow-400" />
+              Professor Responsável
+            </div>
+            
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   value={search}
-                  onChange={event => setSearch(event.target.value)}
-                  className="w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
-                  placeholder="Buscar por nome, disciplina ou ID"
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar professor..."
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 py-2.5 text-xs outline-none focus:border-yellow-400"
                 />
               </div>
-            </div>
 
-            <div className="rounded-2xl border border-black p-4 text-sm text-gray-700">
-              <p className="font-semibold text-gray-900">Sugestões de professores</p>
-              <p className="text-xs text-gray-500">
-                Selecione um professor para vincular à oficina.
-              </p>
-            </div>
-
-            <div className="grid gap-3">
-              {filteredTeachers.map(teacher => {
-                const isSelected = form.professor_responsavel?.id === teacher.id
-                return (
+              <div className="max-h-[400px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                {filteredTeachers.map(teacher => (
                   <button
                     key={teacher.id}
                     type="button"
-                    onClick={() => handleSelectProfessor(teacher)}
-                    className={`rounded-3xl border px-4 py-4 text-left transition ${
-                      isSelected
-                        ? 'border-black bg-yellow-400 text-gray-900'
-                        : 'border-gray-200  text-gray-900 hover:border-yellow-300 hover:bg-yellow-400'
-                    } cursor-pointer`}
+                    onClick={() => setSelectedTeacher(teacher)}
+                    className={`w-full rounded-2xl border p-3 text-left transition ${
+                      selectedTeacher?.id === teacher.id
+                        ? 'border-yellow-400 bg-yellow-50 shadow-sm'
+                        : 'border-gray-100 hover:border-yellow-200 hover:bg-gray-50'
+                    }`}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-body text-sm font-semibold text-gray-900">
-                          {teacher.nome}
-                        </p>
-                        <p className="text-xs text-gray-500">{teacher.disciplina}</p>
-                      </div>
-                      <span className="text-xs font-semibold text-gray-500">
-                        {teacher.experiencia}
-                      </span>
-                    </div>
+                    <p className="text-xs font-bold text-gray-900">{teacher.nome_completo}</p>
+                    <p className="text-[10px] text-gray-500">{teacher.formacao}</p>
                   </button>
-                )
-              })}
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-          <button
-            type="button"
-            className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:brightness-95"
-          >
-            Criar Oficina
-          </button>
-        </div>
-      </form>
+      </div>
     </main>
   )
 }
 
 function OpenSidebarButton() {
   const { toggleSidebar, open } = useSidebar()
-
   if (open) return null
-
   return (
     <button
       onClick={toggleSidebar}

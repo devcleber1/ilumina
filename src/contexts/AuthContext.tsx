@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import axios from 'axios'
+import { api } from '../lib/api'
 import { useAlert } from './AlertContext'
 
 interface AuthContextType {
@@ -11,29 +11,26 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'))
   const { showAlert } = useAlert()
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post(
-        '/api/auth/login',
-        {
-          email,
-          senha: password,
-        },
-        {
-          withCredentials: true, // Para enviar e receber cookies
-        }
-      )
+      const response = await api.post('/auth/login', {
+        email,
+        senha: password,
+      })
 
       if (response.status === 200) {
         const data = response.data
         // O back-end retorna accessToken na resposta
-        localStorage.setItem('token', data.accessToken)
-        setIsAuthenticated(true)
-        showAlert('success', 'Login realizado com sucesso!', 'Bem-vindo ao sistema.')
-        return true
+        if (data.accessToken) {
+          localStorage.setItem('token', data.accessToken)
+          setIsAuthenticated(true)
+          showAlert('success', 'Login realizado com sucesso!', 'Bem-vindo ao sistema.')
+          return true
+        }
+        return false
       } else {
         showAlert('destructive', 'Erro no login', 'Credenciais inválidas.')
         return false

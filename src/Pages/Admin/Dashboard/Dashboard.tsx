@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
 import {
@@ -14,59 +15,27 @@ import {
   Users,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { api } from '../../../lib/api'
+import { NavLink } from 'react-router-dom'
 
-// ── dados mock ──────────────────────────────────────────
-const registrationData = [
-  { month: 'Jan', alunos: 80 },
-  { month: 'Fev', alunos: 110 },
-  { month: 'Mar', alunos: 140 },
-  { month: 'Abr', alunos: 190 },
-  { month: 'Mai', alunos: 120 },
-  { month: 'Jun', alunos: 70 },
-  { month: 'Jul', alunos: 130 },
-  { month: 'Ago', alunos: 160 },
-  { month: 'Set', alunos: 145 },
-  { month: 'Out', alunos: 125 },
-]
+interface Stats {
+  summary: {
+    totalAlunos: number
+    totalProfessores: number
+    totalOficinas: number
+    totalPais: number
+  }
+  chartData: { month: string; alunos: number }[]
+  ultimasAdvertencias: any[]
+  presencasPorOficina: { turma: string; percentual: number }[]
+}
 
-const advertencias = [
-  {
-    nome: 'Lucas Oliveira',
-    turma: 'Oficina de Música',
-    motivo: 'Falta sem justificativa',
-    data: '22/04/2025',
-  },
-  {
-    nome: 'Ana Souza',
-    turma: 'Reforço Escolar',
-    motivo: 'Comportamento inadequado',
-    data: '21/04/2025',
-  },
-  {
-    nome: 'Pedro Lima',
-    turma: 'Artes Visuais',
-    motivo: 'Falta sem justificativa',
-    data: '20/04/2025',
-  },
-]
+interface Log {
+  acao: string
+  usuario_email: string
+  timestamp: string
+}
 
-const logs = [
-  { acao: 'Novo aluno cadastrado', usuario: 'Marisa Queiroz', hora: '10:32' },
-  { acao: 'Presença registrada — Oficina de Música', usuario: 'Prof. Carlos', hora: '09:15' },
-  { acao: 'Advertência emitida — Lucas Oliveira', usuario: 'Marisa Queiroz', hora: '08:50' },
-  { acao: 'Relatório exportado', usuario: 'Admin', hora: '08:10' },
-  { acao: 'Senha redefinida — João Mendes', usuario: 'Admin', hora: '07:45' },
-]
-
-const presencas = [
-  { turma: 'Oficina de Música', percentual: 92 },
-  { turma: 'Reforço Escolar', percentual: 87 },
-  { turma: 'Artes Visuais', percentual: 78 },
-  { turma: 'Esporte e Lazer', percentual: 95 },
-  { turma: 'Informática', percentual: 83 },
-]
-
-// ── componentes auxiliares ──────────────────────────────
 function StatCard({
   icon,
   label,
@@ -76,7 +45,7 @@ function StatCard({
 }: {
   icon: React.ReactNode
   label: string
-  value: string
+  value: string | number
   badge?: string
   sub?: string
 }) {
@@ -106,15 +75,49 @@ function SectionTitle({ title, sub }: { title: string; sub?: string }) {
   )
 }
 
-// ── conteúdo principal ──────────────────────────────────
 function DashboardContent() {
   const { open } = useSidebar()
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [recentLogs, setRecentLogs] = useState<Log[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      
+      // Carregar estatísticas
+      try {
+        const statsRes = await api.get('/stats/dashboard')
+        setStats(statsRes.data)
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error)
+      }
+
+      // Carregar logs
+      try {
+        const logsRes = await api.get('/logs/find?limite=5')
+        setRecentLogs(logsRes.data.logs || [])
+      } catch (error) {
+        console.error('Erro ao carregar logs:', error)
+      }
+
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-100 min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      </div>
+    )
+  }
 
   return (
     <main
       className={`flex-1 bg-gray-100 min-h-screen transition-all duration-300 ${!open ? 'pl-8' : ''}`}
     >
-      {/* Header — ocupa largura total */}
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
         <div className="flex-1">
           <h1 className="font-title text-xl font-extrabold text-gray-900">Dashboard Overview</h1>
@@ -127,168 +130,208 @@ function DashboardContent() {
             <Bell className="h-5 w-5 text-gray-600" />
             <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
           </button>
-          <button
+          <NavLink
+            to="/dashboard/cadastro-alunos"
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-gray-900 cursor-pointer transition hover:brightness-90"
             style={{ background: '#FFD700' }}
           >
             <Plus className="h-4 w-4" />
-            Nova Entrada
-          </button>
+            Novo Aluno
+          </NavLink>
         </div>
       </div>
 
       <div className="p-6 flex flex-col gap-6">
-        {/* Cards de totais */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <StatCard
             icon={<Users className="h-5 w-5 text-gray-700" />}
             label="Total de Alunos"
-            value="1.250"
-            badge="+5.2%"
-            sub="vs. mês anterior"
-          />
-          <StatCard
-            icon={<BookOpen className="h-5 w-5 text-gray-700" />}
-            label="Oficinas Ativas"
-            value="42"
-            badge="3 iniciando"
-            sub="Em andamento este semestre"
+            value={stats?.summary.totalAlunos || 0}
+            badge="Ativos"
           />
           <StatCard
             icon={<GraduationCap className="h-5 w-5 text-gray-700" />}
             label="Professores"
-            value="18"
-            sub="Ativos no sistema"
+            value={stats?.summary.totalProfessores || 0}
+            sub="Corpo docente"
+          />
+          <StatCard
+            icon={<BookOpen className="h-5 w-5 text-gray-700" />}
+            label="Oficinas Ativas"
+            value={stats?.summary.totalOficinas || 0}
+            sub="Atividades em curso"
+          />
+          <StatCard
+            icon={<UserPlus className="h-5 w-5 text-gray-700" />}
+            label="Responsáveis"
+            value={stats?.summary.totalPais || 0}
+            sub="Famílias cadastradas"
           />
         </div>
 
-        {/* Gráfico de registros */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <SectionTitle title="Novos Alunos Registrados" sub="Crescimento ao longo do ano letivo" />
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={registrationData} barSize={28}>
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 12, fill: '#9ca3af' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis hide />
-              <Tooltip
-                cursor={{ fill: '#f3f4f6' }}
-                contentStyle={{ borderRadius: 12, border: 'none', fontSize: 12 }}
-              />
-              <Bar dataKey="alunos" radius={[6, 6, 0, 0]}>
-                {registrationData.map((entry, index) => (
-                  <Cell key={index} fill={entry.month === 'Abr' ? '#FFD700' : '#1f2937'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Presença + Advertências */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Desempenho de Presenças */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <SectionTitle title="Desempenho de Presenças" sub="Por oficina / turma" />
-            <div className="flex flex-col gap-3">
-              {presencas.map(p => (
-                <div key={p.turma}>
-                  <div className="flex justify-between mb-1">
-                    <span className="font-body text-xs text-gray-600">{p.turma}</span>
-                    <span className="font-body text-xs font-bold text-gray-900">
-                      {p.percentual}%
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-2 rounded-full transition-all"
-                      style={{
-                        width: `${p.percentual}%`,
-                        background:
-                          p.percentual >= 90
-                            ? '#FFD700'
-                            : p.percentual >= 80
-                              ? '#fb923c'
-                              : '#ef4444',
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
+          <div className="flex flex-col gap-6">
+            <div className="bg-white rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <SectionTitle title="Crescimento de Alunos" sub="Matrículas nos últimos meses" />
+                <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  <div className="h-2 w-2 rounded-full bg-yellow-400" />
+                  Alunos
+                </div>
+              </div>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats?.chartData || []}>
+                    <XAxis
+                      dataKey="month"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#9CA3AF', fontWeight: 'bold' }}
+                      dy={10}
+                    />
+                    <Tooltip
+                      cursor={{ fill: '#F9FAFB' }}
+                      contentStyle={{
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                       }}
                     />
-                  </div>
-                </div>
-              ))}
+                    <Bar dataKey="alunos" radius={[6, 6, 0, 0]} barSize={32}>
+                      {(stats?.chartData || []).map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index === (stats?.chartData.length || 0) - 1 ? '#FFD700' : '#E5E7EB'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-6 shadow-sm">
+              <SectionTitle title="Advertências Recentes" sub="Últimas ocorrências registradas" />
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-50">
+                      <th className="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        Aluno
+                      </th>
+                      <th className="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        Motivo
+                      </th>
+                      <th className="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right">
+                        Data
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {stats?.ultimasAdvertencias.map((adv, idx) => (
+                      <tr key={idx} className="group">
+                        <td className="py-4">
+                          <p className="text-xs font-bold text-gray-900">
+                            {adv.aluno?.nome_completo || 'N/A'}
+                          </p>
+                        </td>
+                        <td className="py-4">
+                          <p className="text-xs text-gray-500">{adv.tipo_advertencia}</p>
+                        </td>
+                        <td className="py-4 text-right">
+                          <p className="text-xs font-mono text-gray-400">
+                            {new Date(adv.data_advertencia).toLocaleDateString('pt-BR')}
+                          </p>
+                        </td>
+                      </tr>
+                    ))}
+                    {stats?.ultimasAdvertencias.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="py-8 text-center text-xs text-gray-400">
+                          Nenhuma advertência recente.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-          {/* Alunos com Advertências */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <SectionTitle title="Alunos com Advertências" sub="Registros recentes" />
-            <div className="flex flex-col gap-3">
-              {advertencias.map(a => (
-                <div
-                  key={a.nome}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-red-50 border border-red-100"
-                >
-                  <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-body text-sm font-semibold text-gray-900">{a.nome}</p>
-                    <p className="font-body text-xs text-gray-400">
-                      {a.turma} — {a.motivo}
+          <div className="flex flex-col gap-6">
+            <div className="bg-white rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <SectionTitle title="Logs de Atividade" sub="Monitoramento em tempo real" />
+                <button className="text-[10px] font-bold text-yellow-500 hover:underline uppercase tracking-wider">
+                  Ver Tudo
+                </button>
+              </div>
+              <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-50">
+                {recentLogs.map((log, idx) => (
+                  <div key={idx} className="relative pl-8">
+                    <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full border-2 border-white bg-yellow-400 shadow-sm" />
+                    <p className="text-xs font-bold text-gray-900 leading-tight mb-0.5">
+                      {log.acao}
                     </p>
-                    <p className="font-body text-xs text-gray-300">{a.data}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Logs + Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Logs do sistema */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <SectionTitle title="Logs do Sistema" sub="Atividades recentes" />
-            <div className="flex flex-col gap-2">
-              {logs.map((log, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"
-                >
-                  <div className="flex items-center gap-2">
-                    <ClipboardList className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <div>
-                      <p className="font-body text-xs text-gray-700">{log.acao}</p>
-                      <p className="font-body text-[11px] text-gray-400">{log.usuario}</p>
+                    <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                      <span className="font-medium">{log.usuario_email || 'Sistema'}</span>
+                      <span>•</span>
+                      <span>{new Date(log.timestamp).toLocaleTimeString('pt-BR', { hour: '2-8', minute: '2-8' })}</span>
                     </div>
                   </div>
-                  <span className="font-body text-[11px] text-gray-300 flex-shrink-0">
-                    {log.hora}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <SectionTitle title="Ações Rápidas" />
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { icon: UserPlus, label: 'Cadastrar Aluno' },
-                { icon: TrendingUp, label: 'Exportar Stats' },
-                { icon: MessageSquare, label: 'Notificar Pais' },
-                { icon: BookOpen, label: 'Nova Oficina' },
-              ].map(action => (
-                <button
-                  key={action.label}
-                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-gray-100 hover:border-yellow-400 hover:bg-yellow-500 transition cursor-pointer"
+            <div className="bg-white rounded-3xl p-6 shadow-sm">
+              <SectionTitle title="Ações Rápidas" sub="Acesso facilitado" />
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <NavLink
+                  to="/dashboard/cadastro-alunos"
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group"
                 >
-                  <action.icon className="h-5 w-5 text-gray-600" />
-                  <span className="font-body text-xs text-gray-600 text-center">
-                    {action.label}
-                  </span>
+                  <UserPlus className="h-6 w-6 text-gray-600 group-hover:text-yellow-600 mb-2" />
+                  <span className="text-[10px] font-bold text-gray-700">Novo Aluno</span>
+                </NavLink>
+                <NavLink
+                  to="/dashboard/cadastro-oficinas"
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group"
+                >
+                  <Plus className="h-6 w-6 text-gray-600 group-hover:text-yellow-600 mb-2" />
+                  <span className="text-[10px] font-bold text-gray-700">Nova Oficina</span>
+                </NavLink>
+                <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group cursor-pointer">
+                  <ClipboardList className="h-6 w-6 text-gray-600 group-hover:text-yellow-600 mb-2" />
+                  <span className="text-[10px] font-bold text-gray-700">Presenças</span>
                 </button>
-              ))}
+                <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition border border-gray-100 group cursor-pointer">
+                  <AlertTriangle className="h-6 w-6 text-gray-600 group-hover:text-yellow-600 mb-2" />
+                  <span className="text-[10px] font-bold text-gray-700">Advertência</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-6 shadow-sm">
+              <SectionTitle title="Média de Presença" sub="Frequência por oficina" />
+              <div className="space-y-4 mt-4">
+                {stats?.presencasPorOficina.map((p, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-gray-700 uppercase">{p.turma}</span>
+                      <span className="text-[10px] font-mono font-bold text-yellow-600">{p.percentual}%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-yellow-400 rounded-full transition-all duration-1000" 
+                        style={{ width: `${p.percentual}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {(!stats?.presencasPorOficina || stats.presencasPorOficina.length === 0) && (
+                  <p className="text-center text-xs text-gray-400 py-4">Sem dados de presença.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -297,12 +340,9 @@ function DashboardContent() {
   )
 }
 
-// ── componente de abrir sidebar ──────────────────────────
 function OpenSidebarButton() {
   const { toggleSidebar, open } = useSidebar()
-
   if (open) return null
-
   return (
     <button
       onClick={toggleSidebar}
@@ -314,7 +354,6 @@ function OpenSidebarButton() {
   )
 }
 
-// ── página ───────────────────────────────────────────────
 export default function Dashboard() {
   return (
     <SidebarProvider>

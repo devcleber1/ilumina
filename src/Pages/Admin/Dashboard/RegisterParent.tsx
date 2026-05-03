@@ -1,9 +1,13 @@
 import { useCallback, useRef, useState } from 'react'
 import Cropper, { type Area } from 'react-easy-crop'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
-import { Camera, ChevronRight, FileText, Mail, Shield, User, UserPlus } from 'lucide-react'
+import { Camera, ChevronRight, FileText, Mail, Shield, User, UserPlus, Plus } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import { api } from '../../../lib/api'
 
 interface PaiAttributes {
   id?: number
@@ -15,15 +19,22 @@ interface PaiAttributes {
   data_nascimento: string
   profissao: string
   recebe_beneficio_social: boolean
-  foto_perfil_url?: string
-  documento_frente_url?: string
-  documento_verso_url?: string
+  foto_perfil_url?: string | File | Blob
+  documento_frente_url?: string | File
+  documento_verso_url?: string | File
   senha?: string
-  senha_hash?: string
-  precisa_trocar_senha?: boolean
-  data_cadastro?: string
-  data_atualizacao?: string
 }
+
+const schema = yup.object({
+  nome_completo: yup.string().required('Nome completo é obrigatório'),
+  documento: yup.string().required('Documento é obrigatório'),
+  tipo_documento: yup.string().oneOf(['CPF', 'CNH']).required(),
+  email: yup.string().email('Email inválido').required('Email é obrigatório'),
+  telefone: yup.string().required('Telefone é obrigatório'),
+  data_nascimento: yup.string().required('Data de nascimento é obrigatória'),
+  profissao: yup.string().required('Profissão é obrigatória'),
+  recebe_beneficio_social: yup.boolean().required(),
+})
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -34,7 +45,7 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
     image.src = url
   })
 
-const getCroppedImage = async (imageSrc: string, pixelCrop: Area): Promise<string> => {
+const getCroppedImage = async (imageSrc: string, pixelCrop: Area): Promise<Blob> => {
   const image = await createImage(imageSrc)
   const canvas = document.createElement('canvas')
   const scaleX = image.naturalWidth / image.width
@@ -59,14 +70,13 @@ const getCroppedImage = async (imageSrc: string, pixelCrop: Area): Promise<strin
     pixelCrop.height
   )
 
-  return new Promise(resolve => {
+  return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(blob => {
       if (!blob) {
-        resolve('')
+        reject(new Error('Canvas is empty'))
         return
       }
-      const croppedUrl = URL.createObjectURL(blob)
-      resolve(croppedUrl)
+      resolve(blob)
     }, 'image/jpeg')
   })
 }
@@ -76,31 +86,36 @@ const fieldClass =
 
 function RegisterParentContent() {
   const { open } = useSidebar()
-  const [form, setForm] = useState<PaiAttributes>({
-    nome_completo: '',
-    documento: '',
-    tipo_documento: 'CPF',
-    email: '',
-    telefone: '',
-    data_nascimento: '',
-    profissao: '',
-    recebe_beneficio_social: false,
-    senha: '',
-    precisa_trocar_senha: false,
+  const navigate = useNavigate()
+  
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<PaiAttributes>({
+    resolver: yupResolver(schema) as any,
+    defaultValues: {
+      tipo_documento: 'CPF',
+      recebe_beneficio_social: false,
+    },
   })
+
   const [profilePhotoSrc, setProfilePhotoSrc] = useState<string | null>(null)
-  const [profilePhotoCroppedUrl, setProfilePhotoCroppedUrl] = useState<string | null>(null)
+  const [profilePhotoBlob, setProfilePhotoBlob] = useState<Blob | null>(null)
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null)
+  
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-  const [documentFrontUrl, setDocumentFrontUrl] = useState<string | null>(null)
-  const [documentBackUrl, setDocumentBackUrl] = useState<string | null>(null)
+  
+  const [documentFrontFile, setDocumentFrontFile] = useState<File | null>(null)
+  const [documentBackFile, setDocumentBackFile] = useState<File | null>(null)
+  const [documentFrontPreview, setDocumentFrontPreview] = useState<string | null>(null)
+  const [documentBackPreview, setDocumentBackPreview] = useState<string | null>(null)
+  
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-
-  const handleChange = (field: keyof PaiAttributes, value: any) => {
-    setForm(prev => ({ ...prev, [field]: value }))
-  }
 
   const handleOpenFilePicker = () => {
     fileInputRef.current?.click()
@@ -111,7 +126,6 @@ function RegisterParentContent() {
       setIsCropModalOpen(true)
       return
     }
-
     handleOpenFilePicker()
   }
 
@@ -123,7 +137,8 @@ function RegisterParentContent() {
     reader.onload = () => {
       if (typeof reader.result === 'string') {
         setProfilePhotoSrc(reader.result)
-        setProfilePhotoCroppedUrl(null)
+        setProfilePhotoBlob(null)
+        setProfilePhotoPreview(null)
         setCrop({ x: 0, y: 0 })
         setZoom(1)
         setIsCropModalOpen(true)
@@ -135,11 +150,13 @@ function RegisterParentContent() {
 
   const handleDocumentUpload = (
     event: React.ChangeEvent<HTMLInputElement>,
-    setter: (url: string) => void
+    setFile: (file: File) => void,
+    setPreview: (url: string) => void
   ) => {
     const file = event.target.files?.[0]
     if (!file) return
-    setter(URL.createObjectURL(file))
+    setFile(file)
+    setPreview(URL.createObjectURL(file))
     event.target.value = ''
   }
 
@@ -149,21 +166,60 @@ function RegisterParentContent() {
 
   const applyCrop = useCallback(async () => {
     if (!profilePhotoSrc || !croppedAreaPixels) return
-    const cropped = await getCroppedImage(profilePhotoSrc, croppedAreaPixels)
-    setProfilePhotoCroppedUrl(cropped)
-    setIsCropModalOpen(false)
+    try {
+      const blob = await getCroppedImage(profilePhotoSrc, croppedAreaPixels)
+      setProfilePhotoBlob(blob)
+      setProfilePhotoPreview(URL.createObjectURL(blob))
+      setIsCropModalOpen(false)
+    } catch (error) {
+      console.error('Error cropping image:', error)
+    }
   }, [profilePhotoSrc, croppedAreaPixels])
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault()
-    const payload = {
-      ...form,
-      foto_perfil_url: profilePhotoCroppedUrl ?? profilePhotoSrc ?? undefined,
-      documento_frente_url: documentFrontUrl ?? undefined,
-      documento_verso_url: documentBackUrl ?? undefined,
+  const onFormSubmit = async (data: PaiAttributes) => {
+    try {
+      const formData = new FormData()
+      
+      // Formatar documento para incluir pontos e hífen se for CPF
+      let formattedDoc = data.documento.replace(/\D/g, '')
+      if (data.tipo_documento === 'CPF' && formattedDoc.length === 11) {
+        formattedDoc = formattedDoc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+      }
+
+      // Adicionar campos de texto
+      formData.append('nome_completo', data.nome_completo)
+      formData.append('tipo_documento', data.tipo_documento)
+      formData.append('documento', formattedDoc)
+      formData.append('email', data.email)
+      formData.append('telefone', data.telefone)
+      formData.append('profissao', data.profissao)
+      formData.append('recebe_beneficio_social', String(data.recebe_beneficio_social))
+      formData.append('data_nascimento', data.data_nascimento) // Já em YYYY-MM-DD
+
+      // Adicionar arquivos
+      if (profilePhotoBlob) {
+        formData.append('foto_perfil_url', profilePhotoBlob, 'profile.jpg')
+      }
+      if (documentFrontFile) {
+        formData.append('documento_frente_url', documentFrontFile)
+      }
+      if (documentBackFile) {
+        formData.append('documento_verso_url', documentBackFile)
+      }
+
+      await api.post('/pais/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      alert('Pai cadastrado com sucesso!')
+      navigate('/dashboard')
+    } catch (error: any) {
+      console.error('Erro ao salvar pai:', error)
+      const message = error.response?.data?.message || 'Erro ao cadastrar pai. Verifique os dados e tente novamente.'
+      alert(message)
     }
-    console.log('Salvar pai:', payload)
-    alert('Cadastro de pai salvo localmente. Implementar envio ao backend.')
   }
 
   return (
@@ -188,144 +244,89 @@ function RegisterParentContent() {
 
       <div className="p-6 flex flex-col gap-6">
         <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-6">
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="rounded-3xl bg-white p-6 shadow-sm h-fit">
             <h2 className="font-title mb-3 text-base font-extrabold text-gray-900">
               Foto de Perfil
             </h2>
             <p className="font-body mb-4 text-sm text-gray-400">
-              Faça upload e ajuste a foto de perfil antes de salvar.
+              Clique na foto para selecionar e ajustar o corte.
             </p>
 
-            <div className="flex flex-col gap-4">
-              <div
-                className="group relative mx-auto flex h-44 w-44 cursor-pointer items-center justify-center overflow-hidden rounded-full border-4 border-dashed border-gray-200 bg-gray-50 text-gray-400 transition hover:border-yellow-400"
-                onClick={handleProfilePhotoClick}
-              >
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  className="sr-only"
+            <div
+              onClick={handleProfilePhotoClick}
+              className="group relative mx-auto h-48 w-48 cursor-pointer overflow-hidden rounded-full border-4 border-yellow-50 bg-gray-50 shadow-inner transition hover:border-yellow-200"
+            >
+              {profilePhotoPreview ? (
+                <img
+                  src={profilePhotoPreview}
+                  alt="Perfil"
+                  className="h-full w-full object-cover"
                 />
-                {profilePhotoCroppedUrl || profilePhotoSrc ? (
-                  <>
-                    <img
-                      src={profilePhotoCroppedUrl ?? profilePhotoSrc ?? ''}
-                      alt="Foto de perfil"
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/30 to-transparent p-3 opacity-0 transition group-hover:opacity-100">
-                      <span className="rounded-full bg-black/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
-                        Ajustar foto
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center justify-center gap-2 text-center">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm">
-                      <Camera className="h-7 w-7" />
-                    </span>
-                    <div>
-                      <p className="font-body text-sm font-semibold text-gray-700">
-                        Clique para enviar
-                      </p>
-                      <p className="font-body text-xs text-gray-400">Foto de perfil quadrada</p>
-                    </div>
-                  </div>
-                )}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-full bg-gradient-to-t from-black/40 to-transparent py-2 text-center opacity-0 transition group-hover:opacity-100">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
-                    Clique para trocar
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center text-center px-4">
+                  <Camera className="mb-2 h-10 w-10 text-gray-300 transition group-hover:text-yellow-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-tight">
+                    Clique para selecionar
                   </span>
                 </div>
-              </div>
-
-              <div className="rounded-3xl border border-dashed border-gray-200 bg-white p-4 shadow-sm">
-                <div className="text-center text-sm text-gray-500">
-                  {profilePhotoCroppedUrl ? (
-                    <p className="font-body text-sm text-gray-700">
-                      Imagem selecionada. Clique na foto para trocar ou editar o corte.
-                    </p>
-                  ) : profilePhotoSrc ? (
-                    <p className="font-body text-sm text-gray-700">
-                      Imagem carregada. Clique na foto para editar o corte.
-                    </p>
-                  ) : (
-                    <>
-                      <p className="font-body text-sm font-semibold text-gray-700">
-                        Clique na imagem para iniciar o upload.
-                      </p>
-                      <p className="font-body text-xs text-gray-400">
-                        JPEG ou PNG com o rosto centralizado.
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                className="sr-only"
+              />
             </div>
+            
+            {profilePhotoPreview && (
+              <p className="text-center mt-4 text-[11px] font-bold text-yellow-600 uppercase cursor-pointer hover:underline" onClick={handleProfilePhotoClick}>
+                Ajustar ou Trocar
+              </p>
+            )}
 
             {isCropModalOpen && profilePhotoSrc && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                <div className="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
-                  <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-                    <div>
-                      <h3 className="font-title text-lg font-extrabold text-gray-900">
-                        Ajustar foto de perfil
-                      </h3>
-                      <p className="font-body text-sm text-gray-500">
-                        Posicione e redimensione a imagem antes de salvar.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsCropModalOpen(false)}
-                      className="rounded-full border border-gray-200 bg-white p-2 text-gray-600 transition hover:bg-gray-100"
-                    >
-                      ✕
-                    </button>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+                <div className="w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+                  <div className="border-b border-gray-100 p-6">
+                    <h3 className="font-title text-lg font-extrabold text-gray-900">Ajustar Imagem</h3>
                   </div>
-                  <div className="p-5">
-                    <div className="relative h-72 w-full overflow-hidden rounded-3xl bg-gray-100">
-                      <Cropper
-                        image={profilePhotoSrc}
-                        crop={crop}
-                        zoom={zoom}
-                        aspect={1}
-                        onCropChange={setCrop}
-                        onZoomChange={setZoom}
-                        onCropComplete={onCropComplete}
-                        showGrid={false}
-                      />
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <div className="relative h-80 w-full bg-gray-100">
+                    <Cropper
+                      image={profilePhotoSrc}
+                      crop={crop}
+                      zoom={zoom}
+                      aspect={1}
+                      onCropChange={setCrop}
+                      onZoomChange={setZoom}
+                      onCropComplete={onCropComplete}
+                    />
+                  </div>
+                  <div className="p-6 space-y-6">
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-gray-500 uppercase">Zoom</span>
                       <input
                         type="range"
                         min={1}
                         max={3}
-                        step={0.01}
+                        step={0.1}
                         value={zoom}
-                        onChange={event => setZoom(Number(event.target.value))}
-                        className="h-2 w-full cursor-pointer accent-yellow-400"
+                        onChange={(e) => setZoom(Number(e.target.value))}
+                        className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-400"
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          applyCrop()
-                        }}
-                        className="rounded-2xl bg-yellow-400 px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-yellow-300"
-                      >
-                        Salvar corte
-                      </button>
                     </div>
-                    <div className="mt-3 flex items-center justify-between rounded-3xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
-                      <span>Clique na foto se quiser enviar outra imagem.</span>
+                    <div className="flex gap-3">
                       <button
-                        type="button"
-                        onClick={handleOpenFilePicker}
-                        className="font-semibold text-yellow-500 hover:text-yellow-600"
+                        onClick={applyCrop}
+                        className="flex-1 rounded-2xl bg-yellow-400 py-3 text-sm font-bold text-gray-900 transition hover:bg-yellow-500"
                       >
-                        Trocar arquivo
+                        APLICAR CORTE
+                      </button>
+                      <button
+                        onClick={() => setIsCropModalOpen(false)}
+                        className="flex-1 rounded-2xl border border-gray-200 bg-white py-3 text-sm font-bold text-gray-500 transition hover:bg-gray-50"
+                      >
+                        CANCELAR
                       </button>
                     </div>
                   </div>
@@ -334,327 +335,205 @@ function RegisterParentContent() {
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl bg-white p-6 shadow-sm">
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <label className="space-y-2">
-                <span className="font-body text-sm font-semibold text-gray-700">Nome completo</span>
-                <input
-                  type="text"
-                  value={form.nome_completo}
-                  onChange={event => handleChange('nome_completo', event.target.value)}
-                  className={fieldClass}
-                  placeholder="Maria Souza"
-                  required
-                />
-              </label>
+          <form onSubmit={handleSubmit(onFormSubmit)} className="rounded-3xl bg-white p-8 shadow-sm">
+            <div className="mb-8 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-400 text-white shadow-md">
+                <UserPlus className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-title text-lg font-extrabold text-gray-900">Dados Pessoais</h2>
+                <p className="font-body text-xs text-gray-400">Informe os dados do responsável</p>
+              </div>
+            </div>
 
-              <label className="space-y-2">
-                <span className="font-body text-sm font-semibold text-gray-700">
-                  Tipo de documento
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <label className="space-y-1.5 md:col-span-2">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <User className="h-3.5 w-3.5 text-yellow-500" />
+                  Nome Completo
                 </span>
-                <select
-                  value={form.tipo_documento}
-                  onChange={event =>
-                    handleChange('tipo_documento', event.target.value as 'CPF' | 'CNH')
-                  }
-                  className={fieldClass}
-                >
-                  <option value="CPF">CPF</option>
-                  <option value="CNH">CNH</option>
-                </select>
-              </label>
-
-              <label className="space-y-2">
-                <span className="font-body text-sm font-semibold text-gray-700">Documento</span>
                 <input
                   type="text"
-                  value={form.documento}
-                  onChange={event => handleChange('documento', event.target.value)}
-                  className={fieldClass}
-                  placeholder="000.000.000-00"
-                  required
+                  {...register('nome_completo')}
+                  placeholder="Ex: João da Silva"
+                  className={`${fieldClass} ${errors.nome_completo ? 'border-red-500' : ''}`}
                 />
+                {errors.nome_completo && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.nome_completo.message}</p>}
               </label>
 
-              <label className="space-y-2">
-                <span className="font-body text-sm font-semibold text-gray-700">
-                  Data de nascimento
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4 md:col-span-2">
+                <label className="space-y-1.5">
+                  <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                    <Shield className="h-3.5 w-3.5 text-yellow-500" />
+                    Tipo
+                  </span>
+                  <select
+                    {...register('tipo_documento')}
+                    className={fieldClass}
+                  >
+                    <option value="CPF">CPF</option>
+                    <option value="CNH">CNH</option>
+                  </select>
+                </label>
+
+                <label className="space-y-1.5">
+                  <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide text-transparent">
+                    .
+                  </span>
+                  <input
+                    type="text"
+                    {...register('documento')}
+                    placeholder={watch('tipo_documento') === 'CPF' ? "000.000.000-00" : "00000000000"}
+                    className={`${fieldClass} ${errors.documento ? 'border-red-500' : ''}`}
+                  />
+                  {errors.documento && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.documento.message}</p>}
+                </label>
+              </div>
+
+              <label className="space-y-1.5">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <Mail className="h-3.5 w-3.5 text-yellow-500" />
+                  E-mail
+                </span>
+                <input
+                  type="email"
+                  {...register('email')}
+                  placeholder="exemplo@email.com"
+                  className={`${fieldClass} ${errors.email ? 'border-red-500' : ''}`}
+                />
+                {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.email.message}</p>}
+              </label>
+
+              <label className="space-y-1.5">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <User className="h-3.5 w-3.5 text-yellow-500" />
+                  Telefone
+                </span>
+                <input
+                  type="tel"
+                  {...register('telefone')}
+                  placeholder="(00) 00000-0000"
+                  className={`${fieldClass} ${errors.telefone ? 'border-red-500' : ''}`}
+                />
+                {errors.telefone && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.telefone.message}</p>}
+              </label>
+
+              <label className="space-y-1.5">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <User className="h-3.5 w-3.5 text-yellow-500" />
+                  Nascimento
                 </span>
                 <input
                   type="date"
-                  value={form.data_nascimento}
-                  onChange={event => handleChange('data_nascimento', event.target.value)}
-                  className={fieldClass}
-                  required
+                  {...register('data_nascimento')}
+                  className={`${fieldClass} ${errors.data_nascimento ? 'border-red-500' : ''}`}
                 />
+                {errors.data_nascimento && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.data_nascimento.message}</p>}
               </label>
 
-              <label className="space-y-2">
-                <span className="font-body text-sm font-semibold text-gray-700">Email</span>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={event => handleChange('email', event.target.value)}
-                  className={fieldClass}
-                  placeholder="maria@exemplo.com"
-                  required
-                />
-              </label>
-
-              <label className="space-y-2">
-                <span className="font-body text-sm font-semibold text-gray-700">Telefone</span>
-                <input
-                  type="tel"
-                  value={form.telefone}
-                  onChange={event => handleChange('telefone', event.target.value)}
-                  className={fieldClass}
-                  placeholder="(11) 99999-9999"
-                  required
-                />
-              </label>
-
-              <label className="space-y-2 lg:col-span-2">
-                <span className="font-body text-sm font-semibold text-gray-700">Profissão</span>
+              <label className="space-y-1.5">
+                <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <User className="h-3.5 w-3.5 text-yellow-500" />
+                  Profissão
+                </span>
                 <input
                   type="text"
-                  value={form.profissao}
-                  onChange={event => handleChange('profissao', event.target.value)}
-                  className={fieldClass}
-                  placeholder="Professor, motorista, comerciário"
+                  {...register('profissao')}
+                  placeholder="Ex: Professor"
+                  className={`${fieldClass} ${errors.profissao ? 'border-red-500' : ''}`}
                 />
+                {errors.profissao && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.profissao.message}</p>}
               </label>
 
-              <div className="rounded-3xl border border-gray-200 bg-white p-6 lg:col-span-2 shadow-sm">
-                <div className="mb-4 flex items-center gap-3 text-sm font-semibold text-gray-700">
-                  <Shield className="h-4 w-4 text-yellow-400" />
-                  Dados de acesso opcional
-                </div>
-                <div className="grid gap-5 lg:grid-cols-2">
-                  <label className="space-y-2">
-                    <span className="font-body text-sm font-semibold text-gray-700">
-                      Senha virtual
-                    </span>
+              <div className="md:col-span-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 mt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div className="relative">
                     <input
-                      type="password"
-                      value={form.senha ?? ''}
-                      onChange={event => handleChange('senha', event.target.value)}
-                      className={fieldClass}
-                      placeholder="Digite uma senha segura"
+                      type="checkbox"
+                      {...register('recebe_beneficio_social')}
+                      className="peer sr-only"
                     />
-                  </label>
-                  <label className="space-y-2 lg:col-span-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-body text-sm font-semibold text-gray-700">
-                        Forçar troca no primeiro login
-                      </span>
-                      <input
-                        type="checkbox"
-                        checked={form.precisa_trocar_senha ?? false}
-                        onChange={event =>
-                          handleChange('precisa_trocar_senha', event.target.checked)
-                        }
-                        className="h-4 w-4 accent-yellow-400"
-                      />
+                    <div className="h-6 w-11 rounded-full bg-gray-200 transition-colors peer-checked:bg-yellow-400 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
+                  </div>
+                  <span className="font-body text-sm font-semibold text-gray-700">Recebe benefício social?</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 border-t border-gray-100 pt-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <FileText className="h-3.5 w-3.5 text-yellow-500" />
+                  Documento (Frente)
+                </div>
+                
+                <div 
+                  onClick={() => document.getElementById('doc-frente')?.click()}
+                  className="relative h-48 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
+                >
+                  {documentFrontPreview ? (
+                    <img src={documentFrontPreview} alt="Frente" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-center">
+                      <Plus className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">Enviar Frente</span>
                     </div>
-                  </label>
+                  )}
+                  <input 
+                    id="doc-frente" 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => handleDocumentUpload(e, setDocumentFrontFile, setDocumentFrontPreview)}
+                  />
                 </div>
               </div>
 
-              <label className="space-y-2 lg:col-span-2">
-                <span className="font-body text-sm font-semibold text-gray-700">
-                  Recebe benefício social?
-                </span>
-                <div className="inline-flex gap-3 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => handleChange('recebe_beneficio_social', false)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition cursor-pointer ${
-                      form.recebe_beneficio_social
-                        ? 'text-gray-600 hover:text-gray-900'
-                        : 'bg-yellow-400 text-gray-900'
-                    }`}
-                  >
-                    Não
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleChange('recebe_beneficio_social', true)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition cursor-pointer ${
-                      form.recebe_beneficio_social
-                        ? 'bg-yellow-400 text-gray-900'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Sim
-                  </button>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  <FileText className="h-3.5 w-3.5 text-yellow-500" />
+                  Documento (Verso)
                 </div>
-              </label>
+                
+                <div 
+                  onClick={() => document.getElementById('doc-verso')?.click()}
+                  className="relative h-48 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
+                >
+                  {documentBackPreview ? (
+                    <img src={documentBackPreview} alt="Verso" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-center">
+                      <Plus className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">Enviar Verso</span>
+                    </div>
+                  )}
+                  <input 
+                    id="doc-verso" 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => handleDocumentUpload(e, setDocumentBackFile, setDocumentBackPreview)}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-              <button
-                type="button"
-                onClick={() => window.history.back()}
-                className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
+            <div className="mt-10 flex gap-4">
               <button
                 type="submit"
-                className="rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-yellow-300"
+                className="flex-1 rounded-2xl bg-yellow-400 px-6 py-4 text-sm font-bold text-gray-900 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
               >
-                Salvar pai
+                FINALIZAR CADASTRO
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard')}
+                className="rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-500 transition hover:bg-gray-50"
+              >
+                CANCELAR
               </button>
             </div>
           </form>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <h2 className="font-title mb-3 text-base font-extrabold text-gray-900">Documentos</h2>
-            <div className="space-y-4">
-              <div className="space-y-4">
-                <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-4 text-left shadow-sm">
-                  <div className="mb-3 flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-gray-500 shadow-sm">
-                      <FileText className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="font-body text-sm font-semibold text-gray-700">
-                        Frente do documento
-                      </p>
-                      <p className="font-body text-xs text-gray-400">
-                        Tire uma foto nítida da frente do CPF/CNH.
-                      </p>
-                    </div>
-                  </div>
-                  {documentFrontUrl ? (
-                    <label className="relative block h-40 w-full cursor-pointer overflow-hidden rounded-3xl border border-dashed border-gray-300 bg-white transition hover:border-yellow-400">
-                      <img
-                        src={documentFrontUrl}
-                        alt="Documento frente"
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition hover:opacity-100">
-                        <span className="rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-gray-900">
-                          Clique para trocar a frente
-                        </span>
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={event => handleDocumentUpload(event, setDocumentFrontUrl)}
-                        className="sr-only"
-                      />
-                    </label>
-                  ) : (
-                    <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-white px-4 text-center text-sm font-semibold text-gray-500 transition hover:border-yellow-400 hover:text-gray-900">
-                      Selecionar frente do documento
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={event => handleDocumentUpload(event, setDocumentFrontUrl)}
-                        className="sr-only"
-                      />
-                    </label>
-                  )}
-                </div>
-                <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-4 text-left shadow-sm">
-                  <div className="mb-3 flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-gray-500 shadow-sm">
-                      <FileText className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="font-body text-sm font-semibold text-gray-700">
-                        Verso do documento
-                      </p>
-                      <p className="font-body text-xs text-gray-400">
-                        Envie a parte de trás do documento para validação.
-                      </p>
-                    </div>
-                  </div>
-                  {documentBackUrl ? (
-                    <label className="relative block h-40 w-full cursor-pointer overflow-hidden rounded-3xl border border-dashed border-gray-300 bg-white transition hover:border-yellow-400">
-                      <img
-                        src={documentBackUrl}
-                        alt="Documento verso"
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition hover:opacity-100">
-                        <span className="rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-gray-900">
-                          Clique para trocar o verso
-                        </span>
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={event => handleDocumentUpload(event, setDocumentBackUrl)}
-                        className="sr-only"
-                      />
-                    </label>
-                  ) : (
-                    <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-white px-4 text-center text-sm font-semibold text-gray-500 transition hover:border-yellow-400 hover:text-gray-900">
-                      Selecionar verso do documento
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={event => handleDocumentUpload(event, setDocumentBackUrl)}
-                        className="sr-only"
-                      />
-                    </label>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <UserPlus className="h-5 w-5 text-yellow-400" />
-              <div>
-                <h2 className="font-title text-base font-extrabold text-gray-900">Resumo</h2>
-                <p className="font-body text-xs text-gray-400">Confira os dados antes de salvar.</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <User className="h-4 w-4 text-gray-500" />
-                  Identificação
-                </div>
-                <p className="font-body text-sm text-gray-600">
-                  {form.nome_completo || 'Nome do pai ainda não preenchido'}
-                </p>
-                <p className="font-body text-sm text-gray-500">
-                  {form.documento || 'Documento pendente'}
-                </p>
-              </div>
-              <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <Mail className="h-4 w-4 text-gray-500" />
-                  Contato
-                </div>
-                <p className="font-body text-sm text-gray-600">{form.email || 'Email pendente'}</p>
-                <p className="font-body text-sm text-gray-500">
-                  {form.telefone || 'Telefone pendente'}
-                </p>
-              </div>
-              <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  Situação
-                </div>
-                <p className="font-body text-sm text-gray-600">
-                  {form.tipo_documento} • {form.profissao || 'Profissão não informada'}
-                </p>
-                <p className="font-body text-sm text-gray-500">
-                  {form.recebe_beneficio_social
-                    ? 'Recebe benefício social'
-                    : 'Não recebe benefício social'}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </main>
@@ -663,9 +542,7 @@ function RegisterParentContent() {
 
 function OpenSidebarButton() {
   const { toggleSidebar, open } = useSidebar()
-
   if (open) return null
-
   return (
     <button
       onClick={toggleSidebar}
