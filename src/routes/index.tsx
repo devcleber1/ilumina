@@ -8,6 +8,7 @@ import RegisterWorkshop from '../Pages/Admin/Register/RegisterWorkshop'
 import Workshops from '../Pages/Admin/Workshops/Workshops'
 import { Presenca } from '../Pages/Admin/Presenca/Presenca'
 import { Advertencia } from '../Pages/Admin/Advertencia/Advertencia'
+import EditUsers from '../Pages/Admin/Users/EditUsers'
 
 export default function AppRoutes() {
   return (
@@ -21,6 +22,7 @@ export default function AppRoutes() {
       <Route path="/dashboard/oficinas" element={<Workshops />} />
       <Route path="/dashboard/presenca" element={<Presenca />} />
       <Route path="/dashboard/advertencia" element={<Advertencia />} />
+      <Route path="/dashboard/editar-usuarios" element={<EditUsers />} />
     </Routes>
   )
 }

@@ -62,7 +62,7 @@ const menuItems: MenuItem[] = [
     title: 'Controle Acesso',
     icon: Shield,
     subItems: [
-      { title: 'Editar Usuarios', url: '#' },
+      { title: 'Editar Usuários', url: '/dashboard/editar-usuarios' },
       { title: 'Reset de Senha', url: '#' },
       { title: 'Exclusao de Usuarios', url: '#' },
     ],
