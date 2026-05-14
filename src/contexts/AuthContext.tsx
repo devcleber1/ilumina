@@ -9,6 +9,7 @@ interface User {
   email: string
   tipo: string
   foto_perfil_url?: string
+  nivel_acesso?: string
 }
 
 interface AuthContextType {

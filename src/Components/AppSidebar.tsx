@@ -64,7 +64,6 @@ const menuItems: MenuItem[] = [
     subItems: [
       { title: 'Editar Usuários', url: '/dashboard/editar-usuarios' },
       { title: 'Reset de Senha', url: '#' },
-      { title: 'Exclusao de Usuarios', url: '#' },
     ],
   },
 ]
@@ -230,14 +229,25 @@ export function AppSidebar() {
           <div className="flex items-center gap-3 mb-3">
             <div className="h-9 w-9 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden border border-gray-200">
               {user?.foto_perfil_url ? (
-                <img 
-                  src={user.foto_perfil_url.startsWith('http') ? user.foto_perfil_url : `http://localhost:3001${user.foto_perfil_url}`} 
-                  alt="Avatar" 
-                  className="h-full w-full object-cover" 
+                <img
+                  src={
+                    user.foto_perfil_url.startsWith('http')
+                      ? user.foto_perfil_url
+                      : `http://localhost:3001${user.foto_perfil_url}`
+                  }
+                  alt="Avatar"
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 <span className="text-xs font-bold text-gray-900">
-                  {user?.nome_completo ? user.nome_completo.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'AD'}
+                  {user?.nome_completo
+                    ? user.nome_completo
+                        .split(' ')
+                        .map(n => n[0])
+                        .join('')
+                        .toUpperCase()
+                        .substring(0, 2)
+                    : 'AD'}
                 </span>
               )}
             </div>
@@ -246,7 +256,7 @@ export function AppSidebar() {
                 {user?.nome_completo || 'Administrador'}
               </p>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-gray-900 capitalize">
-                {user?.tipo || 'Admin'}
+                {user?.nivel_acesso === 'superadmin' ? 'Super Admin' : 'Admin'}
               </span>
             </div>
           </div>

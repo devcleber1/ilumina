@@ -16,6 +16,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { api } from '../../../lib/api'
+import { useAlert } from '../../../contexts/AlertContext'
 
 interface OficinaAttributes {
   id?: number
@@ -51,6 +52,7 @@ const fieldClass =
 function RegisterWorkshopContent() {
   const { open } = useSidebar()
   const navigate = useNavigate()
+  const { showAlert } = useAlert()
 
   const {
     register,
@@ -104,7 +106,7 @@ function RegisterWorkshopContent() {
 
   const onFormSubmit = async (data: OficinaAttributes) => {
     if (!data.dias_semana) {
-      alert('Selecione pelo menos um dia da semana.')
+      showAlert('destructive', 'Atenção', 'Selecione pelo menos um dia da semana.')
       return
     }
 
@@ -119,18 +121,18 @@ function RegisterWorkshopContent() {
           })
         } catch (linkError) {
           console.error('Erro ao vincular professor:', linkError)
-          alert('Oficina criada, mas houve um erro ao vincular o professor responsável.')
+          showAlert('warning', 'Atenção', 'Oficina criada, mas houve um erro ao vincular o professor responsável.')
         }
       }
 
-      alert('Oficina criada com sucesso!')
+      showAlert('success', 'Sucesso', 'Oficina criada com sucesso!')
       navigate('/dashboard/oficinas')
     } catch (error: any) {
       console.error('Erro ao criar oficina:', error)
       const message =
         error.response?.data?.message ||
         'Erro ao criar oficina. Verifique os dados e tente novamente.'
-      alert(message)
+      showAlert('destructive', 'Erro', message)
     }
   }
 
@@ -198,14 +200,19 @@ function RegisterWorkshopContent() {
               <label className="space-y-1.5 md:col-span-2">
                 <span className="font-body flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
                   <Plus className="h-3.5 w-3.5 text-yellow-500" />
-                  Descrição (Opcional)
+                  Descrição
                 </span>
                 <textarea
                   {...register('descricao')}
                   rows={3}
                   placeholder="Descreva o que será ensinado nesta oficina..."
-                  className={fieldClass}
+                  className={`${fieldClass} ${errors.descricao ? 'border-red-500' : ''}`}
                 />
+                {errors.descricao && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">
+                    {errors.descricao.message}
+                  </p>
+                )}
               </label>
 
               <label className="space-y-1.5">

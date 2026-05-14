@@ -9,6 +9,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { api } from '../../../lib/api'
 import { formatCPF, formatPhone } from '../../../utils/formatters'
+import { useAlert } from '../../../contexts/AlertContext'
 
 interface ProfessorAttributes {
   id?: number
@@ -85,6 +86,8 @@ const fieldClass =
 function RegisterTeacherContent() {
   const { open } = useSidebar()
   const navigate = useNavigate()
+  const { showAlert } = useAlert()
+  const [mediaErrors, setMediaErrors] = useState<Record<string, string>>({})
 
   const {
     register,
@@ -118,10 +121,6 @@ function RegisterTeacherContent() {
   }
 
   const handleProfilePhotoClick = () => {
-    if (profilePhotoSrc) {
-      setIsCropModalOpen(true)
-      return
-    }
     handleOpenFilePicker()
   }
 
@@ -138,6 +137,7 @@ function RegisterTeacherContent() {
         setCrop({ x: 0, y: 0 })
         setZoom(1)
         setIsCropModalOpen(true)
+        setMediaErrors(prev => ({ ...prev, photo: '' }))
       }
     }
     reader.readAsDataURL(file)
@@ -154,6 +154,7 @@ function RegisterTeacherContent() {
     setFile(file)
     setPreview(URL.createObjectURL(file))
     event.target.value = ''
+    setMediaErrors(prev => ({ ...prev, [event.target.id]: '' }))
   }
 
   const onCropComplete = useCallback((_: Area, croppedAreaPixelsValue: Area) => {
@@ -173,6 +174,30 @@ function RegisterTeacherContent() {
   }, [profilePhotoSrc, croppedAreaPixels])
 
   const onFormSubmit = async (data: ProfessorAttributes) => {
+    let hasMediaErrors = false
+    const newMediaErrors: Record<string, string> = {}
+
+    if (!profilePhotoBlob) {
+      newMediaErrors.photo = 'Foto de perfil é obrigatória'
+      showAlert('destructive', 'Atenção', 'Foto de perfil é obrigatória')
+      hasMediaErrors = true
+    }
+    if (!documentFrontFile) {
+      newMediaErrors['doc-frente'] = 'Documento frente é obrigatório'
+      showAlert('destructive', 'Atenção', 'Documento frente é obrigatório')
+      hasMediaErrors = true
+    }
+    if (!documentBackFile) {
+      newMediaErrors['doc-verso'] = 'Documento verso é obrigatório'
+      showAlert('destructive', 'Atenção', 'Documento verso é obrigatório')
+      hasMediaErrors = true
+    }
+
+    if (hasMediaErrors) {
+      setMediaErrors(newMediaErrors)
+      return
+    }
+
     try {
       const formData = new FormData()
 
@@ -182,6 +207,10 @@ function RegisterTeacherContent() {
         formattedCpf = formattedCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
       }
 
+      // Formatar data de nascimento de YYYY-MM-DD para DD/MM/AAAA
+      const [year, month, day] = data.data_nascimento.split('-')
+      const formattedDate = `${day}/${month}/${year}`
+
       // Adicionar campos de texto
       formData.append('nome_completo', data.nome_completo)
       formData.append('cpf', formattedCpf)
@@ -189,7 +218,7 @@ function RegisterTeacherContent() {
       formData.append('telefone', data.telefone)
       formData.append('formacao', data.formacao)
       formData.append('status_professor', data.status_professor)
-      formData.append('data_nascimento', data.data_nascimento) // Já está em YYYY-MM-DD (formato esperado)
+      formData.append('data_nascimento', formattedDate)
 
       // Adicionar arquivos
       if (profilePhotoBlob) {
@@ -208,14 +237,14 @@ function RegisterTeacherContent() {
         },
       })
 
-      alert('Professor cadastrado com sucesso!')
+      showAlert('success', 'Sucesso', 'Professor cadastrado com sucesso!')
       navigate('/dashboard')
     } catch (error: any) {
       console.error('Erro ao salvar professor:', error)
       const message =
         error.response?.data?.message ||
         'Erro ao cadastrar professor. Verifique os dados e tente novamente.'
-      alert(message)
+      showAlert('destructive', 'Erro', message)
     }
   }
 
@@ -249,7 +278,7 @@ function RegisterTeacherContent() {
             </h2>
             <div
               onClick={handleProfilePhotoClick}
-              className="group relative mx-auto h-48 w-48 cursor-pointer overflow-hidden rounded-full border-4 border-yellow-50 bg-gray-50 shadow-inner transition hover:border-yellow-200"
+              className={`group relative mx-auto h-48 w-48 cursor-pointer overflow-hidden rounded-full border-4 bg-gray-50 shadow-inner transition hover:border-yellow-200 ${mediaErrors.photo ? 'border-red-500' : 'border-yellow-50'}`}
             >
               {profilePhotoPreview ? (
                 <img
@@ -479,7 +508,7 @@ function RegisterTeacherContent() {
                 </div>
                 <div
                   onClick={() => document.getElementById('doc-frente')?.click()}
-                  className="relative h-40 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
+                  className={`relative h-40 w-full rounded-2xl border-2 border-dashed bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center ${mediaErrors['doc-frente'] ? 'border-red-500' : 'border-gray-200'}`}
                 >
                   {documentFrontPreview ? (
                     <img
@@ -509,7 +538,7 @@ function RegisterTeacherContent() {
                 </div>
                 <div
                   onClick={() => document.getElementById('doc-verso')?.click()}
-                  className="relative h-40 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center"
+                  className={`relative h-40 w-full rounded-2xl border-2 border-dashed bg-gray-50 transition hover:border-yellow-400 cursor-pointer overflow-hidden flex items-center justify-center ${mediaErrors['doc-verso'] ? 'border-red-500' : 'border-gray-200'}`}
                 >
                   {documentBackPreview ? (
                     <img

@@ -94,22 +94,23 @@ function DashboardContent() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
       try {
         const statsRes = await api.get('/stats/dashboard')
         setStats(statsRes.data)
       } catch (error) {
-        console.error('Erro ao carregar estatísticas:', error)
+        // silently ignore on polling
       }
       try {
         const logsRes = await api.get('/logs?limite=10')
         setRecentLogs(logsRes.data.logs || [])
       } catch (error) {
-        console.error('Erro ao carregar logs:', error)
+        // silently ignore on polling
       }
       setLoading(false)
     }
     fetchData()
+    const interval = setInterval(fetchData, 30000)
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {
