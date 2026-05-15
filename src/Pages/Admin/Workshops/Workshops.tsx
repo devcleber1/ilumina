@@ -20,6 +20,7 @@ import {
 interface Professor {
   id: number
   nome_completo: string
+  formacao?: string
 }
 
 
@@ -162,7 +163,7 @@ function WorkshopsContent() {
       setAllProfs(resProfs.data || [])
       
       const resVinculados = await api.get(`/oficinas/${workshop.id}/professores`)
-      const idsVinculados = (resVinculados.data?.data || []).map((p: any) => p.id)
+      const idsVinculados = (resVinculados.data?.data || []).map((p: any) => p.professor?.id || p.professor_id)
       setLinkedProfIds(idsVinculados)
     } catch (error) {
       console.error('Erro ao buscar dados de professores', error)
@@ -704,6 +705,7 @@ function WorkshopsContent() {
                         <div key={prof.id} className={`flex items-center justify-between p-4 rounded-xl border transition ${isLinked ? 'border-green-200 bg-green-50/50' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
                           <div>
                             <p className="font-bold text-sm text-gray-900">{prof.nome_completo}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{prof.formacao ? `Formação: ${prof.formacao}` : 'Cargo: Professor(a)'}</p>
                           </div>
                           <button
                             onClick={() => toggleProfLink(prof.id)}
