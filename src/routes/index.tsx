@@ -13,11 +13,13 @@ import ResetPassword from '../Pages/Admin/Users/ResetPassword'
 import RegisterAdmin from '../Pages/Admin/Register/RegisterAdmin'
 import Meetings from '../Pages/Admin/Meetings/Meetings'
 import { AuthGuard } from '../Components/AuthGuard'
+import PortalResponsavel from '../Pages/Parent/Portal'
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Auth />} />
+      <Route path="/portal" element={<AuthGuard><PortalResponsavel /></AuthGuard>} />
       
       {/* Rotas Protegidas */}
       <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />

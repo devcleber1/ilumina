@@ -18,8 +18,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return <Navigate to="/" />
   }
 
-  // Bloqueio Global para Pais e Professores (Não Admins)
-  if (user?.tipo !== 'admin') {
+  // Bloqueio Global para Não-Admins (com exceção das telas permitidas)
+  const isParentPortal = user?.tipo === 'pai' && window.location.pathname === '/portal'
+
+  if (user?.tipo !== 'admin' && !isParentPortal) {
     return (
       <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center p-6 overflow-hidden select-none">
         {/* Camada de proteção contra "Inspect Element" tampering */}

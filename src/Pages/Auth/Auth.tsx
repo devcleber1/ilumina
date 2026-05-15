@@ -50,8 +50,12 @@ export default function Auth() {
       if (user.precisa_trocar_senha) {
         setIsChangePasswordModalOpen(true)
       } else {
-        // Se não precisa trocar e está autenticado, vai para o dashboard
-        navigate('/dashboard')
+        // Se não precisa trocar e está autenticado, vai para a tela correspondente
+        if (user.tipo === 'pai') {
+          navigate('/portal')
+        } else {
+          navigate('/dashboard')
+        }
       }
     }
   }, [user, navigate])
