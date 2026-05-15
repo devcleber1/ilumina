@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useAuth } from '../../contexts/AuthContext'
+import { ChangePasswordModal } from '../../Components/ChangePasswordModal'
 import logo from '../../assets/logo.png'
 import kids from '../../assets/kidsL.png'
 
@@ -19,23 +20,41 @@ type FormData = {
 
 export default function Auth() {
   const [showPassword, setShowPassword] = useState(false)
-  const { login } = useAuth()
+  const { login, user, logout } = useAuth()
   const navigate = useNavigate()
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false)
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   })
 
   const onSubmit = async (data: FormData) => {
-    const success = await login(data.email, data.password)
-    if (success) {
-      navigate('/dashboard')
+    try {
+      const success = await login(data.email, data.password)
+      if (!success) {
+        setError('password', { type: 'manual', message: 'E-mail ou senha incorretos' })
+      }
+    } catch (error: any) {
+      console.error('Erro no login:', error)
+      setError('password', { type: 'manual', message: 'Erro ao conectar ao servidor' })
     }
-    // O alert de erro já é mostrado pelo AuthContext
   }
+
+  // Monitorar mudança no user após login para abrir o modal se necessário
+  useEffect(() => {
+    if (user) {
+      if (user.precisa_trocar_senha) {
+        setIsChangePasswordModalOpen(true)
+      } else {
+        // Se não precisa trocar e está autenticado, vai para o dashboard
+        navigate('/dashboard')
+      }
+    }
+  }, [user, navigate])
 
   return (
     <div
@@ -85,7 +104,9 @@ export default function Auth() {
                 {...register('email')}
                 type="email"
                 placeholder="seu.email@exemplo.com"
-                className="font-body block w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 outline-none placeholder:text-gray-300 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition"
+                className={`font-body block w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-800 outline-none placeholder:text-gray-300 focus:ring-2 transition ${
+                  errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-yellow-400 focus:ring-yellow-100'
+                }`}
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
             </div>
@@ -112,7 +133,9 @@ export default function Auth() {
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Digite sua senha"
-                  className="font-body block w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 outline-none placeholder:text-gray-300 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition"
+                  className={`font-body block w-full rounded-xl border bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 outline-none placeholder:text-gray-300 focus:ring-2 transition ${
+                    errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-yellow-400 focus:ring-yellow-100'
+                  }`}
                 />
                 <button
                   type="button"
@@ -174,6 +197,14 @@ export default function Auth() {
           </form>
         </div>
       </div>
+
+      <ChangePasswordModal 
+        isOpen={isChangePasswordModalOpen}
+        onSuccess={() => {
+          setIsChangePasswordModalOpen(false)
+          logout() // Força logout após trocar senha conforme regra do backend
+        }}
+      />
     </div>
   )
 }

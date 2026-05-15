@@ -12,7 +12,6 @@ import {
   ClipboardList,
   AlertTriangle,
   X,
-  ShieldAlert,
   Calendar,
   User,
   Activity,
@@ -86,7 +85,7 @@ function SectionTitle({ title, sub, icon: Icon }: { title: string; sub?: string;
 
 function DashboardContent() {
   const { open } = useSidebar()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentLogs, setRecentLogs] = useState<Log[]>([])
   const [loading, setLoading] = useState(true)
@@ -120,6 +119,8 @@ function DashboardContent() {
       </div>
     )
   }
+
+
 
   return (
     <main

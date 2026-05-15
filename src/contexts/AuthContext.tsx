@@ -10,6 +10,7 @@ interface User {
   tipo: string
   foto_perfil_url?: string
   nivel_acesso?: string
+  precisa_trocar_senha?: boolean
 }
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
   renewSession: () => Promise<void>
+  loading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -35,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('expiresAt')
     return saved ? Number(saved) : null
   })
+  const [loading, setLoading] = useState(true)
 
   const { showAlert } = useAlert()
 
@@ -97,7 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if ((error as any).response?.status === 401) {
             logout()
           }
+        } finally {
+          setLoading(false)
         }
+      } else {
+        setLoading(false)
       }
     }
     fetchUser()
@@ -178,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, renewSession }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, renewSession, loading }}>
       {children}
       <SessionTimeoutModal 
         isOpen={showSessionModal}
