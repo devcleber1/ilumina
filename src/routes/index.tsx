@@ -9,6 +9,7 @@ import Workshops from '../Pages/Admin/Workshops/Workshops'
 import { Presenca } from '../Pages/Admin/Presenca/Presenca'
 import { Advertencia } from '../Pages/Admin/Advertencia/Advertencia'
 import EditUsers from '../Pages/Admin/Users/EditUsers'
+import ResetPassword from '../Pages/Admin/Users/ResetPassword'
 
 export default function AppRoutes() {
   return (
@@ -23,6 +24,7 @@ export default function AppRoutes() {
       <Route path="/dashboard/presenca" element={<Presenca />} />
       <Route path="/dashboard/advertencia" element={<Advertencia />} />
       <Route path="/dashboard/editar-usuarios" element={<EditUsers />} />
+      <Route path="/dashboard/reset-senha" element={<ResetPassword />} />
     </Routes>
   )
 }

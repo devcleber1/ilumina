@@ -77,7 +77,7 @@ const menuItems: MenuItem[] = [
     icon: Shield,
     subItems: [
       { title: 'Editar Usuários', url: '/dashboard/editar-usuarios' },
-      { title: 'Reset de Senha', url: '#' },
+      { title: 'Reset de Senha', url: '/dashboard/reset-senha' },
     ],
   },
 ]
