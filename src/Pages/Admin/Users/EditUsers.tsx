@@ -54,6 +54,10 @@ interface BaseUser {
   photo?: string
   documentPhoto?: string
   documentBackPhoto?: string
+  formacao?: string
+  profissao?: string
+  recebe_beneficio_social?: boolean
+  numero_matricula?: string
   raw: any
 }
 
@@ -132,6 +136,7 @@ function EditUsersContent() {
         documentPhoto: u.documento_frente_url,
         documentBackPhoto: u.documento_verso_url,
         birthDate: formatDateBr(u.data_nascimento),
+        numero_matricula: u.numero_matricula,
         raw: u
       }))
 
@@ -146,6 +151,7 @@ function EditUsersContent() {
         documentPhoto: u.documento_frente_url,
         documentBackPhoto: u.documento_verso_url,
         birthDate: formatDateBr(u.data_nascimento),
+        formacao: u.formacao,
         raw: u
       }))
 
@@ -161,6 +167,8 @@ function EditUsersContent() {
         documentPhoto: u.documento_frente_url,
         documentBackPhoto: u.documento_verso_url,
         birthDate: formatDateBr(u.data_nascimento),
+        profissao: u.profissao,
+        recebe_beneficio_social: u.recebe_beneficio_social,
         raw: u
       }))
 
@@ -192,7 +200,11 @@ function EditUsersContent() {
         formacao: yup.string().required('Formação é obrigatória')
       }),
       ...(role === 'pai' && {
-        profissao: yup.string().required('Profissão é obrigatória')
+        profissao: yup.string().required('Profissão é obrigatória'),
+        recebe_beneficio_social: yup.boolean().required('Informação sobre benefício é obrigatória')
+      }),
+      ...(role === 'aluno' && {
+        numero_matricula: yup.string().optional()
       })
     })
   }
@@ -228,14 +240,18 @@ function EditUsersContent() {
 
     try {
       const schema = getValidationSchema(selectedUser.role, editData.documentType || selectedUser.documentType || 'CPF')
+      
+      // Sanitizar dados para validação
       const dataToValidate = {
-        name: editData.name || selectedUser.name,
-        email: editData.email || selectedUser.email,
-        phone: editData.phone || selectedUser.phone,
-        birthDate: editData.birthDate || selectedUser.birthDate,
-        document: editData.document || selectedUser.document,
-        formacao: selectedUser.raw?.formacao,
-        profissao: selectedUser.raw?.profissao,
+        name: editData.name,
+        email: editData.email,
+        phone: editData.phone,
+        birthDate: editData.birthDate,
+        document: editData.document,
+        formacao: editData.formacao,
+        profissao: editData.profissao,
+        recebe_beneficio_social: editData.recebe_beneficio_social,
+        numero_matricula: editData.numero_matricula
       }
       
       await schema.validate(dataToValidate, { abortEarly: false })
@@ -261,29 +277,6 @@ function EditUsersContent() {
     }
 
     try {
-      const schema = getValidationSchema(selectedUser.role, editData.documentType || 'CPF')
-      await schema.validate(editData, { abortEarly: false })
-    } catch (err) {
-      if (err instanceof yup.ValidationError) {
-        err.inner.forEach((e) => {
-          if (e.path) newErrors[e.path] = e.message
-        })
-      }
-      setErrors(newErrors)
-      setShowSaveModal(false)
-      setIsSaving(false)
-      if (!hasMediaErrors) showAlert('destructive', 'Erro de validação', 'Verifique os campos em vermelho.')
-      return
-    }
-
-    if (hasMediaErrors) {
-      setErrors(newErrors)
-      setShowSaveModal(false)
-      setIsSaving(false)
-      return
-    }
-
-    try {
       let endpoint = ''
       const formData = new FormData()
 
@@ -301,38 +294,36 @@ function EditUsersContent() {
 
       if (selectedUser.role === 'admin' || selectedUser.role === 'superadmin') {
         endpoint = `/admins/update/${selectedUser.id}`
-        formData.append('nome_completo', editData.name || selectedUser.name)
-        formData.append('email', editData.email || selectedUser.email)
+        formData.append('nome_completo', editData.name || '')
+        formData.append('email', editData.email || '')
       } else if (selectedUser.role === 'aluno') {
         endpoint = `/alunos/update/${selectedUser.id}`
-        formData.append('nome_completo', editData.name || selectedUser.name)
-        formData.append('email', editData.email || selectedUser.email)
-        formData.append('cpf', editData.document || selectedUser.document || '')
-        formData.append('telefone', editData.phone || selectedUser.phone || '')
-        formData.append('data_nascimento', editData.birthDate || selectedUser.birthDate || '')
+        formData.append('nome_completo', editData.name || '')
+        formData.append('email', editData.email || '')
+        formData.append('cpf', editData.document || '')
+        formData.append('telefone', editData.phone || '')
+        formData.append('data_nascimento', editData.birthDate || '')
         formData.append('status_aluno', 'ativo')
-        if (selectedUser.raw?.numero_matricula) formData.append('numero_matricula', selectedUser.raw.numero_matricula)
+        if (editData.numero_matricula) formData.append('numero_matricula', editData.numero_matricula)
       } else if (selectedUser.role === 'professor') {
         endpoint = `/professores/update/${selectedUser.id}`
-        formData.append('nome_completo', editData.name || selectedUser.name)
-        formData.append('email', editData.email || selectedUser.email)
-        formData.append('cpf', editData.document || selectedUser.document || '')
-        formData.append('telefone', editData.phone || selectedUser.phone || '')
-        formData.append('data_nascimento', editData.birthDate || selectedUser.birthDate || '')
+        formData.append('nome_completo', editData.name || '')
+        formData.append('email', editData.email || '')
+        formData.append('cpf', editData.document || '')
+        formData.append('telefone', editData.phone || '')
+        formData.append('data_nascimento', editData.birthDate || '')
         formData.append('status_professor', 'ativo')
-        if (selectedUser.raw?.formacao) formData.append('formacao', selectedUser.raw.formacao)
+        if (editData.formacao) formData.append('formacao', editData.formacao)
       } else if (selectedUser.role === 'pai') {
         endpoint = `/pais/update/${selectedUser.id}`
-        formData.append('nome_completo', editData.name || selectedUser.name)
-        formData.append('email', editData.email || selectedUser.email)
-        formData.append('documento', editData.document || selectedUser.document || '')
-        formData.append('tipo_documento', editData.documentType || selectedUser.documentType || 'CPF')
-        formData.append('telefone', editData.phone || selectedUser.phone || '')
-        formData.append('data_nascimento', editData.birthDate || selectedUser.birthDate || '')
-        if (selectedUser.raw?.profissao) formData.append('profissao', selectedUser.raw.profissao)
-        if (selectedUser.raw?.recebe_beneficio_social !== undefined) {
-          formData.append('recebe_beneficio_social', String(selectedUser.raw.recebe_beneficio_social))
-        }
+        formData.append('nome_completo', editData.name || '')
+        formData.append('email', editData.email || '')
+        formData.append('documento', editData.document || '')
+        formData.append('tipo_documento', editData.documentType || 'CPF')
+        formData.append('telefone', editData.phone || '')
+        formData.append('data_nascimento', editData.birthDate || '')
+        if (editData.profissao) formData.append('profissao', editData.profissao)
+        formData.append('recebe_beneficio_social', String(!!editData.recebe_beneficio_social))
       }
 
       await api.put(endpoint, formData, {
@@ -655,6 +646,70 @@ function EditUsersContent() {
                           }}
                         />
                         {errors.birthDate && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.birthDate}</span>}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {selectedUser.role === 'professor' && (
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Formação</label>
+                        <input
+                          type="text"
+                          placeholder="Obrigatório"
+                          className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.formacao ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
+                          value={editData.formacao || ''}
+                          onChange={(e) => {
+                            setEditData({ ...editData, formacao: e.target.value })
+                            setErrors(prev => ({ ...prev, formacao: '' }))
+                          }}
+                        />
+                        {errors.formacao && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.formacao}</span>}
+                      </div>
+                    )}
+                    {selectedUser.role === 'pai' && (
+                      <>
+                        <div>
+                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Profissão</label>
+                          <input
+                            type="text"
+                            placeholder="Obrigatório"
+                            className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.profissao ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
+                            value={editData.profissao || ''}
+                            onChange={(e) => {
+                              setEditData({ ...editData, profissao: e.target.value })
+                              setErrors(prev => ({ ...prev, profissao: '' }))
+                            }}
+                          />
+                          {errors.profissao && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.profissao}</span>}
+                        </div>
+                        <div className="flex flex-col justify-center pt-5">
+                           <label className="flex items-center gap-3 cursor-pointer group">
+                             <div className="relative">
+                               <input
+                                 type="checkbox"
+                                 className="sr-only"
+                                 checked={!!editData.recebe_beneficio_social}
+                                 onChange={(e) => setEditData({ ...editData, recebe_beneficio_social: e.target.checked })}
+                               />
+                               <div className={`block w-10 h-6 rounded-full transition ${editData.recebe_beneficio_social ? 'bg-yellow-400' : 'bg-gray-300'}`}></div>
+                               <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${editData.recebe_beneficio_social ? 'transform translate-x-4' : ''}`}></div>
+                             </div>
+                             <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Recebe Benefício Social</span>
+                           </label>
+                        </div>
+                      </>
+                    )}
+                    {selectedUser.role === 'aluno' && (
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Número de Matrícula</label>
+                        <input
+                          type="text"
+                          placeholder="Opcional"
+                          className="w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border border-gray-200 outline-none focus:border-yellow-500 transition"
+                          value={editData.numero_matricula || ''}
+                          onChange={(e) => setEditData({ ...editData, numero_matricula: e.target.value })}
+                        />
                       </div>
                     )}
                   </div>
