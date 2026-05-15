@@ -11,6 +11,7 @@ import { Advertencia } from '../Pages/Admin/Advertencia/Advertencia'
 import EditUsers from '../Pages/Admin/Users/EditUsers'
 import ResetPassword from '../Pages/Admin/Users/ResetPassword'
 import RegisterAdmin from '../Pages/Admin/Register/RegisterAdmin'
+import Meetings from '../Pages/Admin/Meetings/Meetings'
 
 export default function AppRoutes() {
   return (
@@ -27,6 +28,7 @@ export default function AppRoutes() {
       <Route path="/dashboard/editar-usuarios" element={<EditUsers />} />
       <Route path="/dashboard/reset-senha" element={<ResetPassword />} />
       <Route path="/dashboard/cadastro-admin" element={<RegisterAdmin />} />
+      <Route path="/dashboard/reuniao" element={<Meetings />} />
     </Routes>
   )
 }
