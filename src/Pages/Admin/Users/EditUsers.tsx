@@ -348,6 +348,11 @@ function EditUsersContent() {
   }
 
   const filteredUsers = users.filter(u => {
+    // Remove o próprio usuário logado da listagem
+    if (u.id === currentUser?.id && (u.role === 'admin' || u.role === 'superadmin')) {
+      return false
+    }
+
     const userName = u.name || ''
     const matchName = userName.toLowerCase().includes(search.toLowerCase())
     const matchRole = filterRole === 'todos' || u.role === filterRole
