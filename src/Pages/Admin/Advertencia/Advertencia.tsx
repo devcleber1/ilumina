@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
 import {
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { api } from '../../../lib/api'
 import { useAlert } from '../../../contexts/AlertContext'
+import { useAuth } from '../../../contexts/AuthContext'
 
 interface Oficina {
   id: number
@@ -69,7 +70,13 @@ function AdvertenciaContent() {
   const [workshopWarnings, setWorkshopWarnings] = useState<Advertencia[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingStudents, setLoadingStudents] = useState(false)
+  const [view, setView] = useState<'registro' | 'historico'>('registro')
   const [search, setSearch] = useState('')
+  const [studentSearch, setStudentSearch] = useState('')
+  const [historySearch, setHistorySearch] = useState('')
+
+  const { user: currentUser } = useAuth()
+  const isSuperAdmin = currentUser?.tipo === 'admin' && (currentUser?.nivel_acesso === 'superadmin' || (currentUser as any).isSuperAdmin === true)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Aluno | null>(null)
@@ -226,6 +233,27 @@ function AdvertenciaContent() {
     return workshopWarnings.filter(w => w.aluno_id === studentId)
   }
 
+  // Agrupar advertências por data para o histórico
+  const groupedWarnings = workshopWarnings
+    .filter(w => {
+      const search = historySearch.toLowerCase()
+      const studentName = w.aluno?.nome_completo?.toLowerCase() || ''
+      const matricula = w.aluno?.numero_matricula || ''
+      const type = w.tipo_advertencia?.toLowerCase() || ''
+      
+      return studentName.includes(search) || 
+             matricula.includes(search) || 
+             type.includes(search)
+    })
+    .reduce((acc: Record<string, Advertencia[]>, curr) => {
+      const date = curr.data_advertencia
+      if (!acc[date]) acc[date] = []
+      acc[date].push(curr)
+      return acc
+    }, {})
+
+  const sortedDates = Object.keys(groupedWarnings).sort((a, b) => b.localeCompare(a))
+
   if (!selectedWorkshop) {
     return (
       <main
@@ -302,209 +330,247 @@ function AdvertenciaContent() {
     <main
       className={`flex-1 bg-gray-100 min-h-screen transition-all duration-300 ${!open ? 'pl-8' : ''}`}
     >
-      <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSelectedWorkshop(null)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          </button>
-          <div>
-            <h1 className="font-title text-xl font-black text-gray-900 uppercase">
-              {selectedWorkshop.nome_oficina}
-            </h1>
-            <p className="font-body text-[10px] text-gray-400 font-black uppercase tracking-tighter">
-              Clique no Aluno para registrar ou veja o histÃ³rico detalhado ao lado
-            </p>
+      <div className="bg-white shadow-sm sticky top-0 z-40">
+        <div className="flex w-full items-center px-6 py-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSelectedWorkshop(null)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-600" />
+            </button>
+            <div>
+              <h1 className="font-title text-2xl font-black text-gray-900 leading-none">
+                {selectedWorkshop.nome_oficina}
+              </h1>
+              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">
+                Gestão de Ocorrências e Advertências
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 border-t border-gray-100">
+          <div className="flex gap-8 ml-12">
+            <button
+              onClick={() => setView('registro')}
+              className={`py-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+                view === 'registro' ? 'border-yellow-400 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              Registrar Advertência
+            </button>
+            <button
+              onClick={() => setView('historico')}
+              className={`py-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+                view === 'historico' ? 'border-yellow-400 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              Histórico de Advertências
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="p-6 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
-        {/* Lista de Alunos para Registro */}
-        <div className="space-y-4">
-          <SectionTitle
-            title="Alunos Matriculados"
-            sub="Selecione um aluno para nova ocorrÃªncia"
-          />
-          {loadingStudents ? (
-            <div className="flex items-center justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
-            </div>
-          ) : students.length === 0 ? (
-            <div className="bg-white rounded-[40px] p-12 flex flex-col items-center justify-center text-center border border-gray-100 shadow-sm animate-in fade-in zoom-in duration-500">
-              <div className="h-20 w-20 rounded-full bg-yellow-50 flex items-center justify-center mb-6">
-                <Users className="h-10 w-10 text-yellow-400" />
+      <div className="p-8 max-w-6xl mx-auto w-full">
+        {view === 'registro' ? (
+          <div className="space-y-8">
+            {/* Barra de Pesquisa Centralizada Estilo Presença */}
+            <div className="flex justify-center">
+              <div className="bg-white w-full max-w-3xl px-6 py-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
+                <Search className="h-6 w-6 text-gray-300" />
+                <input
+                  type="text"
+                  placeholder="Buscar aluno por nome ou matrícula..."
+                  className="bg-transparent border-none outline-none text-base font-medium text-gray-900 w-full placeholder:text-gray-400"
+                  value={studentSearch}
+                  onChange={e => setStudentSearch(e.target.value)}
+                />
               </div>
-              <h3 className="font-title text-xl font-black text-gray-900 uppercase">
-                Nenhum aluno vinculado
-              </h3>
-              <p className="text-gray-400 text-sm mt-3 max-w-sm leading-relaxed font-medium italic">
-                NÃ£o identificamos alunos matriculados nesta oficina. Verifique o cadastro de turmas
-                para prosseguir com o registro de advertÃªncias.
-              </p>
-              <button
-                onClick={() => setSelectedWorkshop(null)}
-                className="mt-8 px-8 py-3 bg-gray-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-800 transition-all active:scale-95"
-              >
-                Voltar para Oficinas
-              </button>
             </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {students.map(student => {
-                const warns = getStudentWarnings(student.id)
-                return (
-                  <button
-                    key={student.id}
-                    onClick={() => handleOpenModal(student)}
-                    className="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center justify-between group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200 relative">
-                        {student.foto_perfil_url ? (
-                          <img
-                            src={`http://localhost:3001${student.foto_perfil_url}`}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 font-black text-lg">
-                            {student.nome_completo.charAt(0)}
-                          </div>
-                        )}
-                        {warns.length > 0 && (
-                          <div className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center animate-bounce shadow-sm">
-                            <span className="text-[8px] text-white font-black">{warns.length}</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-left">
-                        <h4 className="font-title text-sm font-black text-gray-900 group-hover:text-yellow-600 transition-colors uppercase">
-                          {student.nome_completo}
-                        </h4>
-                        <span className="text-[9px] text-gray-400 font-black tracking-widest uppercase">
-                          MATRÃCULA: {student.numero_matricula}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 p-2 rounded-xl group-hover:bg-yellow-50 transition-colors">
-                      <Plus className="h-5 w-5 text-gray-300 group-hover:text-yellow-500" />
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
 
-        {/* HistÃ³rico Recente da Oficina */}
-        <div className="space-y-4">
-          <SectionTitle
-            title="HistÃ³rico da Oficina"
-            sub="OcorrÃªncias registradas nesta atividade"
-          />
-          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100 flex flex-col gap-4 h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
-            {workshopWarnings.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
-                <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
-                  <Info className="h-8 w-8 text-gray-300" />
-                </div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                  Sem histÃ³rico
-                  <br />
-                  nesta oficina
-                </p>
+            {loadingStudents ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-10 w-10 animate-spin text-yellow-400" />
               </div>
             ) : (
-              workshopWarnings.map(adv => (
-                <div
-                  key={adv.id}
-                  className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3 group/item"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-white overflow-hidden border border-gray-200 shadow-sm">
-                        {adv.aluno?.foto_perfil_url ? (
-                          <img
-                            src={`http://localhost:3001${adv.aluno.foto_perfil_url}`}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-[8px] font-black bg-yellow-50 text-yellow-600">
-                            {adv.aluno?.nome_completo.charAt(0)}
+              <div className="space-y-4 max-w-4xl mx-auto">
+                {students
+                  .filter(s => 
+                    s.nome_completo.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                    s.numero_matricula.includes(studentSearch)
+                  )
+                  .map(student => {
+                    const warns = getStudentWarnings(student.id)
+                    return (
+                      <div
+                        key={student.id}
+                        className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm flex items-center justify-between group transition-all hover:shadow-md"
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className="h-16 w-16 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200 relative">
+                            {student.foto_perfil_url ? (
+                              <img
+                                src={`http://localhost:3001${student.foto_perfil_url}`}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 font-black font-title text-2xl">
+                                {student.nome_completo.charAt(0)}
+                              </div>
+                            )}
                           </div>
-                        )}
+                          <div>
+                            <h4 className="font-title text-sm font-bold text-gray-900 uppercase">
+                              {student.nome_completo}
+                            </h4>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                              MATRÍCULA: <span className="text-gray-600">{student.numero_matricula || 'N/A'}</span>
+                            </p>
+                            {warns.length > 0 && (
+                              <div className="flex items-center gap-1.5 mt-2.5 text-[10px] font-black font-title text-red-500 uppercase">
+                                <AlertTriangle className="h-3.5 w-3.5" />
+                                <span>{warns.length} {warns.length === 1 ? 'Ocorrência' : 'Ocorrências'} registrada(s)</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleOpenModal(student)}
+                          className="flex items-center gap-3 px-8 py-3.5 rounded-2xl bg-gray-50 text-gray-400 font-black font-title text-[10px] uppercase tracking-widest hover:bg-yellow-400 hover:text-white transition-all shadow-sm group-hover:bg-yellow-50 group-hover:text-yellow-600 cursor-pointer"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Dar Advertência
+                        </button>
                       </div>
-                      <span className="text-xs font-black text-gray-900 uppercase truncate max-w-[150px]">
-                        {adv.aluno?.nome_completo}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleEdit(adv)}
-                        className="p-1.5 hover:bg-white rounded-lg text-gray-400 hover:text-blue-500 transition-all cursor-pointer shadow-sm"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(adv)}
-                        className="p-1.5 hover:bg-white rounded-lg text-gray-400 hover:text-red-500 transition-all cursor-pointer shadow-sm"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black text-red-500 uppercase flex items-center gap-1">
-                        <div
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            adv.gravidade === 'alta'
-                              ? 'bg-red-500'
-                              : adv.gravidade === 'media'
-                                ? 'bg-yellow-400'
-                                : 'bg-green-500'
-                          }`}
-                        />
-                        {adv.tipo_advertencia}
-                      </span>
-                      <span className="text-[9px] font-mono font-bold text-gray-400">
-                        {new Date(adv.data_advertencia).toLocaleDateString('pt-BR')}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 leading-relaxed italic line-clamp-3">
-                      "{adv.descricao}"
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100/50">
-                    <span
-                      className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
-                        adv.gravidade === 'alta'
-                          ? 'bg-red-100 text-red-600'
-                          : adv.gravidade === 'media'
-                            ? 'bg-yellow-100 text-yellow-600'
-                            : 'bg-green-100 text-green-600'
-                      }`}
-                    >
-                      {adv.gravidade}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[8px] font-black text-gray-400 uppercase">Por:</span>
-                      <span className="text-[8px] font-black text-gray-600 uppercase truncate max-w-[80px]">
-                        {adv.professor_registrador?.nome_completo ||
-                          adv.admin_registrador?.nome_completo ||
-                          'Sistema'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
+                    )
+                  })}
+              </div>
             )}
           </div>
-        </div>
+        ) : (
+          <div className="space-y-8">
+            {/* Barra de Pesquisa para Histórico */}
+            <div className="flex justify-center">
+              <div className="bg-white w-full max-w-3xl px-6 py-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
+                <Search className="h-6 w-6 text-gray-300" />
+                <input
+                  type="text"
+                  placeholder="Pesquisar no histórico por nome..."
+                  className="bg-transparent border-none outline-none text-base font-medium text-gray-900 w-full placeholder:text-gray-400"
+                  value={historySearch}
+                  onChange={e => setHistorySearch(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {sortedDates.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-32 opacity-40">
+                <Clock className="h-16 w-16 text-gray-300 mb-4" />
+                <p className="font-black text-sm text-gray-400 uppercase tracking-widest">Nenhuma ocorrência registrada</p>
+              </div>
+            ) : (
+              <div className="max-w-5xl mx-auto space-y-10">
+                {sortedDates.map(date => (
+                  <div key={date} className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-white px-6 py-2 rounded-full border border-gray-100 shadow-sm">
+                        <span className="text-[10px] font-black font-title text-gray-900 uppercase tracking-widest">
+                          {new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { dateStyle: 'full' })}
+                        </span>
+                      </div>
+                      <div className="h-px flex-1 bg-gray-200" />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {groupedWarnings[date].map(adv => (
+                        <div
+                          key={adv.id}
+                          className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm space-y-4 hover:shadow-md transition-all group/card relative"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="h-14 w-14 rounded-2xl bg-gray-50 overflow-hidden border border-gray-200 shadow-sm">
+                                {adv.aluno?.foto_perfil_url ? (
+                                  <img
+                                    src={`http://localhost:3001${adv.aluno.foto_perfil_url}`}
+                                    alt=""
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="h-full w-full flex items-center justify-center text-base font-black font-title bg-yellow-50 text-yellow-600 uppercase">
+                                    {adv.aluno?.nome_completo.charAt(0)}
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold font-title text-gray-900 uppercase leading-tight">
+                                  {adv.aluno?.nome_completo}
+                                </h4>
+                                <p className="text-[10px] text-gray-400 font-bold font-body uppercase tracking-widest mt-1">
+                                  MATRÍCULA: <span className="text-gray-600">{adv.aluno?.numero_matricula || 'N/A'}</span>
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {isSuperAdmin && (
+                              <div className="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => handleEdit(adv)}
+                                  className="p-2.5 hover:bg-blue-50 rounded-2xl text-gray-400 hover:text-blue-500 transition-all cursor-pointer shadow-sm bg-white border border-gray-50"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(adv)}
+                                  className="p-2.5 hover:bg-red-50 rounded-2xl text-gray-400 hover:text-red-500 transition-all cursor-pointer shadow-sm bg-white border border-gray-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="p-5 bg-gray-50 rounded-3xl border border-gray-100 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-black font-title text-red-500 uppercase flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4" />
+                                {adv.tipo_advertencia}
+                              </span>
+                              <span
+                                className={`text-[8px] font-black font-title uppercase px-3 py-1 rounded-full ${
+                                  adv.gravidade === 'alta'
+                                    ? 'bg-red-100 text-red-600'
+                                    : adv.gravidade === 'media'
+                                      ? 'bg-yellow-100 text-yellow-600'
+                                      : 'bg-green-100 text-green-600'
+                                }`}
+                              >
+                                {adv.gravidade}
+                              </span>
+                            </div>
+                            <p className="text-sm font-body text-gray-600 italic leading-relaxed">
+                              "{adv.descricao}"
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2 px-1">
+                            <div className="flex items-center gap-2 text-[9px] font-black font-title text-gray-400 uppercase tracking-tighter">
+                              <User className="h-3.5 w-3.5" />
+                              Por: <span className="text-gray-600">{adv.professor_registrador?.nome_completo || adv.admin_registrador?.nome_completo || 'Sistema'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal de ExclusÃ£o */}
