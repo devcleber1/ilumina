@@ -78,6 +78,7 @@ const menuItems: MenuItem[] = [
     subItems: [
       { title: 'Editar Usuários', url: '/dashboard/editar-usuarios' },
       { title: 'Reset de Senha', url: '/dashboard/reset-senha' },
+      { title: 'Novo Administrador', url: '/dashboard/cadastro-admin', restricted: true },
     ],
   },
 ]
@@ -413,7 +414,9 @@ export function AppSidebar() {
                             className="ml-2 mt-1 mb-2 flex flex-col gap-1 rounded-xl px-2 py-2"
                             style={{ background: '#FFD700' }}
                           >
-                            {item.subItems.map(sub => renderSubItem(sub))}
+                            {item.subItems
+                              .filter(sub => !(sub as any).restricted || user?.nivel_acesso === 'superadmin')
+                              .map(sub => renderSubItem(sub))}
                           </div>
                         )}
                       </>

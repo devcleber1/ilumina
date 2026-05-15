@@ -10,6 +10,7 @@ import { Presenca } from '../Pages/Admin/Presenca/Presenca'
 import { Advertencia } from '../Pages/Admin/Advertencia/Advertencia'
 import EditUsers from '../Pages/Admin/Users/EditUsers'
 import ResetPassword from '../Pages/Admin/Users/ResetPassword'
+import RegisterAdmin from '../Pages/Admin/Register/RegisterAdmin'
 
 export default function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ export default function AppRoutes() {
       <Route path="/dashboard/advertencia" element={<Advertencia />} />
       <Route path="/dashboard/editar-usuarios" element={<EditUsers />} />
       <Route path="/dashboard/reset-senha" element={<ResetPassword />} />
+      <Route path="/dashboard/cadastro-admin" element={<RegisterAdmin />} />
     </Routes>
   )
 }
