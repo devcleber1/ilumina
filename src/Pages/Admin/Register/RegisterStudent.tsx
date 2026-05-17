@@ -140,6 +140,8 @@ function RegisterStudentContent() {
 
   useEffect(() => {
     fetchParents()
+    const interval = setInterval(fetchParents, 3000)
+    return () => clearInterval(interval)
   }, [])
 
   const fetchParents = async () => {

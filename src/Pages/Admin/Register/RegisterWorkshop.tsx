@@ -78,6 +78,8 @@ function RegisterWorkshopContent() {
 
   useEffect(() => {
     fetchTeachers()
+    const interval = setInterval(fetchTeachers, 3000)
+    return () => clearInterval(interval)
   }, [])
 
   const fetchTeachers = async () => {

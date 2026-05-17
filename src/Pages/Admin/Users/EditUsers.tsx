@@ -79,7 +79,9 @@ function EditUsersContent() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    fetchAllUsers()
+    fetchAllUsers(true)
+    const interval = setInterval(() => fetchAllUsers(false), 3000)
+    return () => clearInterval(interval)
   }, [])
 
   const handleDelete = async () => {
@@ -106,9 +108,9 @@ function EditUsersContent() {
     }
   }
 
-  const fetchAllUsers = async () => {
+  const fetchAllUsers = async (showLoading = false) => {
     try {
-      setLoading(true)
+      if (showLoading) setLoading(true)
       const [resAdmins, resAlunos, resProfs, resPais] = await Promise.all([
         api.get('/admins/find').catch(() => ({ data: [] })),
         api.get('/alunos/find').catch(() => ({ data: [] })),

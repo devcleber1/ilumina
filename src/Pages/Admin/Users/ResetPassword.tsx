@@ -40,7 +40,9 @@ function ResetPasswordContent() {
   const [isResetting, setIsResetting] = useState(false)
 
   useEffect(() => {
-    fetchAllUsers()
+    fetchAllUsers(true)
+    const interval = setInterval(() => fetchAllUsers(false), 3000)
+    return () => clearInterval(interval)
   }, [])
 
   const formatDateBr = (dateStr?: string) => {
@@ -55,9 +57,9 @@ function ResetPasswordContent() {
     }
   }
 
-  const fetchAllUsers = async () => {
+  const fetchAllUsers = async (showLoading = false) => {
     try {
-      setLoading(true)
+      if (showLoading) setLoading(true)
       const [resAdmins, resProfs, resPais] = await Promise.all([
         api.get('/admins/find').catch(() => ({ data: [] })),
         api.get('/professores/find').catch(() => ({ data: [] })),
