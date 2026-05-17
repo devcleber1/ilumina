@@ -149,7 +149,7 @@ function DashboardContent() {
       {/* Header */}
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm shrink-0 z-40">
         <div className="flex-1">
-          <h1 className="font-title text-xl font-black text-gray-900 uppercase">Dashboard Overview</h1>
+          <h1 className="font-title text-xl font-black text-gray-900 uppercase">Visão Geral</h1>
           <p className="font-body text-xs text-gray-400 font-bold">Monitoramento em Tempo Real — ONG Ilumina</p>
         </div>
         <div className="flex items-center gap-4">

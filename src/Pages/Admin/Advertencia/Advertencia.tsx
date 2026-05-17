@@ -150,7 +150,7 @@ function AdvertenciaContent() {
       const advRes = await api.get(`/advertencias/listar-advertencias?aluno_ids=${ids}`)
       setWorkshopWarnings(advRes.data.data || [])
     } catch (error) {
-      console.error('Erro ao recarregar advertÃªncias', error)
+      console.error('Erro ao recarregar advertências', error)
     }
   }
 
@@ -192,7 +192,7 @@ function AdvertenciaContent() {
     try {
       setDeleting(true)
       await api.delete(`/advertencias/deletar/${deleteTarget.id}`)
-      showAlert('success', 'Sucesso', 'AdvertÃªncia removida com sucesso.')
+      showAlert('success', 'Sucesso', 'Advertência removida com sucesso.')
       setDeleteTarget(null)
       reloadWarnings()
     } catch (error: any) {
@@ -206,7 +206,7 @@ function AdvertenciaContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.tipo_advertencia || !formData.descricao) {
-      showAlert('warning', 'Campos obrigatÃ³rios', 'Por favor, preencha o tipo e a descriÃ§Ã£o.')
+      showAlert('warning', 'Campos obrigatórios', 'Por favor, preencha o tipo e a descrição.')
       return
     }
 
@@ -214,15 +214,15 @@ function AdvertenciaContent() {
       setSubmitting(true)
       if (isEditing && formData.id) {
         await api.put(`/advertencias/atualizar/${formData.id}`, formData)
-        showAlert('success', 'Sucesso', 'AdvertÃªncia atualizada com sucesso.')
+        showAlert('success', 'Sucesso', 'Advertência atualizada com sucesso.')
       } else {
         await api.post('/advertencias/registrar', formData)
-        showAlert('success', 'Sucesso', 'AdvertÃªncia registrada com sucesso.')
+        showAlert('success', 'Sucesso', 'Advertência registrada com sucesso.')
       }
       setIsModalOpen(false)
       reloadWarnings()
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Erro ao salvar advertÃªncia.'
+      const msg = error.response?.data?.message || 'Erro ao salvar advertência.'
       showAlert('destructive', 'Erro', msg)
     } finally {
       setSubmitting(false)
@@ -316,7 +316,7 @@ function AdvertenciaContent() {
                       <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase">
                         <Clock className="h-3.5 w-3.5" />
                         <span>
-                          {workshop.horario_inicio} Ã s {workshop.horario_fim}
+                          {workshop.horario_inicio} às {workshop.horario_fim}
                         </span>
                       </div>
                     </div>
@@ -577,14 +577,14 @@ function AdvertenciaContent() {
         )}
       </div>
 
-      {/* Modal de ExclusÃ£o */}
+      {/* Modal de Exclusão */}
       {deleteTarget && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-[32px] w-full max-w-md shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="bg-red-500 px-8 py-6 flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
                 <Trash2 className="h-6 w-6" />
-                <h2 className="font-title text-xl font-black uppercase">Excluir AdvertÃªncia</h2>
+                <h2 className="font-title text-xl font-black uppercase">Excluir Advertência</h2>
               </div>
               <button
                 onClick={() => setDeleteTarget(null)}
@@ -621,8 +621,8 @@ function AdvertenciaContent() {
                 </div>
               </div>
               <p className="text-sm text-gray-600 text-center leading-relaxed">
-                Esta aÃ§Ã£o Ã© <strong className="text-red-600">permanente e irreversÃ­vel</strong>.
-                Deseja realmente excluir esta advertÃªncia?
+                Esta ação é <strong className="text-red-600">permanente e irreversível</strong>.
+                Deseja realmente excluir esta advertência?
               </p>
               <div className="flex gap-4">
                 <button
@@ -641,7 +641,7 @@ function AdvertenciaContent() {
                   ) : (
                     <Trash2 className="h-4 w-4" />
                   )}
-                  Confirmar ExclusÃ£o
+                  Confirmar Exclusão
                 </button>
               </div>
             </div>
@@ -649,7 +649,7 @@ function AdvertenciaContent() {
         </div>
       )}
 
-      {/* Modal de Registro/EdiÃ§Ã£o */}
+      {/* Modal de Registro/Edição */}
       {isModalOpen && selectedStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
@@ -661,7 +661,7 @@ function AdvertenciaContent() {
                 <h2
                   className={`font-title text-xl font-black uppercase ${isEditing ? 'text-white' : 'text-gray-900'}`}
                 >
-                  {isEditing ? 'Editar OcorrÃªncia' : 'Nova AdvertÃªncia'}
+                  {isEditing ? 'Editar Ocorrência' : 'Nova Advertência'}
                 </h2>
               </div>
               <button
@@ -700,7 +700,7 @@ function AdvertenciaContent() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-500 ml-1 uppercase tracking-wider">
-                    Tipo de OcorrÃªncia
+                    Tipo de Ocorrência
                   </label>
                   <input
                     type="text"
@@ -728,7 +728,7 @@ function AdvertenciaContent() {
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-gray-500 ml-1 uppercase tracking-wider">
-                  DescriÃ§Ã£o dos Fatos
+                  Descrição dos Fatos
                 </label>
                 <textarea
                   rows={4}
@@ -785,7 +785,7 @@ function AdvertenciaContent() {
                   ) : (
                     <>
                       <Send className="h-4 w-4" />
-                      {isEditing ? 'Atualizar AdvertÃªncia' : 'Registrar AdvertÃªncia'}
+                      {isEditing ? 'Atualizar Advertência' : 'Registrar Advertência'}
                     </>
                   )}
                 </button>
