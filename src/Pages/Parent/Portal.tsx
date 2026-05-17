@@ -103,6 +103,7 @@ export default function PortalResponsavel() {
   const [selectedFilho, setSelectedFilho] = useState<Filho | null>(null)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isResolveModalOpen, setIsResolveModalOpen] = useState(false)
 
   const [profileForm, setProfileForm] = useState({
     nome: '',
@@ -742,6 +743,25 @@ export default function PortalResponsavel() {
                     </span>
                   </div>
                 </div>
+
+                {((selectedFilho as any).total_advertencias_pendentes || 0) > 0 && (
+                  <div className="p-6 rounded-[32px] bg-yellow-50 border border-yellow-200 text-gray-900 flex items-start gap-4 animate-in slide-in-from-top-2 duration-300">
+                    <AlertTriangle className="h-5 w-5 text-yellow-650 shrink-0 mt-0.5" />
+                    <div className="space-y-1.5 flex-1">
+                      <h5 className="text-[10px] font-black uppercase tracking-widest text-yellow-700">Ação Requerida Presencialmente</h5>
+                      <p className="text-xs text-gray-700 font-semibold leading-relaxed">
+                        Detectamos ocorrência(s) pendente(s) de resolução para seu filho(a). É necessário o comparecimento presencial na ONG Iluminando o Futuro para regularização pedagógica e assinatura de ciência.
+                      </p>
+                      <button
+                        onClick={() => setIsResolveModalOpen(true)}
+                        className="text-[9px] font-black uppercase bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-xl transition cursor-pointer shadow-md shadow-yellow-100/50"
+                      >
+                        Ver Instruções de Resolução
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {(selectedFilho.advertencias_list || []).length > 0 ? (
                   <div className="space-y-3">
                     {(selectedFilho.advertencias_list || []).map(adv => {
@@ -1025,6 +1045,78 @@ export default function PortalResponsavel() {
                 <span className="uppercase tracking-widest text-xs">
                   {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                 </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Instruções de Resolução de Advertências */}
+      {isResolveModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in zoom-in-95 duration-400 overflow-hidden border border-gray-50">
+            <div className="flex items-center justify-between p-8 border-b border-gray-100 bg-yellow-50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-yellow-100 rounded-2xl text-yellow-650">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="font-title text-xl font-black text-gray-900 uppercase tracking-tighter">
+                    Resolução de Advertência
+                  </h2>
+                  <p className="text-xs text-gray-400 font-medium">Instruções para o Responsável</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsResolveModalOpen(false)}
+                className="p-2 rounded-xl hover:bg-gray-100 transition cursor-pointer"
+              >
+                <X className="h-6 w-6 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6 overflow-y-auto max-h-[60vh] custom-scrollbar text-sm text-gray-700">
+              <div className="space-y-2">
+                <p className="font-black text-gray-900 uppercase tracking-widest text-[10px] text-yellow-650">📍 O que fazer agora?</p>
+                <p className="leading-relaxed font-semibold text-gray-900">
+                  Para garantir o melhor acompanhamento pedagógico e a segurança de seu filho(a), solicitamos o comparecimento presencial do responsável legal à secretaria da <strong>ONG Iluminando o Futuro</strong> o quanto antes.
+                </p>
+              </div>
+
+              <div className="space-y-4 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+                <h4 className="font-black text-gray-900 uppercase tracking-wider text-[11px] flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-yellow-400" /> Etapas para Resolução:
+                </h4>
+                <ol className="space-y-3 text-xs font-semibold text-gray-600 pl-4 list-decimal leading-relaxed">
+                  <li>
+                    Comparecer à secretaria da ONG durante o horário de atendimento (Segunda a Sexta, das 08:00 às 17:00).
+                  </li>
+                  <li>
+                    Apresentar um documento de identificação com foto do responsável pedagógico.
+                  </li>
+                  <li>
+                    Realizar a leitura conjunta e assinatura do <strong>Termo de Ciência de Ocorrência Pedagógica</strong>.
+                  </li>
+                  <li>
+                    Alinhar as diretrizes de apoio e acompanhamento pedagógico com a equipe de coordenação.
+                  </li>
+                </ol>
+              </div>
+
+              <div className="p-5 bg-yellow-50 rounded-3xl border border-yellow-100 text-xs font-bold text-gray-900 leading-relaxed space-y-1">
+                <p className="font-black uppercase tracking-wider text-yellow-700 text-[10px]">📞 Dúvidas ou Agendamento?</p>
+                <p className="text-gray-700">
+                  Caso precise alinhar um horário específico ou tirar dúvidas, entre em contato direto com a nossa secretaria pelo telefone de suporte pedagógico da ONG.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-8 bg-gray-50/50 border-t border-gray-100">
+              <button
+                onClick={() => setIsResolveModalOpen(false)}
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-4 rounded-[24px] shadow-xl shadow-yellow-100 transition transform active:scale-[0.98] uppercase tracking-widest text-xs cursor-pointer"
+              >
+                Entendido
               </button>
             </div>
           </div>
