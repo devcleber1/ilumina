@@ -135,6 +135,11 @@ function WorkshopsContent() {
     }
   }
 
+  const handleCloseLinkModal = () => {
+    setWorkshopToLink(null)
+    fetchWorkshops()
+  }
+
   const toggleStudentLink = async (alunoId: number) => {
     if (!workshopToLink) return
     const isLinked = linkedStudentIds.includes(alunoId)
@@ -296,8 +301,15 @@ function WorkshopsContent() {
                 className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100 flex flex-col group hover:shadow-md transition"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 rounded-2xl bg-yellow-50 text-yellow-500">
-                    <Wrench className="h-6 w-6" />
+                  <div className="flex gap-2 items-center">
+                    <div className="p-3 rounded-2xl bg-yellow-50 text-yellow-500">
+                      <Wrench className="h-6 w-6" />
+                    </div>
+                    {workshop.inscricoes_alunos && workshop.inscricoes_alunos.length >= workshop.capacidade_maxima && (
+                      <span className="text-[9px] font-black tracking-wider bg-red-100 text-red-600 px-2.5 py-1 rounded-lg uppercase">
+                        Cheia
+                      </span>
+                    )}
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
                     <button
@@ -353,7 +365,7 @@ function WorkshopsContent() {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <UsersIcon className="h-3.5 w-3.5 text-yellow-500" />
-                    Capacidade: {workshop.capacidade_maxima} alunos
+                    Alunos inscritos: {workshop.inscricoes_alunos?.length || 0} / {workshop.capacidade_maxima}
                   </div>
                 </div>
               </div>
@@ -589,11 +601,21 @@ function WorkshopsContent() {
                 </div>
                 <div>
                   <h2 className="font-title text-xl font-bold text-gray-900">Vincular Alunos</h2>
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{workshopToLink.nome_oficina}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{workshopToLink.nome_oficina}</p>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                      {linkedStudentIds.length} / {workshopToLink.capacidade_maxima} Vagas
+                    </span>
+                    {linkedStudentIds.length >= workshopToLink.capacidade_maxima && (
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-red-100 text-red-600 uppercase">
+                        Cheia
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <button
-                onClick={() => setWorkshopToLink(null)}
+                onClick={handleCloseLinkModal}
                 className="p-2 rounded-xl hover:bg-gray-100 transition"
               >
                 <X className="h-5 w-5 text-gray-500" />
@@ -632,9 +654,16 @@ function WorkshopsContent() {
                           </div>
                           <button
                             onClick={() => toggleStudentLink(aluno.id)}
-                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${isLinked ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
+                            disabled={!isLinked && linkedStudentIds.length >= workshopToLink.capacidade_maxima}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+                              isLinked 
+                                ? 'bg-red-100 text-red-600 hover:bg-red-200 cursor-pointer' 
+                                : linkedStudentIds.length >= workshopToLink.capacidade_maxima
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200 cursor-pointer'
+                            }`}
                           >
-                            {isLinked ? 'Remover' : 'Adicionar'}
+                            {isLinked ? 'Remover' : linkedStudentIds.length >= workshopToLink.capacidade_maxima ? 'Sem Vagas' : 'Adicionar'}
                           </button>
                         </div>
                       )
@@ -645,7 +674,7 @@ function WorkshopsContent() {
 
             <div className="p-6 border-t border-gray-100 bg-gray-50/50 rounded-b-3xl flex justify-end">
               <button
-                onClick={() => setWorkshopToLink(null)}
+                onClick={handleCloseLinkModal}
                 className="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-900 bg-yellow-400 hover:bg-yellow-300 transition cursor-pointer"
               >
                 Concluir
