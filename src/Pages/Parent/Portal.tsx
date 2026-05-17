@@ -26,6 +26,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useAlert } from '../../contexts/AlertContext'
 import logo from '../../assets/logo.png'
 import { useNavigate } from 'react-router-dom'
+import * as Yup from 'yup'
+
 
 interface PortalData {
   pai: {
@@ -100,9 +102,8 @@ export default function PortalResponsavel() {
 
   const [profileForm, setProfileForm] = useState({
     nome: '',
-    telefone: '',
     email: '',
-    endereco: '',
+    telefone: '',
     data_nascimento: '',
   })
 
@@ -112,30 +113,33 @@ export default function PortalResponsavel() {
     confirmar: '',
   })
 
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSaving, setIsSaving] = useState(false)
 
-  useEffect(() => {
-    const fetchPortalData = async () => {
-      try {
-        const response = await api.get('/pais/me/portal')
-        if (response.data.success) {
-          setData(response.data)
-          setProfileForm({
-            nome: response.data.pai.nome,
-            telefone: response.data.pai.telefone,
-            email: response.data.pai.email,
-            endereco: '',
-            data_nascimento: response.data.pai.data_nascimento,
-          })
+  const fetchPortalData = async () => {
+    try {
+      const response = await api.get('/pais/me/portal')
+      if (response.data.success) {
+        setData(response.data)
+        setProfileForm({
+          nome: response.data.pai.nome,
+          telefone: response.data.pai.telefone,
+          email: response.data.pai.email,
+          data_nascimento: response.data.pai.data_nascimento,
+        })
+        if (!response.data.filhos || response.data.filhos.length === 0) {
+          showAlert('warning', 'Atenção', 'Você não possui filho vinculado a este perfil.')
         }
-      } catch (error) {
-        console.error('Erro ao carregar portal:', error)
-        showAlert('destructive', 'Erro', 'Não foi possível carregar os dados do portal.')
-      } finally {
-        setLoading(false)
       }
+    } catch (error) {
+      console.error('Erro ao carregar portal:', error)
+      showAlert('destructive', 'Erro', 'Não foi possível carregar os dados do portal.')
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchPortalData()
   }, [])
 
@@ -144,21 +148,45 @@ export default function PortalResponsavel() {
     navigate('/')
   }
 
-  const handleSaveProfile = async () => {
-    if (isChangingPassword && passwords.nova !== passwords.confirmar) {
-      return showAlert('destructive', 'Erro', 'As novas senhas não coincidem.')
-    }
 
-    setIsSaving(true)
+  const profileSchema = Yup.object().shape({
+    nome: Yup.string().required('Nome é obrigatório').min(3, 'Nome muito curto'),
+    email: Yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
+    telefone: Yup.string().required('Telefone é obrigatório'),
+    data_nascimento: Yup.string().required('Data de nascimento é obrigatória'),
+    ...(isChangingPassword ? {
+      atual: Yup.string().required('Senha atual é obrigatória'),
+      nova: Yup.string().required('Nova senha é obrigatória').min(12, 'Mínimo 12 caracteres'),
+      confirmar: Yup.string()
+        .oneOf([Yup.ref('nova')], 'As senhas não coincidem')
+        .required('Confirmação é obrigatória'),
+    } : {})
+
+  })
+
+  const handleSaveProfile = async () => {
     try {
+      setErrors({})
+      
+      const validateData = {
+        ...profileForm,
+        ...(isChangingPassword ? passwords : {})
+      }
+
+      await profileSchema.validate(validateData, { abortEarly: false })
+
+      setIsSaving(true)
       await api.put('/pais/me/profile', {
         nome_completo: profileForm.nome,
         telefone: profileForm.telefone,
         email: profileForm.email,
         data_nascimento: profileForm.data_nascimento,
-        senhaAtual: passwords.atual,
-        novaSenha: passwords.nova,
+        ...(isChangingPassword ? { 
+          senhaAtual: passwords.atual, 
+          novaSenha: passwords.nova 
+        } : {})
       })
+      
       showAlert('success', 'Sucesso', 'Perfil atualizado com sucesso!')
       setIsProfileModalOpen(false)
       setIsChangingPassword(false)
@@ -166,17 +194,34 @@ export default function PortalResponsavel() {
 
       const response = await api.get('/pais/me/portal')
       if (response.data.success) setData(response.data)
-    } catch (error: any) {
-      console.error('Erro ao salvar perfil:', error)
+    } catch (err: any) {
+      if (err instanceof Yup.ValidationError) {
+        const validationErrors: Record<string, string> = {}
+        err.inner.forEach(error => {
+          if (error.path) validationErrors[error.path] = error.message
+        })
+        setErrors(validationErrors)
+        return
+      }
+      
+      // Trata erro de senha atual incorreta vindo do backend
+      if (err.response?.status === 401 && err.response?.data?.message?.includes('Senha atual')) {
+        setErrors({ ...errors, atual: 'Senha atual incorreta' })
+        return
+      }
+
+      console.error('Erro ao salvar perfil:', err)
       showAlert(
         'destructive',
         'Erro',
-        error.response?.data?.message || 'Não foi possível salvar as alterações.'
+        err.response?.data?.message || 'Não foi possível salvar as alterações.'
       )
     } finally {
       setIsSaving(false)
     }
   }
+
+
 
   if (loading) {
     return (
@@ -297,90 +342,110 @@ export default function PortalResponsavel() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.filhos.map((filho, idx) => (
-              <div
-                key={filho.id}
-                className="group bg-white rounded-[40px] p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95"
-                style={{ animationDelay: `${idx * 100}ms` }}
-              >
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="h-16 w-16 rounded-3xl overflow-hidden bg-gray-50 border-2 border-yellow-400 shadow-lg">
-                    {filho.foto_perfil_url ? (
-                      <img
-                        src={`http://localhost:3001${filho.foto_perfil_url}`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-yellow-600 font-black text-xl bg-yellow-50">
-                        {filho.nome_completo.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="font-title text-base font-black text-gray-900 leading-tight">
-                      {filho.nome_completo}
-                    </h4>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-                      {filho.idade} anos • {filho.turma_principal}
-                    </p>
-                  </div>
+            {!data?.filhos || data.filhos.length === 0 ? (
+              <div className="col-span-full bg-white rounded-[40px] p-8 sm:p-12 border border-gray-100 shadow-xl shadow-gray-100/40 text-center space-y-6 max-w-2xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+                <div className="mx-auto w-20 h-20 bg-yellow-50 rounded-[32px] flex items-center justify-center text-yellow-500 border border-yellow-100/50 shadow-inner">
+                  <Users className="h-10 w-10" />
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-end mb-1.5">
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        Frequência Geral
-                      </span>
-                      <span className="text-sm font-black text-gray-900">
-                        {filho.percentual_presenca}%
-                      </span>
-                    </div>
-                    <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-100">
-                      <div
-                        className={`h-full rounded-full transition-all duration-1000 ${
-                          filho.percentual_presenca > 85
-                            ? 'bg-green-400'
-                            : filho.percentual_presenca > 70
-                              ? 'bg-yellow-400'
-                              : 'bg-red-400'
-                        }`}
-                        style={{ width: `${filho.percentual_presenca}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between py-3 border-t border-b border-gray-50">
-                    <div className="text-center">
-                      <p className="text-xs font-black text-gray-900">{filho.oficinas.length}</p>
-                      <p className="text-[8px] font-bold text-gray-400 uppercase">Oficinas</p>
-                    </div>
-                    <div className="w-px h-6 bg-gray-100" />
-                    <div className="text-center">
-                      <p
-                        className={`text-xs font-black ${filho.total_advertencias > 0 ? 'text-red-500' : 'text-green-500'}`}
-                      >
-                        {filho.total_advertencias}
-                      </p>
-                      <p className="text-[8px] font-bold text-gray-400 uppercase">Advertências</p>
-                    </div>
-                    <div className="w-px h-6 bg-gray-100" />
-                    <div className="text-center">
-                      <p className="text-xs font-black text-green-500">Ativo</p>
-                      <p className="text-[8px] font-bold text-gray-400 uppercase">Status</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setSelectedFilho(filho)}
-                    className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2 group/btn cursor-pointer shadow-lg shadow-yellow-100"
-                  >
-                    <span className="uppercase tracking-widest text-[10px]">Ver Detalhes</span>
-                    <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
+                <div className="space-y-2">
+                  <h4 className="font-title text-xl font-black text-gray-900 uppercase tracking-tight">
+                    Nenhum Filho Vinculado
+                  </h4>
+                  <p className="text-gray-400 text-sm font-medium leading-relaxed">
+                    Você não possui filho vinculado a este perfil.
+                    Para visualizar o desempenho escolar, frequência e advertências, é necessário realizar o vínculo.
+                  </p>
+                </div>
+                <div className="p-4 bg-yellow-50/50 rounded-2xl border border-yellow-100/30 text-[11px] font-bold text-yellow-700 uppercase tracking-wider max-w-md mx-auto">
+                  📞 Por favor, entre em contato com a secretaria da ONG para solicitar a vinculação.
                 </div>
               </div>
-            ))}
+            ) : (
+              data.filhos.map((filho, idx) => (
+                <div
+                  key={filho.id}
+                  className="group bg-white rounded-[40px] p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="h-16 w-16 rounded-3xl overflow-hidden bg-gray-50 border-2 border-yellow-400 shadow-lg">
+                      {filho.foto_perfil_url ? (
+                        <img
+                          src={`http://localhost:3001${filho.foto_perfil_url}`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-yellow-600 font-black text-xl bg-yellow-50">
+                          {filho.nome_completo.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-title text-base font-black text-gray-900 leading-tight">
+                        {filho.nome_completo}
+                      </h4>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                        {filho.idade} anos • {filho.turma_principal}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between items-end mb-1.5">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                          Frequência Geral
+                        </span>
+                        <span className="text-sm font-black text-gray-900">
+                          {filho.percentual_presenca}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-100">
+                        <div
+                          className={`h-full rounded-full transition-all duration-1000 ${
+                            filho.percentual_presenca > 85
+                              ? 'bg-green-400'
+                              : filho.percentual_presenca > 70
+                                ? 'bg-yellow-400'
+                                : 'bg-red-400'
+                          }`}
+                          style={{ width: `${filho.percentual_presenca}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between py-3 border-t border-b border-gray-50">
+                      <div className="text-center">
+                        <p className="text-xs font-black text-gray-900">{filho.oficinas.length}</p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase">Oficinas</p>
+                      </div>
+                      <div className="w-px h-6 bg-gray-100" />
+                      <div className="text-center">
+                        <p
+                          className={`text-xs font-black ${filho.total_advertencias > 0 ? 'text-red-500' : 'text-green-500'}`}
+                        >
+                          {filho.total_advertencias}
+                        </p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase">Advertências</p>
+                      </div>
+                      <div className="w-px h-6 bg-gray-100" />
+                      <div className="text-center">
+                        <p className="text-xs font-black text-green-500">Ativo</p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase">Status</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedFilho(filho)}
+                      className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2 group/btn cursor-pointer shadow-lg shadow-yellow-100"
+                    >
+                      <span className="uppercase tracking-widest text-[10px]">Ver Detalhes</span>
+                      <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </main>
@@ -439,14 +504,29 @@ export default function PortalResponsavel() {
                   <div className="h-40 w-full bg-gray-50 rounded-[32px] p-4 border border-gray-100">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={selectedFilho.oficinas}>
-                        <Bar dataKey="percentual" radius={[4, 4, 0, 0]}>
-                          {selectedFilho.oficinas.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={entry.percentual > 80 ? '#4ADE80' : '#FACC15'}
-                            />
-                          ))}
+                        <XAxis 
+                          dataKey="nome" 
+                          hide={false} 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 8, fontWeight: 'bold', fill: '#9CA3AF' }}
+                          interval={0}
+                        />
+                        <Bar dataKey="percentual" radius={[4, 4, 0, 0]} minPointSize={4}>
+                          {selectedFilho.oficinas.map((entry, index) => {
+                            let barColor = '#F87171'; // Default Red (0-49)
+                            if (entry.percentual >= 80) barColor = '#4ADE80'; // Green (80-100)
+                            else if (entry.percentual >= 50) barColor = '#FB923C'; // Orange (50-79)
+                            
+                            return (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={barColor}
+                              />
+                            );
+                          })}
                         </Bar>
+
                         <Tooltip
                           cursor={{ fill: 'transparent' }}
                           contentStyle={{
@@ -458,6 +538,7 @@ export default function PortalResponsavel() {
                           }}
                         />
                       </BarChart>
+
                     </ResponsiveContainer>
                   </div>
                 </div>
@@ -654,8 +735,46 @@ export default function PortalResponsavel() {
                   </div>
                   <label className="absolute -bottom-2 -right-2 p-2 bg-yellow-400 rounded-2xl shadow-lg cursor-pointer hover:scale-110 transition border-4 border-white">
                     <Camera className="h-5 w-5 text-gray-900" />
-                    <input type="file" className="hidden" accept="image/*" />
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+
+                        const formData = new FormData();
+                        formData.append('foto_perfil_url', file);
+
+                        try {
+                          setIsSaving(true);
+                          const response = await api.patch('/pais/me/photo', formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                          });
+
+                          if (response.data.success) {
+                            // Atualiza o estado local para refletir a nova foto
+                            if (data) {
+                              setData({
+                                ...data,
+                                pai: {
+                                  ...data.pai,
+                                  foto_perfil_url: response.data.foto_perfil_url
+                                }
+                              });
+                            }
+                            toast.success('Foto de perfil atualizada!');
+                          }
+                        } catch (error) {
+                          console.error('Erro ao subir foto:', error);
+                          toast.error('Erro ao atualizar foto de perfil');
+                        } finally {
+                          setIsSaving(false);
+                        }
+                      }}
+                    />
                   </label>
+
                 </div>
                 <div className="text-center">
                   <h3 className="font-bold text-gray-900">{data?.pai.nome}</h3>
@@ -670,22 +789,26 @@ export default function PortalResponsavel() {
                   label="Nome Completo"
                   value={profileForm.nome}
                   onChange={v => setProfileForm({ ...profileForm, nome: v })}
+                  error={errors.nome}
                 />
                 <InputItem
                   label="Telefone"
                   value={profileForm.telefone}
                   onChange={v => setProfileForm({ ...profileForm, telefone: v })}
+                  error={errors.telefone}
                 />
                 <InputItem
                   label="E-mail"
                   value={profileForm.email}
                   onChange={v => setProfileForm({ ...profileForm, email: v })}
+                  error={errors.email}
                 />
                 <InputItem
                   label="Data de Nascimento"
                   value={profileForm.data_nascimento}
                   type="date"
                   onChange={v => setProfileForm({ ...profileForm, data_nascimento: v })}
+                  error={errors.data_nascimento}
                 />
               </div>
 
@@ -705,6 +828,7 @@ export default function PortalResponsavel() {
                       value={passwords.atual}
                       type="password"
                       onChange={v => setPasswords({ ...passwords, atual: v })}
+                      error={errors.atual}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <InputItem
@@ -712,17 +836,20 @@ export default function PortalResponsavel() {
                         value={passwords.nova}
                         type="password"
                         onChange={v => setPasswords({ ...passwords, nova: v })}
+                        error={errors.nova}
                       />
                       <InputItem
                         label="Confirmar Nova Senha"
                         value={passwords.confirmar}
                         type="password"
                         onChange={v => setPasswords({ ...passwords, confirmar: v })}
+                        error={errors.confirmar}
                       />
                     </div>
                   </div>
                 )}
               </div>
+
             </div>
 
             <div className="p-8 bg-gray-50/50 border-t border-gray-100">
@@ -775,11 +902,13 @@ function InputItem({
   value,
   type = 'text',
   onChange,
+  error,
 }: {
   label: string
   value: string
   type?: string
   onChange?: (v: string) => void
+  error?: string
 }) {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
@@ -794,7 +923,9 @@ function InputItem({
           type={isPassword ? (showPassword ? 'text' : 'password') : type}
           value={value}
           onChange={e => onChange?.(e.target.value)}
-          className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 transition pr-12"
+          className={`w-full bg-gray-50 border ${
+            error ? 'border-red-400 focus:ring-red-400/20' : 'border-gray-100 focus:ring-yellow-400/20 focus:border-yellow-400'
+          } rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 outline-none transition pr-12`}
         />
         {isPassword && (
           <button
@@ -806,6 +937,12 @@ function InputItem({
           </button>
         )}
       </div>
+      {error && (
+        <p className="text-[9px] font-bold text-red-500 ml-1 uppercase tracking-wider animate-in fade-in slide-in-from-top-1">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
+
