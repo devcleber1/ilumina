@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
 import {
@@ -21,6 +21,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { api } from '../../../lib/api'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../../contexts/AuthContext'
+import { getSocket } from '../../../lib/socket'
 
 interface Stats {
   summary: {
@@ -91,26 +92,45 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true)
   const [selectedAdv, setSelectedAdv] = useState<any | null>(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const statsRes = await api.get('/stats/dashboard')
-        setStats(statsRes.data)
-      } catch (error) {
-        // silently ignore on polling
-      }
-      try {
-        const logsRes = await api.get('/logs?limite=10')
-        setRecentLogs(logsRes.data.logs || [])
-      } catch (error) {
-        // silently ignore on polling
-      }
-      setLoading(false)
+  const fetchData = useCallback(async () => {
+    try {
+      const statsRes = await api.get('/stats/dashboard')
+      setStats(statsRes.data)
+    } catch (error) {
+      // silently ignore on polling
     }
-    fetchData()
-    const interval = setInterval(fetchData, 30000)
-    return () => clearInterval(interval)
+    try {
+      const logsRes = await api.get('/logs?limite=10')
+      setRecentLogs(logsRes.data.logs || [])
+    } catch (error) {
+      // silently ignore on polling
+    }
+    setLoading(false)
   }, [])
+
+  useEffect(() => {
+    fetchData()
+
+    const socket = getSocket()
+    socket.on('advertencia:created', fetchData)
+    socket.on('advertencia:deleted', fetchData)
+
+    const interval = setInterval(fetchData, 30000)
+
+    return () => {
+      socket.off('advertencia:created', fetchData)
+      socket.off('advertencia:deleted', fetchData)
+      clearInterval(interval)
+    }
+  }, [fetchData])
+
+  // Retry automático caso o primeiro fetch falhe (race condition com auth)
+  useEffect(() => {
+    if (!loading && !stats) {
+      const retryTimeout = setTimeout(fetchData, 2000)
+      return () => clearTimeout(retryTimeout)
+    }
+  }, [loading, stats, fetchData])
 
   if (loading) {
     return (
@@ -390,7 +410,7 @@ function DashboardContent() {
             <div className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
                <div className="bg-red-500 px-8 py-6 flex items-center justify-between text-white">
                   <div className="flex items-center gap-3">
-                     <ShieldAlert className="h-6 w-6" />
+                     <AlertTriangle className="h-6 w-6" />
                      <h2 className="font-title text-xl font-black uppercase">Detalhes da Ocorrência</h2>
                   </div>
                   <button onClick={() => setSelectedAdv(null)} className="p-2 hover:bg-black/10 rounded-full transition-colors cursor-pointer">

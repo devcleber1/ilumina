@@ -14,6 +14,20 @@ api.interceptors.request.use(config => {
   return config
 })
 
+let isRefreshing = false
+let failedQueue: any[] = []
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue = []
+}
+
 // Interceptor para lidar com erros de autenticação (Token expirado, etc)
 api.interceptors.response.use(
   response => response,
@@ -21,7 +35,21 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            return api(originalRequest)
+          })
+          .catch(err => {
+            return Promise.reject(err)
+          })
+      }
+
       originalRequest._retry = true
+      isRefreshing = true
 
       try {
         // Tenta renovar o token usando o refresh_token (que está no cookie)
@@ -38,11 +66,21 @@ api.interceptors.response.use(
 
           // Atualiza o header da requisição original e repete
           originalRequest.headers.Authorization = `Bearer ${accessToken}`
+          
+          processQueue(null, accessToken)
+          isRefreshing = false
+          
           return api(originalRequest)
         }
       } catch (refreshError) {
-        // Se falhar o refresh, desloga
+        processQueue(refreshError, null)
+        isRefreshing = false
+        
+        // Se falhar o refresh, desloga limpando completamente a sessão
         localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        localStorage.removeItem('expiresAt')
+        
         if (window.location.pathname !== '/') {
           window.location.href = '/'
         }

@@ -93,8 +93,10 @@ function AdvertenciaContent() {
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    fetchWorkshops()
-  }, [])
+    if (currentUser) {
+      fetchWorkshops()
+    }
+  }, [currentUser])
 
   useEffect(() => {
     if (selectedWorkshop) {
@@ -107,8 +109,9 @@ function AdvertenciaContent() {
       setLoading(true)
       const response = await api.get('/oficinas/find')
       setWorkshops(response.data)
-    } catch (error) {
-      showAlert('destructive', 'Erro', 'NÃ£o foi possÃ­vel carregar as oficinas.')
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Não foi possível carregar as oficinas.'
+      showAlert('destructive', 'Erro', msg)
     } finally {
       setLoading(false)
     }
@@ -192,8 +195,9 @@ function AdvertenciaContent() {
       showAlert('success', 'Sucesso', 'AdvertÃªncia removida com sucesso.')
       setDeleteTarget(null)
       reloadWarnings()
-    } catch (error) {
-      showAlert('destructive', 'Erro', 'NÃ£o foi possÃ­vel remover a advertÃªncia.')
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Não foi possível remover a advertência.'
+      showAlert('destructive', 'Erro', msg)
     } finally {
       setDeleting(false)
     }

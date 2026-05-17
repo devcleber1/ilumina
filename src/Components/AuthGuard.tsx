@@ -18,10 +18,19 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return <Navigate to="/" />
   }
 
-  // Bloqueio Global para Não-Admins (com exceção das telas permitidas)
-  const isParentPortal = user?.tipo === 'pai' && window.location.pathname === '/portal'
+  // Se o user ainda não foi carregado (estado transitório no F5), espera
+  if (!user) {
+    return (
+      <div className="fixed inset-0 bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      </div>
+    )
+  }
 
-  if (user?.tipo !== 'admin' && !isParentPortal) {
+  // Bloqueio Global para Não-Admins (com exceção das telas permitidas)
+  const isParentPortal = user.tipo === 'pai' && window.location.pathname.startsWith('/portal')
+
+  if (user.tipo !== 'admin' && !isParentPortal) {
     return (
       <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center p-6 overflow-hidden select-none">
         {/* Camada de proteção contra "Inspect Element" tampering */}

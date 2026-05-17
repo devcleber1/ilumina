@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Users,
   CalendarCheck,
   AlertTriangle,
   LogOut,
-  ChevronRight,
   Activity,
   X,
   User,
@@ -20,13 +19,14 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { api } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAlert } from '../../contexts/AlertContext'
 import logo from '../../assets/logo.png'
 import { useNavigate } from 'react-router-dom'
 import * as Yup from 'yup'
+import { getSocket } from '../../lib/socket'
 
 
 interface PortalData {
@@ -90,7 +90,7 @@ interface Presenca {
 }
 
 export default function PortalResponsavel() {
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
   const { showAlert } = useAlert()
   const navigate = useNavigate()
 
@@ -116,8 +116,10 @@ export default function PortalResponsavel() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSaving, setIsSaving] = useState(false)
 
-  const fetchPortalData = async () => {
+  const fetchPortalData = async (showLoading = false) => {
+    if (!localStorage.getItem('token')) return
     try {
+      if (showLoading) setLoading(true)
       const response = await api.get('/pais/me/portal')
       if (response.data.success) {
         setData(response.data)
@@ -131,17 +133,44 @@ export default function PortalResponsavel() {
           showAlert('warning', 'Atenção', 'Você não possui filho vinculado a este perfil.')
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar portal:', error)
-      showAlert('destructive', 'Erro', 'Não foi possível carregar os dados do portal.')
+      const msg = error.response?.data?.message || 'Não foi possível carregar os dados do portal.'
+      showAlert('destructive', 'Erro', msg)
     } finally {
       setLoading(false)
     }
   }
 
+  const refetchSilencioso = useCallback(() => fetchPortalData(false), [])
+
   useEffect(() => {
-    fetchPortalData()
+    fetchPortalData(true)
+
+    const socket = getSocket()
+    socket.on('advertencia:created', refetchSilencioso)
+    socket.on('advertencia:deleted', refetchSilencioso)
+
+    // Polling de fallback a cada 30s (caso o WebSocket caia)
+    const interval = setInterval(refetchSilencioso, 30000)
+
+    return () => {
+      socket.off('advertencia:created', refetchSilencioso)
+      socket.off('advertencia:deleted', refetchSilencioso)
+      clearInterval(interval)
+    }
   }, [])
+
+  useEffect(() => {
+    if (data && selectedFilho) {
+      const updatedFilho = data.filhos.find(f => f.id === selectedFilho.id)
+      if (updatedFilho) {
+        setSelectedFilho(updatedFilho)
+      } else {
+        setSelectedFilho(null)
+      }
+    }
+  }, [data])
 
   const handleLogout = () => {
     logout()
@@ -205,7 +234,7 @@ export default function PortalResponsavel() {
       }
       
       // Trata erro de senha atual incorreta vindo do backend
-      if (err.response?.status === 401 && err.response?.data?.message?.includes('Senha atual')) {
+      if (err.response?.status === 400 && err.response?.data?.message?.includes('Senha atual')) {
         setErrors({ ...errors, atual: 'Senha atual incorreta' })
         return
       }
@@ -492,7 +521,7 @@ export default function PortalResponsavel() {
                   <div className="grid grid-cols-2 gap-4">
                     <InfoItem
                       label="Data de Nascimento"
-                      value={new Date(selectedFilho.data_nascimento).toLocaleDateString('pt-BR')}
+                      value={selectedFilho.data_nascimento ? selectedFilho.data_nascimento.split('T')[0].split('-').reverse().join('/') : '—'}
                     />
                     <InfoItem label="Idade" value={`${selectedFilho.idade} anos`} />
                     <InfoItem label="Matrícula" value={selectedFilho.matricula} />
@@ -503,7 +532,7 @@ export default function PortalResponsavel() {
                   <SectionTitle title="Visão Geral Presença" icon={Activity} />
                   <div className="h-40 w-full bg-gray-50 rounded-[32px] p-4 border border-gray-100">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={selectedFilho.oficinas}>
+                      <BarChart data={selectedFilho.oficinas || []}>
                         <XAxis 
                           dataKey="nome" 
                           hide={false} 
@@ -513,7 +542,7 @@ export default function PortalResponsavel() {
                           interval={0}
                         />
                         <Bar dataKey="percentual" radius={[4, 4, 0, 0]} minPointSize={4}>
-                          {selectedFilho.oficinas.map((entry, index) => {
+                          {(selectedFilho.oficinas || []).map((entry, index) => {
                             let barColor = '#F87171'; // Default Red (0-49)
                             if (entry.percentual >= 80) barColor = '#4ADE80'; // Green (80-100)
                             else if (entry.percentual >= 50) barColor = '#FB923C'; // Orange (50-79)
@@ -547,7 +576,7 @@ export default function PortalResponsavel() {
               <div className="space-y-6">
                 <SectionTitle title="Oficinas & Frequência" icon={Clock} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {selectedFilho.oficinas.map(oficina => (
+                  {(selectedFilho.oficinas || []).map(oficina => (
                     <div
                       key={oficina.id}
                       className="p-5 rounded-[32px] bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all"
@@ -596,9 +625,9 @@ export default function PortalResponsavel() {
 
               <div className="space-y-6">
                 <SectionTitle title="Advertências & Ocorrências" icon={AlertTriangle} />
-                {selectedFilho.advertencias_list.length > 0 ? (
+                {(selectedFilho.advertencias_list || []).length > 0 ? (
                   <div className="space-y-3">
-                    {selectedFilho.advertencias_list.map(adv => (
+                    {(selectedFilho.advertencias_list || []).map(adv => (
                       <div
                         key={adv.id}
                         className="p-6 rounded-[32px] bg-red-50/50 border border-red-100 border-dashed flex flex-col sm:flex-row justify-between gap-4"
@@ -609,7 +638,7 @@ export default function PortalResponsavel() {
                               {adv.tipo}
                             </span>
                             <span className="text-xs font-bold text-gray-400">
-                              {new Date(adv.data).toLocaleDateString('pt-BR')}
+                              {adv.data ? adv.data.split('T')[0].split('-').reverse().join('/') : '—'}
                             </span>
                           </div>
                           <p className="text-sm font-bold text-gray-900">{adv.oficina}</p>
@@ -660,10 +689,10 @@ export default function PortalResponsavel() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {selectedFilho.historico_presenca.map(p => (
+                      {(selectedFilho.historico_presenca || []).map(p => (
                         <tr key={p.id} className="group">
                           <td className="py-4 text-xs font-bold text-gray-900">
-                            {new Date(p.data).toLocaleDateString('pt-BR')}
+                            {p.data ? p.data.split('T')[0].split('-').reverse().join('/') : '—'}
                           </td>
                           <td className="py-4 text-xs font-medium text-gray-600">{p.oficina}</td>
                           <td className="py-4 text-center">
@@ -763,11 +792,11 @@ export default function PortalResponsavel() {
                                 }
                               });
                             }
-                            toast.success('Foto de perfil atualizada!');
+                            showAlert('success', 'Sucesso', 'Foto de perfil atualizada!');
                           }
                         } catch (error) {
                           console.error('Erro ao subir foto:', error);
-                          toast.error('Erro ao atualizar foto de perfil');
+                          showAlert('destructive', 'Erro', 'Erro ao atualizar foto de perfil');
                         } finally {
                           setIsSaving(false);
                         }

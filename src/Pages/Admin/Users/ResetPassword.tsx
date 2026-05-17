@@ -9,7 +9,6 @@ import {
   Briefcase,
   User as UserIcon,
   RotateCcw,
-  X,
   AlertCircle
 } from 'lucide-react'
 import { api } from '../../../lib/api'
