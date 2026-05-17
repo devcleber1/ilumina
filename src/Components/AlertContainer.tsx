@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from '../Components/ui/alert'
 import { useAlert } from '../contexts/AlertContext'
-import { X, CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
+import { X, CheckCircle, AlertTriangle, XCircle, Info } from 'lucide-react'
 
 export function AlertContainer() {
   const { alerts, removeAlert } = useAlert()
@@ -14,7 +14,8 @@ export function AlertContainer() {
           success: CheckCircle,
           warning: AlertTriangle,
           destructive: XCircle,
-        }[alert.type]
+          info: Info,
+        }[alert.type] || Info
 
         return (
           <Alert

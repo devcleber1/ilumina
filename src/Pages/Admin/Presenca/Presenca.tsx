@@ -60,7 +60,9 @@ function PresencaContent() {
   const [historyAttendance, setHistoryAttendance] = useState<Record<number, PresencaRecord>>({})
   const [savingHistory, setSavingHistory] = useState(false)
   const [changedStudents, setChangedStudents] = useState<Set<number>>(new Set())
+  const [changedHistoryStudents, setChangedHistoryStudents] = useState<Set<number>>(new Set())
   const [savingStudentId, setSavingStudentId] = useState<number | null>(null)
+  const [isRollCallDone, setIsRollCallDone] = useState(false)
 
   const { user: currentUser } = useAuth()
   const isAdmin = currentUser?.tipo === 'admin' || currentUser?.nivel_acesso === 'admin' || currentUser?.nivel_acesso === 'superadmin'
@@ -131,7 +133,9 @@ function PresencaContent() {
       })
 
       // Override with existing data from DB
+      let countExisting = 0
       existingAttendance.forEach((record: any) => {
+        countExisting++
         attendanceMap[record.aluno_id] = {
           id: record.id,
           aluno_id: record.aluno_id,
@@ -140,6 +144,12 @@ function PresencaContent() {
           total_edicoes: record.total_edicoes,
         }
       })
+
+      const isDone = countExisting > 0 && countExisting >= studentsData.length
+      setIsRollCallDone(isDone)
+      if (isDone && view === 'chamada') {
+        setView('historico')
+      }
 
       setAttendance(attendanceMap)
     } catch (error) {
@@ -228,7 +238,9 @@ function PresencaContent() {
 
     try {
       setSavingHistory(true)
-      const promises = Object.values(historyAttendance).map(async record => {
+      const promises = Object.values(historyAttendance)
+        .filter(record => changedHistoryStudents.has(record.aluno_id))
+        .map(async record => {
         if (record.id) {
           return api.put(`/presencas/atualizar/${record.id}`, {
             presente: record.presente,
@@ -246,8 +258,11 @@ function PresencaContent() {
         }
       })
 
+      if (promises.length === 0) return
+
       await Promise.all(promises)
       showAlert('success', 'Sucesso', 'Histórico atualizado com sucesso!')
+      setChangedHistoryStudents(new Set())
       setIsHistoryModalOpen(false)
       fetchHistory()
     } catch (error: any) {
@@ -255,6 +270,45 @@ function PresencaContent() {
       showAlert('destructive', 'Erro', errorMsg)
     } finally {
       setSavingHistory(false)
+    }
+  }
+
+  const handleSaveSingleHistoryAttendance = async (studentId: number) => {
+    if (!selectedWorkshop || !historyDate) return
+    const record = historyAttendance[studentId]
+    if (!record) return
+
+    try {
+      setSavingStudentId(studentId)
+
+      if (record.id) {
+        await api.put(`/presencas/atualizar/${record.id}`, {
+          presente: record.presente,
+          data: historyDate,
+          justificativa: record.justificativa,
+        })
+      } else {
+        await api.post('/presencas/registrar', {
+          aluno_id: record.aluno_id,
+          oficina_id: selectedWorkshop.id,
+          data: historyDate,
+          presente: record.presente,
+          justificativa: record.justificativa,
+        })
+      }
+
+      showAlert('success', 'Sucesso', 'Registro do histórico salvo!')
+      setChangedHistoryStudents(prev => {
+        const next = new Set(prev)
+        next.delete(studentId)
+        return next
+      })
+      fetchHistory() // Força a recarga da barrinha de porcentagem em tempo real
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || 'Erro ao salvar o registro no histórico.'
+      showAlert('destructive', 'Erro', errorMsg)
+    } finally {
+      setSavingStudentId(null)
     }
   }
 
@@ -267,6 +321,7 @@ function PresencaContent() {
         justificativa: isPresent ? '' : prev[studentId].justificativa,
       },
     }))
+    setChangedHistoryStudents(prev => new Set(prev).add(studentId))
   }
 
   const handleHistoryJustificationChange = (studentId: number, value: string) => {
@@ -277,6 +332,7 @@ function PresencaContent() {
         justificativa: value,
       },
     }))
+    setChangedHistoryStudents(prev => new Set(prev).add(studentId))
   }
 
   const handleTogglePresence = (studentId: number, isPresent: boolean) => {
@@ -514,17 +570,19 @@ function PresencaContent() {
       {isAdmin && (
         <div className="bg-white px-6 border-b border-gray-100 sticky top-[73px] z-30">
           <div className="flex gap-8">
-            <button
-              onClick={() => {
-                setView('chamada')
-                setStudentSearch('')
-              }}
-              className={`py-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
-                view === 'chamada' ? 'border-yellow-400 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              Realizar Chamada
-            </button>
+            {!isRollCallDone && (
+              <button
+                onClick={() => {
+                  setView('chamada')
+                  setStudentSearch('')
+                }}
+                className={`py-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+                  view === 'chamada' ? 'border-yellow-400 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                Realizar Chamada
+              </button>
+            )}
             <button
               onClick={() => {
                 setView('historico')
@@ -787,14 +845,16 @@ function PresencaContent() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={handleSaveHistoryAttendance}
-                  disabled={savingHistory}
-                  className="flex items-center gap-2 rounded-2xl bg-yellow-400 px-6 py-3 text-sm font-black text-gray-900 shadow-xl shadow-yellow-400/20 transition hover:bg-yellow-300 disabled:opacity-50"
-                >
-                  {savingHistory ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  Salvar
-                </button>
+                {changedHistoryStudents.size > 0 && (
+                  <button
+                    onClick={handleSaveHistoryAttendance}
+                    disabled={savingHistory}
+                    className="flex items-center gap-2 rounded-2xl bg-yellow-400 px-6 py-3 text-sm font-black text-gray-900 shadow-xl shadow-yellow-400/20 transition hover:bg-yellow-300 disabled:opacity-50"
+                  >
+                    {savingHistory ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Salvar Todos ({changedHistoryStudents.size})
+                  </button>
+                )}
                 <button
                   onClick={() => setIsHistoryModalOpen(false)}
                   className="p-3 bg-gray-50 text-gray-400 hover:bg-gray-100 rounded-2xl transition-colors"
@@ -861,24 +921,41 @@ function PresencaContent() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleToggleHistoryPresence(student.id, true)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                             record.presente
-                              ? 'bg-green-500 text-white'
+                              ? 'bg-green-500 text-white shadow-lg shadow-green-100'
                               : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
                           }`}
                         >
+                          <UserCheck className="h-4 w-4" />
                           Presente
                         </button>
                         <button
                           onClick={() => handleToggleHistoryPresence(student.id, false)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                             !record.presente
-                              ? 'bg-red-500 text-white'
+                              ? 'bg-red-500 text-white shadow-lg shadow-red-100'
                               : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
                           }`}
                         >
+                          <UserX className="h-4 w-4" />
                           Ausente
                         </button>
+
+                        {changedHistoryStudents.has(student.id) && (
+                          <button
+                            onClick={() => handleSaveSingleHistoryAttendance(student.id)}
+                            disabled={savingStudentId === student.id}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-yellow-400 text-gray-900 shadow-lg shadow-yellow-100 hover:bg-yellow-300 transition-all animate-in zoom-in-95 duration-200 cursor-pointer"
+                          >
+                            {savingStudentId === student.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Save className="h-4 w-4" />
+                            )}
+                            Salvar
+                          </button>
+                        )}
                       </div>
                     </div>
 

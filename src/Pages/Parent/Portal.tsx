@@ -131,6 +131,21 @@ export default function PortalResponsavel() {
         })
         if (!response.data.filhos || response.data.filhos.length === 0) {
           showAlert('warning', 'Atenção', 'Você não possui filho vinculado a este perfil.')
+        } else {
+          // Checagem de novas presenças do dia de hoje para mostrar notificação
+          const hoje = new Date().toISOString().split('T')[0]
+          response.data.filhos.forEach((filho: Filho) => {
+            filho.historico_presenca?.forEach((p: Presenca) => {
+              if (p.data === hoje) {
+                const shownKey = `presenca_shown_${p.id}`
+                if (!sessionStorage.getItem(shownKey)) {
+                  const statusStr = p.presente ? 'presente' : 'ausente'
+                  showAlert('info', 'Presença de Hoje', `Seu filho(a) ${filho.nome_completo} esteve ${statusStr} na oficina de ${p.oficina}.`)
+                  sessionStorage.setItem(shownKey, 'true')
+                }
+              }
+            })
+          })
         }
       }
     } catch (error: any) {
@@ -147,19 +162,80 @@ export default function PortalResponsavel() {
   useEffect(() => {
     fetchPortalData(true)
 
-    const socket = getSocket()
-    socket.on('advertencia:created', refetchSilencioso)
-    socket.on('advertencia:deleted', refetchSilencioso)
-
     // Polling de fallback a cada 30s (caso o WebSocket caia)
     const interval = setInterval(refetchSilencioso, 30000)
 
     return () => {
-      socket.off('advertencia:created', refetchSilencioso)
-      socket.off('advertencia:deleted', refetchSilencioso)
       clearInterval(interval)
     }
   }, [])
+
+  // Escutador dedicado para Notificações em Tempo Real com Alerta Instantâneo
+  useEffect(() => {
+    if (!data) return
+
+    const socket = getSocket()
+    
+    const handleNovaPresenca = (eventoInfo: any) => {
+      const filhoAtendido = data.filhos?.find((f: Filho) => f.id === eventoInfo.aluno_id)
+      if (filhoAtendido) {
+        const statusStr = eventoInfo.presente ? 'presente' : 'ausente'
+        
+        // Se houver data, formatamos. Caso contrário usamos Hoje como fallback
+        const dataFormatada = eventoInfo.data 
+          ? new Date(eventoInfo.data + 'T12:00:00').toLocaleDateString('pt-BR')
+          : 'hoje'
+          
+        let titulo = 'Nova Presença!'
+        let mensagem = `Seu filho(a) ${filhoAtendido.nome_completo} foi marcado(a) como ${statusStr} na oficina de ${eventoInfo.oficina_nome} (Data: ${dataFormatada}).`
+
+        if (eventoInfo.isEdit) {
+           titulo = 'Atenção: Presença Editada'
+           const horaEdicao = eventoInfo.data_edicao 
+             ? new Date(eventoInfo.data_edicao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+             : 'agora'
+           mensagem = `O registro do dia ${dataFormatada} para seu filho(a) ${filhoAtendido.nome_completo} foi corrigido para ${statusStr} na oficina de ${eventoInfo.oficina_nome} (Editado às ${horaEdicao}).`
+        }
+
+        showAlert('info', titulo, mensagem)
+      }
+      refetchSilencioso() // atualiza os dados visuais logo em seguida
+    }
+
+    const handleNovaAdvertencia = (eventoInfo: any) => {
+      const filhoAtendido = data.filhos?.find((f: Filho) => f.id === eventoInfo.aluno_id)
+      if (filhoAtendido) {
+        let titulo = 'Nova Advertência!'
+        let mensagem = `Seu filho(a) ${filhoAtendido.nome_completo} recebeu uma advertência do tipo "${eventoInfo.tipo_advertencia}" (Gravidade: ${eventoInfo.gravidade}).`
+
+        if (eventoInfo.isEdit) {
+          titulo = 'Advertência Editada'
+          mensagem = `A advertência do seu filho(a) ${filhoAtendido.nome_completo} do tipo "${eventoInfo.tipo_advertencia}" foi alterada.`
+        }
+
+        showAlert('warning', titulo, mensagem)
+      }
+      refetchSilencioso()
+    }
+
+    const handleAdvertenciaDeletada = (eventoInfo: any) => {
+      const filhoAtendido = data.filhos?.find((f: Filho) => f.id === eventoInfo.aluno_id)
+      if (filhoAtendido) {
+        showAlert('info', 'Advertência Removida', `Uma advertência registrada para seu filho(a) ${filhoAtendido.nome_completo} foi excluída/removida.`)
+      }
+      refetchSilencioso()
+    }
+
+    socket.on('presenca:registered', handleNovaPresenca)
+    socket.on('advertencia:created', handleNovaAdvertencia)
+    socket.on('advertencia:deleted', handleAdvertenciaDeletada)
+
+    return () => {
+      socket.off('presenca:registered', handleNovaPresenca)
+      socket.off('advertencia:created', handleNovaAdvertencia)
+      socket.off('advertencia:deleted', handleAdvertenciaDeletada)
+    }
+  }, [data, refetchSilencioso, showAlert])
 
   useEffect(() => {
     if (data && selectedFilho) {
