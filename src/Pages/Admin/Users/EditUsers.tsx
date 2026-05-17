@@ -340,7 +340,15 @@ function EditUsersContent() {
     } catch (error: any) {
       console.error('Erro ao salvar dados:', error)
       const msg = error.response?.data?.message || 'Erro ao salvar dados do usuário.'
-      showAlert('destructive', 'Erro', msg)
+      if (msg.toLowerCase().includes('cpf já cadastrado') || msg.toLowerCase().includes('documento já cadastrado')) {
+        setErrors(prev => ({ ...prev, document: 'CPF já cadastrado' }))
+        showAlert('destructive', 'Erro de Validação', 'CPF já cadastrado no sistema!')
+      } else if (msg.toLowerCase().includes('e-mail já cadastrado')) {
+        setErrors(prev => ({ ...prev, email: 'E-mail já cadastrado' }))
+        showAlert('destructive', 'Erro de Validação', 'E-mail já cadastrado no sistema!')
+      } else {
+        showAlert('destructive', 'Erro', msg)
+      }
       setShowSaveModal(false)
     } finally {
       setIsSaving(false)

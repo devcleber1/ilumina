@@ -109,6 +109,7 @@ function RegisterStudentContent() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<AlunoAttributes>({
     resolver: yupResolver(schema) as any,
@@ -293,7 +294,21 @@ function RegisterStudentContent() {
       const message =
         error.response?.data?.message ||
         'Erro ao cadastrar aluno. Verifique os dados e tente novamente.'
-      showAlert('destructive', 'Erro', message)
+      if (message.toLowerCase().includes('cpf já cadastrado') || message.toLowerCase().includes('documento já cadastrado')) {
+        setError('cpf', {
+          type: 'manual',
+          message: 'CPF já cadastrado',
+        })
+        showAlert('destructive', 'Erro de Validação', 'CPF já cadastrado no sistema!')
+      } else if (message.toLowerCase().includes('e-mail já cadastrado')) {
+        setError('email', {
+          type: 'manual',
+          message: 'E-mail já cadastrado',
+        })
+        showAlert('destructive', 'Erro de Validação', 'E-mail já cadastrado no sistema!')
+      } else {
+        showAlert('destructive', 'Erro', message)
+      }
     }
   }
 

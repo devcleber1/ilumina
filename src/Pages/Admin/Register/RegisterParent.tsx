@@ -96,6 +96,7 @@ function RegisterParentContent() {
     register,
     handleSubmit,
     watch,
+    setError,
     formState: { errors },
   } = useForm<PaiAttributes>({
     resolver: yupResolver(schema) as any,
@@ -250,7 +251,21 @@ function RegisterParentContent() {
       const message =
         error.response?.data?.message ||
         'Erro ao cadastrar pai. Verifique os dados e tente novamente.'
-      showAlert('destructive', 'Erro', message)
+      if (message.toLowerCase().includes('cpf já cadastrado') || message.toLowerCase().includes('documento já cadastrado')) {
+        setError('documento', {
+          type: 'manual',
+          message: 'CPF já cadastrado',
+        })
+        showAlert('destructive', 'Erro de Validação', 'CPF já cadastrado no sistema!')
+      } else if (message.toLowerCase().includes('e-mail já cadastrado')) {
+        setError('email', {
+          type: 'manual',
+          message: 'E-mail já cadastrado',
+        })
+        showAlert('destructive', 'Erro de Validação', 'E-mail já cadastrado no sistema!')
+      } else {
+        showAlert('destructive', 'Erro', message)
+      }
     }
   }
 
