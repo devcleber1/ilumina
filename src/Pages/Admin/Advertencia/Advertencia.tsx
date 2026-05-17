@@ -45,6 +45,7 @@ interface Advertencia {
   descricao: string
   data_advertencia: string
   gravidade: 'baixa' | 'media' | 'alta'
+  status?: 'pendente' | 'resolvida'
   aluno?: Aluno
   professor_registrador?: { nome_completo: string; foto_perfil_url?: string }
   admin_registrador?: { nome_completo: string; foto_perfil_url?: string }
@@ -57,6 +58,7 @@ interface AdvertenciaFormData {
   descricao: string
   data_advertencia: string
   gravidade: 'baixa' | 'media' | 'alta'
+  status?: 'pendente' | 'resolvida'
   oficina_id?: number
 }
 
@@ -163,6 +165,7 @@ function AdvertenciaContent() {
       descricao: '',
       data_advertencia: new Date().toISOString().split('T')[0],
       gravidade: 'baixa',
+      status: 'pendente',
       oficina_id: selectedWorkshop?.id,
     })
     setIsModalOpen(true)
@@ -178,6 +181,7 @@ function AdvertenciaContent() {
       descricao: adv.descricao,
       data_advertencia: adv.data_advertencia,
       gravidade: adv.gravidade,
+      status: adv.status || 'pendente',
       oficina_id: selectedWorkshop?.id,
     })
     setIsModalOpen(true)
@@ -543,17 +547,28 @@ function AdvertenciaContent() {
                                 <AlertTriangle className="h-4 w-4" />
                                 {adv.tipo_advertencia}
                               </span>
-                              <span
-                                className={`text-[8px] font-black font-title uppercase px-3 py-1 rounded-full ${
-                                  adv.gravidade === 'alta'
-                                    ? 'bg-red-100 text-red-600'
-                                    : adv.gravidade === 'media'
-                                      ? 'bg-yellow-100 text-yellow-600'
-                                      : 'bg-green-100 text-green-600'
-                                }`}
-                              >
-                                {adv.gravidade}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`text-[8px] font-black font-title uppercase px-3 py-1 rounded-full border ${
+                                    adv.status === 'resolvida'
+                                      ? 'bg-green-100 text-green-600 border-green-200'
+                                      : 'bg-red-100 text-red-600 border-red-200'
+                                  }`}
+                                >
+                                  {adv.status === 'resolvida' ? 'Resolvida' : 'Pendente'}
+                                </span>
+                                <span
+                                  className={`text-[8px] font-black font-title uppercase px-3 py-1 rounded-full ${
+                                    adv.gravidade === 'alta'
+                                      ? 'bg-red-100 text-red-600'
+                                      : adv.gravidade === 'media'
+                                        ? 'bg-yellow-100 text-yellow-600'
+                                        : 'bg-green-100 text-green-600'
+                                  }`}
+                                >
+                                  {adv.gravidade}
+                                </span>
+                              </div>
                             </div>
                             <p className="text-sm font-body text-gray-600 italic leading-relaxed">
                               "{adv.descricao}"
@@ -764,6 +779,32 @@ function AdvertenciaContent() {
                   ))}
                 </div>
               </div>
+
+              {isEditing && (
+                <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="text-[10px] font-black text-gray-500 ml-1 uppercase tracking-wider">
+                    Status da Ocorrência
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['pendente', 'resolvida'].map(s => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, status: s as any })}
+                        className={`py-2.5 rounded-xl text-[10px] font-black uppercase transition-all border-2 ${
+                          formData.status === s
+                            ? s === 'resolvida'
+                              ? 'bg-green-500 border-green-500 text-white'
+                              : 'bg-red-500 border-red-500 text-white'
+                            : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'
+                        }`}
+                      >
+                        {s === 'resolvida' ? 'Resolvida' : 'Pendente'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-4 pt-4">
                 <button

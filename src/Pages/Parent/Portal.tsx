@@ -42,6 +42,8 @@ interface PortalData {
     total_filhos: number
     media_presenca: number
     total_advertencias: number
+    total_advertencias_pendentes?: number
+    total_advertencias_resolvidas?: number
   }
   filhos: Filho[]
 }
@@ -57,6 +59,8 @@ interface Filho {
   turma_principal: string
   percentual_presenca: number
   total_advertencias: number
+  total_advertencias_pendentes?: number
+  total_advertencias_resolvidas?: number
   oficinas: Oficina[]
   advertencias_list: Advertencia[]
   historico_presenca: Presenca[]
@@ -426,14 +430,30 @@ export default function PortalResponsavel() {
                   Presença
                 </span>
               </div>
-              <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
-                <AlertTriangle className="h-5 w-5 text-red-500 mb-1" />
-                <span className="text-xl font-black text-gray-900">
+              <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center relative group/alerta cursor-help">
+                <AlertTriangle className={`h-5 w-5 mb-1 ${
+                  (data?.resumo.total_advertencias_pendentes || 0) > 0
+                    ? 'text-red-500'
+                    : (data?.resumo.total_advertencias_resolvidas || 0) > 0
+                      ? 'text-blue-500'
+                      : 'text-green-500'
+                }`} />
+                <span className={`text-xl font-black ${
+                  (data?.resumo.total_advertencias_pendentes || 0) > 0
+                    ? 'text-red-500'
+                    : (data?.resumo.total_advertencias_resolvidas || 0) > 0
+                      ? 'text-blue-500'
+                      : 'text-green-500'
+                }`}>
                   {data?.resumo.total_advertencias}
                 </span>
                 <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
                   Alertas
                 </span>
+                <div className="absolute top-full mt-2 hidden group-hover/alerta:flex flex-col bg-gray-900 text-white text-[9px] font-black uppercase p-3 rounded-2xl shadow-xl z-50 w-32 border border-gray-800 text-left gap-1 animate-in fade-in duration-200">
+                  <span className="text-red-400">● {data?.resumo.total_advertencias_pendentes || 0} Pendentes</span>
+                  <span className="text-green-400">● {data?.resumo.total_advertencias_resolvidas || 0} Resolvidas</span>
+                </div>
               </div>
             </div>
           </div>
@@ -526,12 +546,23 @@ export default function PortalResponsavel() {
                       </div>
                       <div className="w-px h-6 bg-gray-100" />
                       <div className="text-center">
-                        <p
-                          className={`text-xs font-black ${filho.total_advertencias > 0 ? 'text-red-500' : 'text-green-500'}`}
-                        >
-                          {filho.total_advertencias}
-                        </p>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase">Advertências</p>
+                        <div className="flex flex-col items-center leading-none">
+                          <span
+                            className={`text-xs font-black ${
+                              (filho.total_advertencias_pendentes || 0) > 0
+                                ? 'text-red-500'
+                                : (filho.total_advertencias_resolvidas || 0) > 0
+                                  ? 'text-blue-500'
+                                  : 'text-green-500'
+                            }`}
+                          >
+                            {filho.total_advertencias}
+                          </span>
+                          <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter mt-0.5">
+                            ({filho.total_advertencias_pendentes || 0} P • {filho.total_advertencias_resolvidas || 0} R)
+                          </span>
+                        </div>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">Advertências</p>
                       </div>
                       <div className="w-px h-6 bg-gray-100" />
                       <div className="text-center">
@@ -700,36 +731,59 @@ export default function PortalResponsavel() {
               </div>
 
               <div className="space-y-6">
-                <SectionTitle title="Advertências & Ocorrências" icon={AlertTriangle} />
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <SectionTitle title="Advertências & Ocorrências" icon={AlertTriangle} />
+                  <div className="flex gap-2">
+                    <span className="text-[9px] font-black uppercase px-3 py-1 bg-red-100 text-red-600 rounded-full">
+                      {(selectedFilho as any).total_advertencias_pendentes || 0} Pendentes
+                    </span>
+                    <span className="text-[9px] font-black uppercase px-3 py-1 bg-green-100 text-green-600 rounded-full">
+                      {(selectedFilho as any).total_advertencias_resolvidas || 0} Resolvidas
+                    </span>
+                  </div>
+                </div>
                 {(selectedFilho.advertencias_list || []).length > 0 ? (
                   <div className="space-y-3">
-                    {(selectedFilho.advertencias_list || []).map(adv => (
-                      <div
-                        key={adv.id}
-                        className="p-6 rounded-[32px] bg-red-50/50 border border-red-100 border-dashed flex flex-col sm:flex-row justify-between gap-4"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-red-600 uppercase bg-red-100 px-2 py-0.5 rounded-full">
-                              {adv.tipo}
-                            </span>
-                            <span className="text-xs font-bold text-gray-400">
-                              {adv.data ? adv.data.split('T')[0].split('-').reverse().join('/') : '—'}
+                    {(selectedFilho.advertencias_list || []).map(adv => {
+                      const isResolvida = adv.status === 'resolvida' || (adv as any).resolvida;
+                      return (
+                        <div
+                          key={adv.id}
+                          className={`p-6 rounded-[32px] border border-dashed flex flex-col sm:flex-row justify-between gap-4 transition-all ${
+                            isResolvida
+                              ? 'bg-green-50/20 border-green-100'
+                              : 'bg-red-50/50 border-red-100'
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                isResolvida ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'
+                              }`}>
+                                {adv.tipo}
+                              </span>
+                              <span className="text-xs font-bold text-gray-400">
+                                {adv.data ? adv.data.split('T')[0].split('-').reverse().join('/') : '—'}
+                              </span>
+                            </div>
+                            <p className="text-sm font-bold text-gray-900">{adv.oficina}</p>
+                            <p className="text-xs text-gray-600 italic">"{adv.descricao}"</p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className={`p-2 rounded-xl ${isResolvida ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                              {isResolvida ? (
+                                <CheckCircle2 className="h-5 w-5" />
+                              ) : (
+                                <AlertTriangle className="h-5 w-5" />
+                              )}
+                            </div>
+                            <span className={`text-[10px] font-black uppercase ${isResolvida ? 'text-green-600' : 'text-red-600'}`}>
+                              {isResolvida ? 'Resolvida' : 'Pendente'}
                             </span>
                           </div>
-                          <p className="text-sm font-bold text-gray-900">{adv.oficina}</p>
-                          <p className="text-xs text-gray-600 italic">"{adv.descricao}"</p>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="p-2 bg-green-100 rounded-xl text-green-600">
-                            <CheckCircle2 className="h-5 w-5" />
-                          </div>
-                          <span className="text-[10px] font-black text-green-600 uppercase">
-                            Resolvida
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="p-10 rounded-[48px] bg-green-50 border border-green-100 text-center space-y-2">
