@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { ChangePasswordModal } from '../../Components/ChangePasswordModal'
 import { AlertProvider } from '../../contexts/AlertContext'
-import React from 'react'
+
 
 describe('ChangePasswordModal Component', () => {
   it('nao deve renderizar nada se isOpen for false', () => {

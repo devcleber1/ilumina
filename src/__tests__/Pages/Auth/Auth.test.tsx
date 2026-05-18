@@ -4,7 +4,7 @@ import Auth from '../../../Pages/Auth/Auth'
 import { useAuth } from '../../../contexts/AuthContext'
 import { AlertProvider } from '../../../contexts/AlertContext'
 import { MemoryRouter } from 'react-router-dom'
-import React from 'react'
+
 
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),

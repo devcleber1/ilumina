@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { AuthGuard } from '../../Components/AuthGuard'
 import { useAuth } from '../../contexts/AuthContext'
 import { MemoryRouter } from 'react-router-dom'
-import React from 'react'
+
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),

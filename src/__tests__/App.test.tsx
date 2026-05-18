@@ -1,7 +1,7 @@
 import { render, screen, act } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import App from '../App'
-import React from 'react'
+
 
 vi.mock('../contexts/AuthContext', () => ({
   AuthProvider: ({ children }: any) => <div data-testid="auth-provider">{children}</div>,

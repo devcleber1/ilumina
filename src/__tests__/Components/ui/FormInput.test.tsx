@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { FormInput } from '../../../Components/ui/FormInput'
-import React from 'react'
+
 
 describe('FormInput Component', () => {
   it('renderiza o label e o input corretamente', () => {

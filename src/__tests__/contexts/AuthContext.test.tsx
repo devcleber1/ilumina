@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from '../../contexts/AuthContext'
 import { AlertProvider } from '../../contexts/AlertContext'
 import { storageService } from '../../lib/storageService'
 import { api } from '../../lib/api'
-import React from 'react'
+
 
 vi.mock('../../lib/api', () => {
   return {

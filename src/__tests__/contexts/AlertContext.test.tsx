@@ -1,7 +1,7 @@
 import { render, screen, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AlertProvider, useAlert } from '../../contexts/AlertContext'
-import React from 'react'
+
 
 const TestComponent = () => {
   const { alerts, showAlert, removeAlert } = useAlert()

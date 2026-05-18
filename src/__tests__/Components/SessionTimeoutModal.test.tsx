@@ -1,7 +1,7 @@
 import { render, screen, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SessionTimeoutModal } from '../../Components/SessionTimeoutModal'
-import React from 'react'
+
 
 describe('SessionTimeoutModal Component', () => {
   beforeEach(() => {

@@ -61,7 +61,7 @@ export const storageService = {
       // Sanitização de dados: Em caso de falha de decriptação, limpa os storages e força o logout
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = '/auth/login';
+      window.location.href = '/';
       return null;
     }
   },

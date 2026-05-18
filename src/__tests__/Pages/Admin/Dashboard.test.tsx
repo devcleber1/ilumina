@@ -4,7 +4,7 @@ import { Dashboard } from '../../../Pages/Admin/Dashboard/Dashboard'
 import { useAuth } from '../../../contexts/AuthContext'
 import { MemoryRouter } from 'react-router-dom'
 import { api } from '../../../lib/api'
-import React from 'react'
+
 
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
