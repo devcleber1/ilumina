@@ -1,73 +1,173 @@
-# React + TypeScript + Vite
+# 🌟 ONG Ilumina — Portal Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Interface de usuário moderna, responsiva e em tempo real para a gestão educacional e social da ONG Iluminando o Futuro. Desenvolvida com as tecnologias de ponta do ecossistema React.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠️ Stack Tecnológica
 
-## React Compiler
+O portal é construído seguindo os padrões mais exigentes de performance, tipagem e estilo:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+*   **Core:** [React 19](https://react.dev/) + [Vite 8](https://vite.dev/) (Build super-rápida com HMR ativo)
+*   **Linguagem:** [TypeScript 6](https://www.typescriptlang.org/) (Strict Mode de tipagem rígida, sem `any`)
+*   **Estilização:** [Tailwind CSS v4](https://tailwindcss.com/) (Design Utilitário moderno e responsivo)
+*   **Roteamento:** [React Router Dom v7](https://reactrouter.com/) (Gestão de rotas e níveis de acesso)
+*   **Ícones & Componentes:** [Lucide React](https://lucide.dev/) + [Shadcn/UI](https://ui.shadcn.com/) / [Radix UI](https://www.radix-ui.com/)
+*   **Testes:** [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) (55 testes unitários e de integração ativos)
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📂 Arquitetura do Projeto
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+A estrutura de arquivos foi projetada visando o Single Responsibility Principle (SRP) e alta escalabilidade:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+ilumina/
+├── src/
+│   ├── __tests__/          # Suíte completa de testes unitários e integração
+│   ├── Components/         # Componentes globais compartilhados (Sidebar, Modais, Inputs)
+│   ├── contexts/           # Provedores de Estado Global (Autenticação, Alertas)
+│   ├── hooks/              # Hooks customizados para lógica reutilizável
+│   ├── lib/                # Serviços e utilitários de terceiros (Axios, Socket.IO, Storage)
+│   ├── Pages/              # Páginas da aplicação organizadas por níveis de acesso
+│   │   ├── Admin/          # Telas do Administrador e Super-Administrador
+│   │   ├── Parent/         # Portal do Responsável (Pais e Familiares)
+│   │   ├── Teacher/        # Portal do Professor
+│   │   └── Auth/           # Tela de Login e autenticação inicial
+│   ├── routes/             # Definição e proteção de rotas da aplicação
+│   ├── utils/              # Funções auxiliares e formatadores puros
+│   ├── App.tsx             # Componente raiz da aplicação
+│   └── main.tsx            # Ponto de entrada do React
+├── .env.example            # Exemplo de configuração de variáveis de ambiente
+├── .gitignore              # Proteção contra vazamento de credenciais e prompts
+└── tsconfig.json           # Configuração estrita do compilador TypeScript
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ⚡ Guia de Execução Local
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Pré-requisitos
+Certifique-se de ter o [Node.js](https://nodejs.org/) e o [Yarn](https://yarnpkg.com/) instalados em sua máquina.
+
+### 1. Clonar e Instalar Dependências
+```bash
+# Navegar até a pasta do Frontend
+cd Front-End-Ilumina/ilumina
+
+# Instalar pacotes
+yarn install
 ```
+
+### 2. Configurar Variáveis de Ambiente
+Copie o arquivo `.env.example` para `.env` e ajuste as URLs da API do backend caso necessário:
+```bash
+cp .env.example .env
+```
+O conteúdo padrão do `.env`:
+```env
+VITE_API_URL=http://localhost:3001
+```
+
+### 3. Executar o Servidor de Desenvolvimento
+```bash
+yarn dev
+```
+
+### 4. Rodar a Suíte Completa de Testes
+Para executar a suíte com os 55 testes validados:
+```bash
+npx yarn test --run
+```
+
+---
+
+## 🧭 Níveis de Acesso e Rotas do Sistema
+
+O portal possui controle estrito de acessos baseado no tipo de usuário logado (`tipo` e `nivel_acesso`):
+
+| Rota | Acesso | Descrição |
+| :--- | :--- | :--- |
+| `/` | Público | Tela de autenticação unificada |
+| `/dashboard` | `admin` / `superadmin` | Painel de controle geral e estatísticas em tempo real |
+| `/dashboard/usuarios` | `superadmin` | Listagem, busca e exclusão de usuários ativos |
+| `/dashboard/cadastro-*` | `admin` / `superadmin` | Telas de cadastro de Alunos, Professores, Pais e Oficinas |
+| `/dashboard/presenca` | `admin` / `superadmin` | Controle de faltas, justificativas e chamada em lote |
+| `/dashboard/advertencias` | `admin` / `superadmin` | Emissão de ocorrências disciplinares em tempo real |
+| `/professor/portal` | `professor` | Painel do docente com chamada e histórico de aulas |
+| `/responsavel/portal` | `pai` | Painel da família com monitoramento de faltas, notas e avisos |
+
+---
+
+## 🎨 Galeria Visual e Mockups do Sistema
+
+> [!NOTE]
+> Esta seção foi projetada para receber capturas de tela e mockups de alta fidelidade de cada módulo da aplicação para auxiliar novos desenvolvedores e demonstrar o design premium do Ilumina.
+
+### 🔐 1. Fluxo de Autenticação & Telas Gerais
+
+```carousel
+![Tela de Login](/src/assets/mockups/login.png)
+<!-- slide -->
+![Redefinição de Senha](/src/assets/mockups/reset_password.png)
+```
+*   **Tela de Login (`Auth.tsx`):** Formulário moderno com feedback visual de validação de campos (Yup), alternância de visibilidade de senha e proteção contra erros do servidor.
+*   **Reset de Senha (`ResetPassword.tsx`):** Interface administrativa para geração rápida de nova senha padrão e recuperação de acesso.
+
+---
+
+### 👑 2. Módulo do Administrador e Super-Administrador
+
+```carousel
+![Dashboard Geral](/src/assets/mockups/admin_dashboard.png)
+<!-- slide -->
+![Registro de Chamada](/src/assets/mockups/admin_presenca.png)
+<!-- slide -->
+![Gestão de Ocorrências](/src/assets/mockups/admin_advertencias.png)
+<!-- slide -->
+![Formulários de Cadastro](/src/assets/mockups/admin_cadastros.png)
+```
+*   **Visão Geral (Dashboard):** Cards de métricas dinâmicas de alunos e oficinas com gráficos interativos e feeds em tempo real das atividades recentes.
+*   **Controle de Presença (`Presenca.tsx`):** Chamada de alunos simplificada com filtros de busca rápida e travamento de segurança após 2 alterações no mesmo dia.
+*   **Gestão de Advertências (`Advertencia.tsx`):** Registro imediato de ocorrências disciplinares que se conectam via Socket.IO para alertar os responsáveis instantaneamente.
+*   **Gerenciar Usuários (`EditUsers.tsx`):** Controle central de perfis de alunos, pais, professores e administradores da ONG.
+
+---
+
+### 👨‍🏫 3. Módulo do Professor
+
+```carousel
+![Painel do Professor](/src/assets/mockups/teacher_dashboard.png)
+<!-- slide -->
+![Chamada por Oficina](/src/assets/mockups/teacher_rollcall.png)
+```
+*   **Portal do Docente (`PortalTeacher.tsx`):** Visão centralizada das turmas e oficinas ativas designadas ao professor logado.
+*   **Chamada Rápida:** Atalho direto para realizar chamada diária nas oficinas, salvamento automático e integração instantânea com os dados da secretaria da ONG.
+
+---
+
+### 👪 4. Módulo do Responsável (Pais e Familiares)
+
+```carousel
+![Portal do Responsável](/src/assets/mockups/parent_portal.png)
+<!-- slide -->
+![Notificações de Ocorrências](/src/assets/mockups/parent_alerts.png)
+```
+*   **Visão da Família (`Portal.tsx`):** Acompanhamento detalhado da vida escolar e social dos filhos vinculados (percentual de frequência e advertências).
+*   **Alertas em Tempo Real:** Sistema de notificações via Socket.IO que exibe pop-ups instantâneos para os pais a cada atualização de presença ou ocorrência dos alunos.
+
+---
+
+## 🧪 Suíte de Testes e Qualidade de Código
+
+O projeto conta com testes unitários e de integração robustos implementados com **Vitest** e **React Testing Library**. Para rodar a verificação de sanidade do sistema:
+
+```bash
+# Rodar todos os testes (34 arquivos com 55 testes verdes)
+npx yarn test --run
+```
+
+Nossas regras garantem que:
+1.  **Strict Mode:** TypeScript configurado sem permissão para o tipo `any` ou variáveis não utilizadas.
+2.  **Modularidade:** Funções sempre contidas abaixo de 40 linhas e com profundidade de identação máxima de 2 níveis.
+3.  **Segurança:** Variáveis sensíveis e segredos nunca são incluídos em arquivos públicos, utilizando sempre variáveis de ambiente configuradas no `.env`.
