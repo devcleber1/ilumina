@@ -11,7 +11,6 @@ import {
   Users,
   Wrench,
   User as UserIcon,
-  Edit,
   X,
   Save,
   Camera
@@ -47,6 +46,7 @@ import logo from '../assets/logo.png'
 interface SubItem {
   title: string
   url: string
+  restricted?: boolean
 }
 
 interface MenuItem {
@@ -415,7 +415,7 @@ export function AppSidebar() {
                             style={{ background: '#FFD700' }}
                           >
                             {item.subItems
-                              .filter(sub => !(sub as any).restricted || user?.nivel_acesso === 'superadmin')
+                              .filter(sub => !sub.restricted || user?.nivel_acesso === 'superadmin')
                               .map(sub => renderSubItem(sub))}
                           </div>
                         )}

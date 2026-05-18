@@ -83,6 +83,7 @@ interface Advertencia {
   descricao: string
   oficina: string
   resolvida: boolean
+  status?: string
 }
 
 interface Presenca {
@@ -266,7 +267,13 @@ export default function PortalResponsavel() {
     data_nascimento: Yup.string().required('Data de nascimento é obrigatória'),
     ...(isChangingPassword ? {
       atual: Yup.string().required('Senha atual é obrigatória'),
-      nova: Yup.string().required('Nova senha é obrigatória').min(12, 'Mínimo 12 caracteres'),
+      nova: Yup.string()
+        .required('Nova senha é obrigatória')
+        .min(12, 'Senha deve ter no mínimo 12 caracteres')
+        .matches(/[a-z]/, 'Deve conter letras minúsculas')
+        .matches(/[A-Z]/, 'Deve conter letras maiúsculas')
+        .matches(/[0-9]/, 'Deve conter números')
+        .matches(/[@$!%*?&#]/, 'Deve conter caracteres especiais (@$!%*?&#)'),
       confirmar: Yup.string()
         .oneOf([Yup.ref('nova')], 'As senhas não coincidem')
         .required('Confirmação é obrigatória'),

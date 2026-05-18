@@ -9,7 +9,6 @@ import {
   BookOpen,
   UserPlus,
   ChevronRight,
-  ClipboardList,
   AlertTriangle,
   X,
   Calendar,
@@ -17,10 +16,9 @@ import {
   Activity,
   BarChart3
 } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { api } from '../../../lib/api'
 import { NavLink } from 'react-router-dom'
-import { useAuth } from '../../../contexts/AuthContext'
 import { getSocket } from '../../../lib/socket'
 
 interface Stats {
@@ -86,7 +84,6 @@ function SectionTitle({ title, sub, icon: Icon }: { title: string; sub?: string;
 
 function DashboardContent() {
   const { open } = useSidebar()
-  const { user, logout } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentLogs, setRecentLogs] = useState<Log[]>([])
   const [loading, setLoading] = useState(true)

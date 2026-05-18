@@ -42,6 +42,7 @@ interface Oficina {
   horario_fim: string
   dias_semana: string
   status_oficina: 'ativa' | 'inativa'
+  inscricoes_alunos?: { id: number }[]
 }
 
 function WorkshopsContent() {

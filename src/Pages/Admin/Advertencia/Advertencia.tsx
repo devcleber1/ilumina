@@ -16,8 +16,6 @@ import {
   Edit2,
   Trash2,
   User,
-  Info,
-  Users,
 } from 'lucide-react'
 import { api } from '../../../lib/api'
 import { useAlert } from '../../../contexts/AlertContext'
@@ -839,16 +837,6 @@ function AdvertenciaContent() {
   )
 }
 
-function SectionTitle({ title, sub }: { title: string; sub?: string }) {
-  return (
-    <div className="mb-2">
-      <h2 className="font-title text-sm font-black text-gray-900 uppercase tracking-tight">
-        {title}
-      </h2>
-      {sub && <p className="font-body text-[10px] text-gray-400 font-bold uppercase">{sub}</p>}
-    </div>
-  )
-}
 
 function OpenSidebarButton() {
   const { toggleSidebar, open } = useSidebar()

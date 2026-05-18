@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
 import { ShieldAlert, LogOut } from 'lucide-react'
@@ -29,8 +29,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   // Bloqueio Global para Não-Admins (com exceção das telas permitidas)
   const isParentPortal = user.tipo === 'pai' && window.location.pathname.startsWith('/portal')
+  const isTeacherPortal = user.tipo === 'professor' && window.location.pathname.startsWith('/portal-professor')
 
-  if (user.tipo !== 'admin' && !isParentPortal) {
+  if (user.tipo !== 'admin' && !isParentPortal && !isTeacherPortal) {
     return (
       <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center p-6 overflow-hidden select-none">
         {/* Camada de proteção contra "Inspect Element" tampering */}

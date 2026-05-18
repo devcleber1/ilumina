@@ -36,11 +36,11 @@ export default function Auth() {
     try {
       const success = await login(data.email, data.password)
       if (!success) {
-        setError('password', { type: 'manual', message: 'E-mail ou senha incorretos' })
+        setError('root', { type: 'server', message: 'E-mail ou senha incorretos' })
       }
     } catch (error: any) {
       console.error('Erro no login:', error)
-      setError('password', { type: 'manual', message: 'Erro ao conectar ao servidor' })
+      setError('root', { type: 'server', message: 'Erro ao conectar ao servidor' })
     }
   }
 
@@ -53,6 +53,8 @@ export default function Auth() {
         // Se não precisa trocar e está autenticado, vai para a tela correspondente
         if (user.tipo === 'pai') {
           navigate('/portal')
+        } else if (user.tipo === 'professor') {
+          navigate('/portal-professor')
         } else {
           navigate('/dashboard')
         }
@@ -109,10 +111,14 @@ export default function Auth() {
                 type="email"
                 placeholder="seu.email@exemplo.com"
                 className={`font-body block w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-800 outline-none placeholder:text-gray-300 focus:ring-2 transition ${
-                  errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-yellow-400 focus:ring-yellow-100'
+                  errors.email || errors.root ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-yellow-400 focus:ring-yellow-100'
                 }`}
               />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+              {errors.email ? (
+                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+              ) : errors.root ? (
+                <p className="text-red-500 text-xs mt-1">{errors.root.message}</p>
+              ) : null}
             </div>
 
             {/* Senha */}
@@ -138,7 +144,7 @@ export default function Auth() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Digite sua senha"
                   className={`font-body block w-full rounded-xl border bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 outline-none placeholder:text-gray-300 focus:ring-2 transition ${
-                    errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-yellow-400 focus:ring-yellow-100'
+                    errors.password || errors.root ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-yellow-400 focus:ring-yellow-100'
                   }`}
                 />
                 <button
@@ -185,9 +191,11 @@ export default function Auth() {
                   )}
                 </button>
               </div>
-              {errors.password && (
+              {errors.password ? (
                 <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
-              )}
+              ) : errors.root ? (
+                <p className="text-red-500 text-xs mt-1">{errors.root.message}</p>
+              ) : null}
             </div>
 
             {/* Botão */}

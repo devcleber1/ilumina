@@ -34,6 +34,16 @@ api.interceptors.response.use(
   async error => {
     const originalRequest = error.config
 
+    // Disparar evento global de servidor indisponível
+    if (error.code === 'ERR_NETWORK') {
+      window.dispatchEvent(new Event('server-down'))
+    }
+
+    // Não tentar renovar se a requisição for de login ou refresh
+    if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh')) {
+      return Promise.reject(error)
+    }
+
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

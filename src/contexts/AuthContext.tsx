@@ -17,7 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   user: User | null
   login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
+  logout: () => Promise<void>
   renewSession: () => Promise<void>
   loading: boolean
 }
@@ -142,14 +142,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         showAlert('destructive', 'Erro no login', 'Credenciais inválidas.')
         return false
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no login:', error)
-      showAlert('destructive', 'Erro no login', 'Verifique sua conexão e tente novamente.')
-      return false
+      if (error.response?.status === 401) {
+        // Retorna false silenciosamente para que o Auth.tsx cuide do erro (texto vermelho nos inputs)
+        return false
+      } else if (error.response?.status === 429) {
+        showAlert('destructive', 'Acesso bloqueado temporariamente', 'Muitas tentativas de login. Tente novamente mais tarde.')
+        return false
+      } else {
+        showAlert('destructive', 'Erro no login', 'Verifique sua conexão e tente novamente.')
+        return false
+      }
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout')
+    } catch (err) {
+      console.warn('Erro ao chamar logout no backend:', err)
+    }
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('expiresAt')
