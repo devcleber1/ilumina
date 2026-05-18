@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { ShieldCheck, Eye, EyeOff, Lock, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { ShieldCheck, Lock, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { api } from '../lib/api'
 import { useAlert } from '../contexts/AlertContext'
+import { BaseModal } from './ui/BaseModal'
+import { FormInput } from './ui/FormInput'
 
 const PASSWORD_COMPLEXITY_MESSAGE = {
   min: 'Mínimo 12 caracteres',
@@ -37,7 +39,6 @@ interface ChangePasswordModalProps {
 }
 
 export function ChangePasswordModal({ isOpen, onSuccess }: ChangePasswordModalProps) {
-  const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { showAlert } = useAlert()
 
@@ -83,8 +84,7 @@ export function ChangePasswordModal({ isOpen, onSuccess }: ChangePasswordModalPr
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[40px] w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
+    <BaseModal isOpen={isOpen} className="w-full max-w-lg p-0" hideCloseButton>
         <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 px-8 py-10 text-center relative overflow-hidden">
            {/* Decorative elements */}
            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
@@ -110,49 +110,24 @@ export function ChangePasswordModal({ isOpen, onSuccess }: ChangePasswordModalPr
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
               {/* Nova Senha */}
-              <div className="space-y-1.5">
-                <label className="font-body block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Nova Senha</label>
-                <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-500 transition-colors">
-                     <Lock className="h-4 w-4" />
-                  </div>
-                  <input
-                    {...register('novaSenha')}
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••••••"
-                    className={`font-body block w-full rounded-2xl border bg-white pl-11 pr-12 py-4 text-sm text-gray-800 outline-none transition-all ${
-                      errors.novaSenha ? 'border-red-500 ring-4 ring-red-50' : 'border-gray-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                {errors.novaSenha && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1 flex items-center gap-1 uppercase tracking-tighter"><AlertCircle className="h-3 w-3" /> {errors.novaSenha.message}</p>}
-              </div>
+              <FormInput
+                label="Nova Senha"
+                isPassword
+                icon={<Lock className="h-4 w-4" />}
+                placeholder="••••••••••••"
+                error={errors.novaSenha?.message}
+                {...register('novaSenha')}
+              />
 
               {/* Confirmar Senha */}
-              <div className="space-y-1.5">
-                <label className="font-body block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Confirmar Senha</label>
-                <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-500 transition-colors">
-                     <Lock className="h-4 w-4" />
-                  </div>
-                  <input
-                    {...register('confirmarSenha')}
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••••••"
-                    className={`font-body block w-full rounded-2xl border bg-white pl-11 pr-4 py-4 text-sm text-gray-800 outline-none transition-all ${
-                      errors.confirmarSenha ? 'border-red-500 ring-4 ring-red-50' : 'border-gray-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100'
-                    }`}
-                  />
-                </div>
-                {errors.confirmarSenha && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1 flex items-center gap-1 uppercase tracking-tighter"><AlertCircle className="h-3 w-3" /> {errors.confirmarSenha.message}</p>}
-              </div>
+              <FormInput
+                label="Confirmar Senha"
+                isPassword
+                icon={<Lock className="h-4 w-4" />}
+                placeholder="••••••••••••"
+                error={errors.confirmarSenha?.message}
+                {...register('confirmarSenha')}
+              />
             </div>
 
             {/* Password Strength Rules */}
@@ -184,7 +159,6 @@ export function ChangePasswordModal({ isOpen, onSuccess }: ChangePasswordModalPr
             </button>
           </form>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   )
 }

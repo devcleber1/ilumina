@@ -1,13 +1,18 @@
 import axios from 'axios'
+import { storageService } from './storageService'
 
 export const api = axios.create({
-  baseURL: 'http://localhost:3001',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
   withCredentials: true,
 })
 
+// Proteção CSRF Global (Contrato com o Backend)
+api.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
+api.defaults.headers.common['Content-Type'] = 'application/json'
+
 // Adiciona o token em todas as requisições se ele existir no localStorage
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
+  const token = storageService.getItem('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -67,11 +72,11 @@ api.interceptors.response.use(
         const { accessToken } = response.data
 
         if (accessToken) {
-          localStorage.setItem('token', accessToken)
+          storageService.setItem('token', accessToken)
           
           // Atualiza o tempo de expiração para o AuthContext
           const newExpiresAt = Date.now() + (15 * 60 * 1000)
-          localStorage.setItem('expiresAt', String(newExpiresAt))
+          storageService.setItem('expiresAt', String(newExpiresAt))
           window.dispatchEvent(new Event('session-renewed'))
 
           // Atualiza o header da requisição original e repete
@@ -87,9 +92,9 @@ api.interceptors.response.use(
         isRefreshing = false
         
         // Se falhar o refresh, desloga limpando completamente a sessão
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        localStorage.removeItem('expiresAt')
+        storageService.removeItem('token')
+        storageService.removeItem('user')
+        storageService.removeItem('expiresAt')
         
         if (window.location.pathname !== '/') {
           window.location.href = '/'

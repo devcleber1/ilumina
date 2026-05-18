@@ -25,3 +25,29 @@ dist-ssr
 
 # Gemini
 GEMINI.md
+.gemini
+.gemini/
+antigravity/
+.planning/
+
+# Prompts and context files
+prompt.md
+PROMPT_FRONTEND.md
+*prompt*
+*PROMPT*
+*.md.prompt
+*.prompt.md
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+.env.production.local
+.env.development.local
+.env.local.local
+.env.test.local
+*.env
+*.env.*
+

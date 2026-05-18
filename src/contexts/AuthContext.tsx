@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { api } from '../lib/api'
 import { useAlert } from './AlertContext'
 import { SessionTimeoutModal } from '../Components/SessionTimeoutModal'
+import { storageService } from '../lib/storageService'
 
 interface User {
   id: number
@@ -25,16 +26,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'))
+  const [isAuthenticated, setIsAuthenticated] = useState(!!storageService.getItem('token'))
   const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem('user')
-    return savedUser ? JSON.parse(savedUser) : null
+    return storageService.getItem<User>('user') || null
   })
   
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [isModalDismissed, setIsModalDismissed] = useState(false)
   const [expiresAt, setExpiresAt] = useState<number | null>(() => {
-    const saved = localStorage.getItem('expiresAt')
+    const saved = storageService.getItem<string>('expiresAt')
     return saved ? Number(saved) : null
   })
   const [loading, setLoading] = useState(true)
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const handleSessionRenewed = () => {
-      const saved = localStorage.getItem('expiresAt')
+      const saved = storageService.getItem<string>('expiresAt')
       if (saved) {
         setExpiresAt(Number(saved))
         setShowSessionModal(false)
@@ -86,12 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (response.data.success) {
             const userData = response.data.user
             setUser(userData)
-            localStorage.setItem('user', JSON.stringify(userData))
+            storageService.setItem('user', userData)
             
             // Garantir que expiresAt seja definido se estiver faltando
-            if (!localStorage.getItem('expiresAt')) {
+            if (!storageService.getItem('expiresAt')) {
                const newExpiresAt = Date.now() + (15 * 60 * 1000)
-               localStorage.setItem('expiresAt', String(newExpiresAt))
+               storageService.setItem('expiresAt', String(newExpiresAt))
                setExpiresAt(newExpiresAt)
             }
           }
@@ -124,9 +124,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const expirationTime = 15 * 60 * 1000 
           const newExpiresAt = Date.now() + expirationTime
           
-          localStorage.setItem('token', data.accessToken)
-          localStorage.setItem('user', JSON.stringify(data.user))
-          localStorage.setItem('expiresAt', String(newExpiresAt))
+          storageService.setItem('token', data.accessToken)
+          storageService.setItem('user', data.user)
+          storageService.setItem('expiresAt', String(newExpiresAt))
           
           setExpiresAt(newExpiresAt)
           setIsAuthenticated(true)
@@ -163,9 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.warn('Erro ao chamar logout no backend:', err)
     }
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('expiresAt')
+    storageService.removeItem('token')
+    storageService.removeItem('user')
+    storageService.removeItem('expiresAt')
     setIsAuthenticated(false)
     setUser(null)
     setExpiresAt(null)
@@ -180,11 +180,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { accessToken } = response.data
       
       if (accessToken) {
-        localStorage.setItem('token', accessToken)
+        storageService.setItem('token', accessToken)
         const expirationTime = 15 * 60 * 1000
         const newExpiresAt = Date.now() + expirationTime
         
-        localStorage.setItem('expiresAt', String(newExpiresAt))
+        storageService.setItem('expiresAt', String(newExpiresAt))
         setExpiresAt(newExpiresAt)
         setShowSessionModal(false)
         setIsModalDismissed(false)

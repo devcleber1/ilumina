@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode, useRef, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react'
 
 export type AlertType = 'success' | 'warning' | 'destructive' | 'info'
 
@@ -25,19 +25,22 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     setAlerts(prev => prev.filter(alert => alert.id !== id))
   }, [])
 
-  const showAlert = useCallback((type: AlertType, title: string, description?: string, duration = 5000) => {
-    const id = Date.now().toString()
-    const alert: AlertMessage = { id, type, title, description, duration }
+  const showAlert = useCallback(
+    (type: AlertType, title: string, description?: string, duration = 5000) => {
+      const id = Date.now().toString()
+      const alert: AlertMessage = { id, type, title, description, duration }
 
-    setAlerts(prev => [...prev, alert])
+      setAlerts(prev => [...prev, alert])
 
-    // Auto remove after duration
-    if (duration > 0) {
-      setTimeout(() => {
-        removeAlert(id)
-      }, duration)
-    }
-  }, [removeAlert])
+      // Auto remove after duration
+      if (duration > 0) {
+        setTimeout(() => {
+          removeAlert(id)
+        }, duration)
+      }
+    },
+    [removeAlert]
+  )
 
   useEffect(() => {
     let lastAlertTime = 0
@@ -46,7 +49,12 @@ export function AlertProvider({ children }: { children: ReactNode }) {
       // Previne spam de alertas (apenas 1 a cada 5 segundos)
       if (now - lastAlertTime > 5000) {
         lastAlertTime = now
-        showAlert('destructive', 'Servidor Indisponível', 'Não foi possível conectar ao servidor. Verifique sua conexão ou tente novamente mais tarde.', 8000)
+        showAlert(
+          'destructive',
+          'Servidor Indisponível',
+          'Não foi possível conectar ao servidor. Verifique sua conexão ou tente novamente mais tarde.',
+          8000
+        )
       }
     }
 
@@ -54,7 +62,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     return () => {
       window.removeEventListener('server-down', handleServerDown)
     }
-  }, [])
+  }, [showAlert])
 
   return (
     <AlertContext.Provider value={{ alerts, showAlert, removeAlert }}>

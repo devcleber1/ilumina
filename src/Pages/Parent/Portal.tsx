@@ -27,6 +27,7 @@ import logo from '../../assets/logo.png'
 import { useNavigate } from 'react-router-dom'
 import * as Yup from 'yup'
 import { getSocket } from '../../lib/socket'
+import { storageService } from '../../lib/storageService'
 
 
 interface PortalData {
@@ -123,7 +124,7 @@ export default function PortalResponsavel() {
   const [isSaving, setIsSaving] = useState(false)
 
   const fetchPortalData = async (showLoading = false) => {
-    if (!localStorage.getItem('token')) return
+    if (!storageService.getItem('token')) return
     try {
       if (showLoading) setLoading(true)
       const response = await api.get('/pais/me/portal')
@@ -144,10 +145,10 @@ export default function PortalResponsavel() {
             filho.historico_presenca?.forEach((p: Presenca) => {
               if (p.data === hoje) {
                 const shownKey = `presenca_shown_${p.id}`
-                if (!sessionStorage.getItem(shownKey)) {
+                if (!storageService.getItem(shownKey, true)) {
                   const statusStr = p.presente ? 'presente' : 'ausente'
                   showAlert('info', 'Presença de Hoje', `Seu filho(a) ${filho.nome_completo} esteve ${statusStr} na oficina de ${p.oficina}.`)
-                  sessionStorage.setItem(shownKey, 'true')
+                  storageService.setItem(shownKey, 'true', true)
                 }
               }
             })
