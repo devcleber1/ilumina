@@ -31,13 +31,7 @@ interface Stats {
   chartData: { month: string; alunos: number }[]
   ultimasAdvertencias: any[]
   presencasPorOficina: { turma: string; percentual: number }[]
-}
-
-interface Log {
-  acao: string
-  usuario_nome: string
-  usuario_foto_url?: string
-  timestamp: string
+  rankingAlunos: { nome: string; percentual: number; foto_url: string | null }[]
 }
 
 function StatCard({
@@ -85,7 +79,6 @@ function SectionTitle({ title, sub, icon: Icon }: { title: string; sub?: string;
 function DashboardContent() {
   const { open } = useSidebar()
   const [stats, setStats] = useState<Stats | null>(null)
-  const [recentLogs, setRecentLogs] = useState<Log[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedAdv, setSelectedAdv] = useState<any | null>(null)
 
@@ -93,12 +86,6 @@ function DashboardContent() {
     try {
       const statsRes = await api.get('/stats/dashboard')
       setStats(statsRes.data)
-    } catch (error) {
-      // silently ignore on polling
-    }
-    try {
-      const logsRes = await api.get('/logs?limite=10')
-      setRecentLogs(logsRes.data.logs || [])
     } catch (error) {
       // silently ignore on polling
     }
@@ -310,35 +297,44 @@ function DashboardContent() {
 
           {/* Side Column (Right) */}
           <div className="flex flex-col gap-6 overflow-hidden h-full">
-            {/* Logs Area */}
+            {/* Ranking Area */}
             <div className="bg-white rounded-[32px] p-6 shadow-sm flex-1 min-h-[200px] overflow-hidden border border-gray-100 flex flex-col">
-              <SectionTitle title="Atividades" sub="Fluxo de ações do sistema" icon={Activity} />
-              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-5 pt-3">
-                {recentLogs.map((log, idx) => (
-                  <div key={idx} className="relative pl-11 pb-2">
-                    <div className="absolute left-0 top-0 h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm shrink-0">
-                       {log.usuario_foto_url ? (
-                         <img 
-                           src={log.usuario_foto_url.startsWith('http') ? log.usuario_foto_url : `http://localhost:3001${log.usuario_foto_url}`} 
-                           alt="" 
-                           className="h-full w-full object-cover" 
-                         />
-                       ) : (
-                         <span className="text-[10px] font-black text-gray-900 uppercase">
-                           {log.usuario_nome?.substring(0, 2) || 'SY'}
-                         </span>
-                       )}
+              <SectionTitle title="Ranking de Presença" sub="Alunos com maior assiduidade" icon={Activity} />
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 pt-3">
+                {(stats?.rankingAlunos || []).map((aluno, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-yellow-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm shrink-0 font-bold relative">
+                        {idx === 0 && <span className="absolute -top-1 -right-1 text-[10px]">👑</span>}
+                        {aluno.foto_url ? (
+                          <img 
+                            src={aluno.foto_url.startsWith('http') ? aluno.foto_url : `http://localhost:3001${aluno.foto_url}`} 
+                            alt="" 
+                            className="h-full w-full object-cover" 
+                          />
+                        ) : (
+                          <span className="text-[12px] font-black text-gray-400 uppercase">
+                            {aluno.nome?.substring(0, 2)}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[10px] font-black text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full uppercase">
+                            {idx + 1}º Lugar
+                          </span>
+                        </div>
+                        <p className="text-xs font-black text-gray-900 leading-tight truncate max-w-[150px]">{aluno.nome}</p>
+                      </div>
                     </div>
-                    <p className="text-xs font-black text-gray-900 leading-tight mb-1">{log.acao}</p>
-                    <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-                      <span>{log.usuario_nome?.split(' ')[0] || 'Sistema'}</span>
-                      <span>•</span>
-                      <span>{new Date(log.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <div className="text-right">
+                      <p className="text-base font-black text-green-500 leading-none">{aluno.percentual}%</p>
+                      <p className="text-[9px] font-bold text-gray-400 uppercase">Frequência</p>
                     </div>
                   </div>
                 ))}
-                {recentLogs.length === 0 && (
-                  <p className="text-center text-xs text-gray-400 py-10 font-bold italic">Sem atividades recentes.</p>
+                {(!stats?.rankingAlunos || stats.rankingAlunos.length === 0) && (
+                  <p className="text-center text-xs text-gray-400 py-10 font-bold italic">Nenhum dado de presença registrado.</p>
                 )}
               </div>
             </div>

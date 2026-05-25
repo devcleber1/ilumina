@@ -12,6 +12,7 @@ import EditUsers from '../Pages/Admin/Users/EditUsers'
 import ResetPassword from '../Pages/Admin/Users/ResetPassword'
 import RegisterAdmin from '../Pages/Admin/Register/RegisterAdmin'
 import Meetings from '../Pages/Admin/Meetings/Meetings'
+import LogsPage from '../Pages/Admin/Logs'
 import { AuthGuard } from '../Components/AuthGuard'
 import PortalResponsavel from '../Pages/Parent/Portal'
 import PortalTeacher from '../Pages/Teacher/PortalTeacher'
@@ -36,6 +37,7 @@ export default function AppRoutes() {
       <Route path="/dashboard/reset-senha" element={<AuthGuard><ResetPassword /></AuthGuard>} />
       <Route path="/dashboard/cadastro-admin" element={<AuthGuard><RegisterAdmin /></AuthGuard>} />
       <Route path="/dashboard/reuniao" element={<AuthGuard><Meetings /></AuthGuard>} />
+      <Route path="/dashboard/logs" element={<AuthGuard><LogsPage /></AuthGuard>} />
     </Routes>
   )
 }

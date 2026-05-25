@@ -18,6 +18,7 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  ChevronDown,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { api } from '../../lib/api'
@@ -106,6 +107,7 @@ export default function PortalResponsavel() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false)
+  const [isAllPresencasModalOpen, setIsAllPresencasModalOpen] = useState(false)
 
   const [profileForm, setProfileForm] = useState({
     nome: '',
@@ -254,6 +256,20 @@ export default function PortalResponsavel() {
       }
     }
   }, [data])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsAllPresencasModalOpen(false)
+      }
+    }
+    if (isAllPresencasModalOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isAllPresencasModalOpen])
 
   const handleLogout = () => {
     logout()
@@ -828,50 +844,85 @@ export default function PortalResponsavel() {
 
               <div className="space-y-6">
                 <SectionTitle title="Histórico Recente" icon={CalendarCheck} />
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                          Data
-                        </th>
-                        <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                          Oficina
-                        </th>
-                        <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">
-                          Status
-                        </th>
-                        <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                          Observação
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {(selectedFilho.historico_presenca || []).map(p => (
-                        <tr key={p.id} className="group">
-                          <td className="py-4 text-xs font-bold text-gray-900">
-                            {p.data ? p.data.split('T')[0].split('-').reverse().join('/') : '—'}
-                          </td>
-                          <td className="py-4 text-xs font-medium text-gray-600">{p.oficina}</td>
-                          <td className="py-4 text-center">
-                            <span
-                              className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase ${
-                                p.presente
-                                  ? 'bg-green-100 text-green-600'
-                                  : 'bg-red-100 text-red-600'
-                              }`}
-                            >
-                              {p.presente ? 'Presente' : 'Falta'}
-                            </span>
-                          </td>
-                          <td className="py-4 text-xs text-gray-400 italic max-w-[200px] truncate">
-                            {p.observacoes || '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {(() => {
+                  const sortedHistorico = [...(selectedFilho.historico_presenca || [])].sort((a, b) => {
+                    const dateA = a.data ? new Date(a.data).getTime() : 0
+                    const dateB = b.data ? new Date(b.data).getTime() : 0
+                    return dateB - dateA
+                  })
+                  const limitedHistorico = sortedHistorico.slice(0, 5)
+
+                  return (
+                    <>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="border-b border-gray-100">
+                              <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                Data
+                              </th>
+                              {data?.filhos && data.filhos.length > 1 && (
+                                <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                  Filho
+                                </th>
+                              )}
+                              <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                Oficina
+                              </th>
+                              <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">
+                                Status
+                              </th>
+                              <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                Observação
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50">
+                            {limitedHistorico.map(p => (
+                              <tr key={p.id} className="group">
+                                <td className="py-4 text-xs font-bold text-gray-900">
+                                  {formatarDataPortal(p.data)}
+                                </td>
+                                {data?.filhos && data.filhos.length > 1 && (
+                                  <td className="py-4 text-xs font-semibold text-gray-600">
+                                    {selectedFilho.nome_completo}
+                                  </td>
+                                )}
+                                <td className="py-4 text-xs font-medium text-gray-600">{p.oficina}</td>
+                                <td className="py-4 text-center">
+                                  <span
+                                    className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase ${
+                                      p.presente
+                                        ? 'bg-green-100 text-green-600'
+                                        : 'bg-red-100 text-red-600'
+                                    }`}
+                                  >
+                                    {p.presente ? 'Presente' : 'Ausente'}
+                                  </span>
+                                </td>
+                                <td className="py-4 text-xs text-gray-400 italic max-w-[200px] truncate">
+                                  {p.observacoes || '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {sortedHistorico.length > 5 && (
+                        <div className="flex justify-center pt-4">
+                          <button
+                            onClick={() => setIsAllPresencasModalOpen(true)}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 hover:border-yellow-400 hover:text-yellow-600 text-gray-500 font-black rounded-2xl transition cursor-pointer shadow-sm text-xs uppercase tracking-widest"
+                          >
+                            <span>Ver mais</span>
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               </div>
             </div>
           </div>
@@ -1130,8 +1181,127 @@ export default function PortalResponsavel() {
           </div>
         </div>
       )}
+
+      {isAllPresencasModalOpen && selectedFilho && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+          onClick={() => setIsAllPresencasModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-[40px] max-w-3xl w-full shadow-2xl flex flex-col animate-in zoom-in-95 duration-400 overflow-hidden border border-gray-50 max-h-[85vh]"
+            onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-presencas-titulo"
+          >
+            <div className="flex items-center justify-between p-8 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-yellow-100 rounded-2xl text-yellow-600">
+                  <CalendarCheck className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 id="modal-presencas-titulo" className="font-title text-xl font-black text-gray-900 uppercase tracking-tighter">
+                    Histórico de presenças — {selectedFilho.nome_completo}
+                  </h2>
+                  <p className="text-xs text-gray-400 font-medium">Lista completa de presenças e ausências do aluno</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAllPresencasModalOpen(false)}
+                className="p-2 rounded-xl hover:bg-gray-100 transition cursor-pointer"
+                aria-label="Fechar"
+              >
+                <X className="h-6 w-6 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        Data
+                      </th>
+                      {data?.filhos && data.filhos.length > 1 && (
+                        <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                          Filho
+                        </th>
+                      )}
+                      <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        Oficina
+                      </th>
+                      <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">
+                        Status
+                      </th>
+                      <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        Observação
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {[...(selectedFilho.historico_presenca || [])]
+                      .sort((a, b) => {
+                        const dateA = a.data ? new Date(a.data).getTime() : 0
+                        const dateB = b.data ? new Date(b.data).getTime() : 0
+                        return dateB - dateA
+                      })
+                      .map(p => (
+                        <tr key={p.id} className="group">
+                          <td className="py-4 text-xs font-bold text-gray-900">
+                            {formatarDataPortal(p.data)}
+                          </td>
+                          {data?.filhos && data.filhos.length > 1 && (
+                            <td className="py-4 text-xs font-semibold text-gray-600">
+                              {selectedFilho.nome_completo}
+                            </td>
+                          )}
+                          <td className="py-4 text-xs font-medium text-gray-600">{p.oficina}</td>
+                          <td className="py-4 text-center">
+                            <span
+                              className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase ${
+                                p.presente
+                                  ? 'bg-green-100 text-green-600'
+                                  : 'bg-red-100 text-red-600'
+                              }`}
+                            >
+                              {p.presente ? 'Presente' : 'Ausente'}
+                            </span>
+                          </td>
+                          <td className="py-4 text-xs text-gray-400 italic max-w-[200px] truncate">
+                            {p.observacoes || '—'}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="p-8 bg-gray-50/50 border-t border-gray-100 flex justify-end">
+              <button
+                onClick={() => setIsAllPresencasModalOpen(false)}
+                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-3 px-8 rounded-2xl shadow-md shadow-yellow-100 transition transform active:scale-[0.98] uppercase tracking-widest text-xs cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+function formatarDataPortal(dataStr: string): string {
+  if (!dataStr) return '—'
+  const date = new Date(dataStr + 'T12:00:00')
+  const formatted = date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+  return formatted.replace(/\sde\s/g, ' ')
 }
 
 function SectionTitle({ title, icon: Icon }: { title: string; icon: any }) {

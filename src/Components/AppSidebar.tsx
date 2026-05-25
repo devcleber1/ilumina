@@ -79,6 +79,7 @@ const menuItems: MenuItem[] = [
       { title: 'Editar Usuários', url: '/dashboard/editar-usuarios' },
       { title: 'Reset de Senha', url: '/dashboard/reset-senha' },
       { title: 'Novo Administrador', url: '/dashboard/cadastro-admin', restricted: true },
+      { title: 'Logs do Sistema', url: '/dashboard/logs' },
     ],
   },
 ]
