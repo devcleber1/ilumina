@@ -1194,29 +1194,32 @@ export default function PortalResponsavel() {
             aria-modal="true"
             aria-labelledby="modal-presencas-titulo"
           >
-            <div className="flex items-center justify-between p-8 border-b border-gray-100 bg-gray-50/50">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-yellow-100 rounded-2xl text-yellow-600">
+            <div className="flex items-start justify-between p-6 sm:p-8 border-b border-gray-100 bg-gray-50/50 gap-4">
+              <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+                <div className="p-3 bg-yellow-100 rounded-2xl text-yellow-600 shrink-0">
                   <CalendarCheck className="h-6 w-6" />
                 </div>
-                <div>
-                  <h2 id="modal-presencas-titulo" className="font-title text-xl font-black text-gray-900 uppercase tracking-tighter">
+                <div className="min-w-0 flex-1">
+                  <h2 id="modal-presencas-titulo" className="font-title text-sm sm:text-xl font-black text-gray-900 uppercase tracking-tight break-words">
                     Histórico de presenças — {selectedFilho.nome_completo}
                   </h2>
-                  <p className="text-xs text-gray-400 font-medium">Lista completa de presenças e ausências do aluno</p>
+                  <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                    Lista completa de presenças e ausências
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsAllPresencasModalOpen(false)}
-                className="p-2 rounded-xl hover:bg-gray-100 transition cursor-pointer"
+                className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 text-gray-400 hover:text-gray-900 transition cursor-pointer shrink-0"
                 aria-label="Fechar"
               >
-                <X className="h-6 w-6 text-gray-400" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
-              <div className="overflow-x-auto">
+            <div className="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1">
+              {/* Visualização Desktop (Tabela) */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b border-gray-100">
@@ -1276,9 +1279,61 @@ export default function PortalResponsavel() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Visualização Mobile (Cards) */}
+              <div className="md:hidden space-y-3">
+                {[...(selectedFilho.historico_presenca || [])]
+                  .sort((a, b) => {
+                    const dateA = a.data ? new Date(a.data).getTime() : 0
+                    const dateB = b.data ? new Date(b.data).getTime() : 0
+                    return dateB - dateA
+                  })
+                  .map(p => (
+                    <div
+                      key={p.id}
+                      className={`p-4 rounded-3xl border border-dashed flex items-center justify-between gap-3 ${
+                        p.presente
+                          ? 'bg-green-50/10 border-green-100/50'
+                          : 'bg-red-50/10 border-red-100/50'
+                      }`}
+                    >
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider shrink-0">
+                            {formatarDataPortal(p.data)}
+                          </span>
+                          {data?.filhos && data.filhos.length > 1 && (
+                            <span className="text-[9px] font-black bg-gray-150 text-gray-600 px-2 py-0.5 rounded-full truncate max-w-[120px]">
+                              {selectedFilho.nome_completo}
+                            </span>
+                          )}
+                        </div>
+                        <h5 className="text-xs font-black text-gray-900 leading-tight truncate">
+                          {p.oficina}
+                        </h5>
+                        {p.observacoes && (
+                          <p className="text-[10px] text-gray-400 italic mt-0.5 leading-snug truncate">
+                            "{p.observacoes}"
+                          </p>
+                        )}
+                      </div>
+                      <div className="shrink-0">
+                        <span
+                          className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider ${
+                            p.presente
+                              ? 'bg-green-100 text-green-600'
+                              : 'bg-red-100 text-red-600'
+                          }`}
+                        >
+                          {p.presente ? 'Presente' : 'Ausente'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
 
-            <div className="p-8 bg-gray-50/50 border-t border-gray-100 flex justify-end">
+            <div className="p-6 sm:p-8 bg-gray-50/50 border-t border-gray-100 flex justify-end">
               <button
                 onClick={() => setIsAllPresencasModalOpen(false)}
                 className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-3 px-8 rounded-2xl shadow-md shadow-yellow-100 transition transform active:scale-[0.98] uppercase tracking-widest text-xs cursor-pointer"
