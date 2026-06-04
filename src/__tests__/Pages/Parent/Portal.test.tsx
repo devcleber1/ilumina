@@ -1,21 +1,21 @@
 import { render, screen, act, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import PortalResponsavel from './Portal'
-import { useAuth } from '../../contexts/AuthContext'
-import { api } from '../../lib/api'
+import PortalResponsavel from '../../../Pages/Parent/Portal'
+import { useAuth } from '../../../contexts/AuthContext'
+import { api } from '../../../lib/api'
 import { MemoryRouter } from 'react-router-dom'
 import React from 'react'
 
-vi.mock('../../contexts/AuthContext', () => ({
+vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
 
-vi.mock('../../contexts/AlertContext', () => ({
+vi.mock('../../../contexts/AlertContext', () => ({
   useAlert: () => ({ showAlert: vi.fn() }),
   AlertProvider: ({ children }: any) => <div data-testid="alert-provider">{children}</div>,
 }))
 
-vi.mock('../../lib/api', () => ({
+vi.mock('../../../lib/api', () => ({
   api: {
     get: vi.fn(),
     put: vi.fn(),
@@ -26,14 +26,14 @@ vi.mock('../../lib/api', () => ({
   },
 }))
 
-vi.mock('../../lib/socket', () => ({
+vi.mock('../../../lib/socket', () => ({
   getSocket: () => ({
     on: vi.fn(),
     off: vi.fn(),
   }),
 }))
 
-vi.mock('../../lib/storageService', () => ({
+vi.mock('../../../lib/storageService', () => ({
   storageService: {
     getItem: vi.fn().mockReturnValue('dummy-token'),
     setItem: vi.fn(),
@@ -49,7 +49,7 @@ vi.mock('recharts', () => ({
   Cell: () => <div data-testid="cell" />,
 }))
 
-vi.mock('../../assets/logo.png', () => ({
+vi.mock('../../../assets/logo.png', () => ({
   default: 'logo-mock-url',
 }))
 

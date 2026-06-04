@@ -13,7 +13,7 @@ O portal é construído seguindo os padrões mais exigentes de performance, tipa
 - **Estilização:** [Tailwind CSS v4](https://tailwindcss.com/) (Design Utilitário moderno e responsivo)
 - **Roteamento:** [React Router Dom v7](https://reactrouter.com/) (Gestão de rotas e níveis de acesso)
 - **Ícones & Componentes:** [Lucide React](https://lucide.dev/) + [Shadcn/UI](https://ui.shadcn.com/) / [Radix UI](https://www.radix-ui.com/)
-- **Testes:** [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) (55 testes unitários e de integração ativos)
+- **Testes:** [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) (76 testes unitários e de integração ativos)
 
 ---
 
@@ -83,7 +83,7 @@ yarn dev
 
 ### 4. Rodar a Suíte Completa de Testes
 
-Para executar a suíte com os 55 testes validados:
+Para executar a suíte com os 76 testes validados:
 
 ```bash
 npx yarn test --run
@@ -205,7 +205,7 @@ O portal possui controle estrito de acessos baseado no tipo de usuário logado (
 O projeto conta com testes unitários e de integração robustos implementados com **Vitest** e **React Testing Library**. Para rodar a verificação de sanidade do sistema:
 
 ```bash
-# Rodar todos os testes (34 arquivos com 55 testes verdes)
+# Rodar todos os testes (38 arquivos com 76 testes verdes)
 npx yarn test --run
 ```
 

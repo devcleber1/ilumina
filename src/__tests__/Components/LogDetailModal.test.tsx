@@ -1,9 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { LogDetailModal, type ILog } from './LogDetailModal'
+import { LogDetailModal, type ILog } from '../../Components/LogDetailModal'
 
 // Mock da API Axios para evitar requisições reais de rede durante testes de componentes
-vi.mock('../lib/api', () => ({
+vi.mock('../../lib/api', () => ({
   api: {
     get: vi.fn().mockResolvedValue({
       data: {
@@ -32,7 +32,7 @@ const mockLog: ILog = {
 }
 
 describe('LogDetailModal Component', () => {
-  it('deve renderizar os detalhes fundamentais do log quando aberto', () => {
+  it('deve renderizar os detalhes fundamentais do log quando aberto', async () => {
     render(
       <LogDetailModal
         log={mockLog}
@@ -41,6 +41,9 @@ describe('LogDetailModal Component', () => {
         onFilterByUser={() => {}}
       />
     )
+
+    // Aguarda o carregamento das estatísticas do usuário para evitar warning de act
+    expect(await screen.findByText(/Visto por último:/)).toBeInTheDocument()
 
     // Verifica se os dados principais estão na tela
     expect(screen.getByText('Cleber Junior')).toBeInTheDocument()
@@ -77,6 +80,9 @@ describe('LogDetailModal Component', () => {
       />
     )
 
+    // Aguarda o carregamento das estatísticas do usuário para evitar warning de act
+    expect(await screen.findByText(/Visto por último:/)).toBeInTheDocument()
+
     // Informações dentro do colapsável não devem estar visíveis de início
     expect(screen.queryByText('192.168.0.xxx')).not.toBeInTheDocument()
     expect(screen.queryByText('"targetUserId": 100')).not.toBeInTheDocument()
@@ -90,7 +96,7 @@ describe('LogDetailModal Component', () => {
     expect(screen.getByText(/"targetUserId": 100/)).toBeInTheDocument()
   })
 
-  it('deve chamar onClose ao clicar no botão de fechar', () => {
+  it('deve chamar onClose ao clicar no botão de fechar', async () => {
     const onCloseMock = vi.fn()
     render(
       <LogDetailModal
@@ -101,13 +107,16 @@ describe('LogDetailModal Component', () => {
       />
     )
 
+    // Aguarda o carregamento das estatísticas do usuário para evitar warning de act
+    expect(await screen.findByText(/Visto por último:/)).toBeInTheDocument()
+
     const closeBtn = screen.getByLabelText('Fechar modal')
     fireEvent.click(closeBtn)
 
     expect(onCloseMock).toHaveBeenCalledTimes(1)
   })
 
-  it('deve chamar onFilterByUser com o ID correto e fechar o modal', () => {
+  it('deve chamar onFilterByUser com o ID correto e fechar o modal', async () => {
     const onFilterByUserMock = vi.fn()
     const onCloseMock = vi.fn()
     
@@ -119,6 +128,9 @@ describe('LogDetailModal Component', () => {
         onFilterByUser={onFilterByUserMock}
       />
     )
+
+    // Aguarda o carregamento das estatísticas do usuário para evitar warning de act
+    expect(await screen.findByText(/Visto por último:/)).toBeInTheDocument()
 
     const filterBtn = screen.getByRole('button', { name: /ver todos os logs deste usuário/i })
     fireEvent.click(filterBtn)

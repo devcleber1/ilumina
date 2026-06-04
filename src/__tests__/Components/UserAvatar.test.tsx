@@ -1,9 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { UserAvatar, getInitials, getImageUrl } from './UserAvatar'
+import { UserAvatar, getInitials, getImageUrl } from '../../Components/UserAvatar'
 
 // Mock da API Axios para baseURL
-vi.mock('../lib/api', () => ({
+vi.mock('../../lib/api', () => ({
   api: {
     defaults: {
       baseURL: 'http://localhost:3001/api'

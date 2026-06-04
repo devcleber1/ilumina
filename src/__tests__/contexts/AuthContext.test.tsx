@@ -12,6 +12,7 @@ vi.mock('../../lib/api', () => {
       get: vi.fn(),
       post: vi.fn(),
     },
+    setLoggingOut: vi.fn(),
   }
 })
 
