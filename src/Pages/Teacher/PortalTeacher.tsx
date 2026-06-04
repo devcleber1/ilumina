@@ -29,6 +29,7 @@ import { api } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAlert } from '../../contexts/AlertContext'
 import logo from '../../assets/logo.png'
+import { UserAvatar } from '../../Components/UserAvatar'
 import { useNavigate } from 'react-router-dom'
 import * as Yup from 'yup'
 import { getSocket } from '../../lib/socket'
@@ -584,19 +585,11 @@ export default function PortalTeacher() {
             </button>
 
             {/* FOTO DO PROFESSOR */}
-            <div className="h-11 w-11 rounded-[16px] overflow-hidden border-2 border-yellow-400 shadow-md">
-              {data?.professor.foto_perfil_url ? (
-                <img
-                  src={`http://localhost:3001${data.professor.foto_perfil_url}`}
-                  className="h-full w-full object-cover"
-                  alt={data.professor.nome_completo}
-                />
-              ) : (
-                <div className="h-full w-full bg-yellow-100 flex items-center justify-center text-yellow-700 font-bold uppercase">
-                  {data?.professor.nome_completo.substring(0, 2)}
-                </div>
-              )}
-            </div>
+            <UserAvatar
+              src={data?.professor.foto_perfil_url}
+              name={data?.professor.nome_completo}
+              className="h-11 w-11 rounded-[16px] border-2 border-yellow-400"
+            />
           </div>
         </div>
       </header>
@@ -610,19 +603,11 @@ export default function PortalTeacher() {
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
               <div className="relative group">
-                <div className="h-24 w-24 rounded-[28px] overflow-hidden border-4 border-yellow-400 shadow-xl">
-                  {data?.professor.foto_perfil_url ? (
-                    <img
-                      src={`http://localhost:3001${data.professor.foto_perfil_url}`}
-                      className="h-full w-full object-cover"
-                      alt={data.professor.nome_completo}
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-gray-700 flex items-center justify-center text-gray-400">
-                      <User className="h-10 w-10" />
-                    </div>
-                  )}
-                </div>
+                <UserAvatar
+                  src={data?.professor.foto_perfil_url}
+                  name={data?.professor.nome_completo}
+                  className="h-24 w-24 rounded-[28px] border-4 border-yellow-400 shadow-xl"
+                />
                 <label className="absolute -bottom-2 -right-2 p-2 bg-yellow-400 rounded-xl shadow-lg cursor-pointer hover:scale-115 transition border-2 border-gray-900">
                   <Camera className="h-4 w-4 text-gray-900" />
                   <input
@@ -782,19 +767,11 @@ export default function PortalTeacher() {
 
                     <div className="flex items-center gap-4">
                       {/* FOTO DO ALUNO */}
-                      <div className="h-16 w-16 rounded-[20px] overflow-hidden border-2 border-yellow-400 shadow-md">
-                        {aluno.foto_perfil_url ? (
-                          <img
-                            src={`http://localhost:3001${aluno.foto_perfil_url}`}
-                            className="h-full w-full object-cover"
-                            alt={aluno.nome_completo}
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-yellow-50 flex items-center justify-center text-yellow-600 font-bold uppercase text-lg">
-                            {aluno.nome_completo.substring(0, 2)}
-                          </div>
-                        )}
-                      </div>
+                      <UserAvatar
+                        src={aluno.foto_perfil_url}
+                        name={aluno.nome_completo}
+                        className="h-16 w-16 rounded-[20px] border-2 border-yellow-400 shadow-md"
+                      />
 
                       <div>
                         <h4 className="font-bold text-gray-900 leading-snug group-hover:text-yellow-600 transition">
@@ -1458,19 +1435,11 @@ export default function PortalTeacher() {
               <div className="p-8 space-y-6 overflow-y-auto max-h-[60vh] custom-scrollbar flex-1">
                 <div className="flex flex-col items-center gap-4">
                   <div className="relative group">
-                    <div className="h-28 w-28 rounded-[36px] overflow-hidden border-4 border-yellow-400 shadow-xl">
-                      {data?.professor.foto_perfil_url ? (
-                        <img
-                          src={`http://localhost:3001${data.professor.foto_perfil_url}`}
-                          className="h-full w-full object-cover"
-                          alt="Foto"
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-gray-50 flex items-center justify-center text-gray-300">
-                          <User className="h-10 w-10" />
-                        </div>
-                      )}
-                    </div>
+                    <UserAvatar
+                      src={data?.professor.foto_perfil_url}
+                      name={data?.professor.nome_completo}
+                      className="h-28 w-28 rounded-[36px] border-4 border-yellow-400 shadow-xl"
+                    />
                     <label className="absolute -bottom-2 -right-2 p-2 bg-yellow-400 rounded-2xl shadow-lg cursor-pointer hover:scale-110 transition border-4 border-white">
                       <Camera className="h-5 w-5 text-gray-900" />
                       <input

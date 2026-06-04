@@ -210,7 +210,7 @@ describe('PortalResponsavel', () => {
     expect(screen.getAllByText('22 mai. 2026').length).toBeGreaterThan(0)
     expect(screen.getAllByText('20 mai. 2026').length).toBeGreaterThan(0)
     expect(screen.getAllByText('19 mai. 2026').length).toBeGreaterThan(0)
-    expect(screen.getByText('18 mai. 2026')).toBeInTheDocument()
+    expect(screen.getAllByText('18 mai. 2026').length).toBeGreaterThan(0)
   })
 
   it('it should display child name in table headers and rows when multiple children are linked', async () => {

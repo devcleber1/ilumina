@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
+import { UserAvatar } from '../../../Components/UserAvatar'
 import {
   ChevronLeft,
   Calendar,
@@ -675,19 +676,11 @@ function PresencaContent() {
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200">
-                        {student.foto_perfil_url ? (
-                          <img
-                            src={`http://localhost:3001${student.foto_perfil_url}`}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 font-bold text-lg">
-                            {student.nome_completo.charAt(0)}
-                          </div>
-                        )}
-                      </div>
+                      <UserAvatar
+                        src={student.foto_perfil_url}
+                        name={student.nome_completo}
+                        className="h-12 w-12 rounded-2xl border border-gray-200"
+                      />
                       <div>
                         <h4 className="font-title font-bold text-gray-900">
                           {student.nome_completo}
@@ -895,19 +888,11 @@ function PresencaContent() {
                     )}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200">
-                          {student.foto_perfil_url ? (
-                            <img
-                              src={`http://localhost:3001${student.foto_perfil_url}`}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 font-bold text-lg">
-                              {student.nome_completo.charAt(0)}
-                            </div>
-                          )}
-                        </div>
+                        <UserAvatar
+                          src={student.foto_perfil_url}
+                          name={student.nome_completo}
+                          className="h-12 w-12 rounded-2xl border border-gray-200"
+                        />
                         <div>
                           <h4 className="font-title font-bold text-gray-900">
                             {student.nome_completo}

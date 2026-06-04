@@ -26,6 +26,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useAlert } from '../../contexts/AlertContext'
 import logo from '../../assets/logo.png'
 import { useNavigate } from 'react-router-dom'
+import { UserAvatar } from '../../Components/UserAvatar'
 import * as Yup from 'yup'
 import { getSocket } from '../../lib/socket'
 import { storageService } from '../../lib/storageService'
@@ -397,16 +398,11 @@ export default function PortalResponsavel() {
                 onClick={() => setIsProfileModalOpen(true)}
                 className="flex items-center gap-2 p-1.5 pr-3 rounded-full hover:bg-gray-50 transition cursor-pointer"
               >
-                <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center overflow-hidden border border-yellow-200">
-                  {data?.pai.foto_perfil_url ? (
-                    <img
-                      src={`http://localhost:3001${data.pai.foto_perfil_url}`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <User className="h-4 w-4 text-yellow-600" />
-                  )}
-                </div>
+                <UserAvatar
+                  src={data?.pai.foto_perfil_url}
+                  name={data?.pai.nome}
+                  className="h-8 w-8 rounded-full border border-yellow-200"
+                />
                 <span className="text-xs font-bold text-gray-700 hidden sm:inline">
                   {data?.pai.nome.split(' ')[0]}
                 </span>
@@ -518,18 +514,11 @@ export default function PortalResponsavel() {
                   style={{ animationDelay: `${idx * 100}ms` }}
                 >
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="h-16 w-16 rounded-3xl overflow-hidden bg-gray-50 border-2 border-yellow-400 shadow-lg">
-                      {filho.foto_perfil_url ? (
-                        <img
-                          src={`http://localhost:3001${filho.foto_perfil_url}`}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center text-yellow-600 font-black text-xl bg-yellow-50">
-                          {filho.nome_completo.charAt(0)}
-                        </div>
-                      )}
-                    </div>
+                    <UserAvatar
+                      src={filho.foto_perfil_url}
+                      name={filho.nome_completo}
+                      className="h-16 w-16 rounded-3xl border-2 border-yellow-400 shadow-lg"
+                    />
                     <div>
                       <h4 className="font-title text-base font-black text-gray-900 leading-tight">
                         {filho.nome_completo}
@@ -617,18 +606,11 @@ export default function PortalResponsavel() {
           <div className="bg-white w-full max-w-4xl max-h-[95vh] sm:rounded-[48px] overflow-hidden flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-500">
             <div className="p-6 sm:p-10 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
               <div className="flex items-center gap-5">
-                <div className="h-16 w-16 rounded-3xl overflow-hidden border-4 border-white shadow-xl">
-                  {selectedFilho.foto_perfil_url ? (
-                    <img
-                      src={`http://localhost:3001${selectedFilho.foto_perfil_url}`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center bg-yellow-400 text-white text-2xl font-black">
-                      {selectedFilho.nome_completo.charAt(0)}
-                    </div>
-                  )}
-                </div>
+                <UserAvatar
+                  src={selectedFilho.foto_perfil_url}
+                  name={selectedFilho.nome_completo}
+                  className="h-16 w-16 rounded-3xl border-4 border-white shadow-xl"
+                />
                 <div>
                   <h3 className="font-title text-xl sm:text-2xl font-black text-gray-900 uppercase tracking-tighter">
                     {selectedFilho.nome_completo}
@@ -959,18 +941,11 @@ export default function PortalResponsavel() {
             <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh] custom-scrollbar">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative group">
-                  <div className="h-28 w-28 rounded-[36px] overflow-hidden border-4 border-yellow-400 shadow-xl">
-                    {data?.pai.foto_perfil_url ? (
-                      <img
-                        src={`http://localhost:3001${data.pai.foto_perfil_url}`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-full w-full bg-gray-50 flex items-center justify-center text-gray-300">
-                        <User className="h-10 w-10" />
-                      </div>
-                    )}
-                  </div>
+                  <UserAvatar
+                    src={data?.pai.foto_perfil_url}
+                    name={data?.pai.nome}
+                    className="h-28 w-28 rounded-[36px] border-4 border-yellow-400 shadow-xl"
+                  />
                   <label className="absolute -bottom-2 -right-2 p-2 bg-yellow-400 rounded-2xl shadow-lg cursor-pointer hover:scale-110 transition border-4 border-white">
                     <Camera className="h-5 w-5 text-gray-900" />
                     <input 

@@ -12,13 +12,15 @@ import {
   User as UserIcon,
   X,
   FileText,
-  Trash2
+  Trash2,
 } from 'lucide-react'
 import { api } from '../../../lib/api'
+import logoImg from '../../../assets/logo.png'
 import { useAlert } from '../../../contexts/AlertContext'
 import { useAuth } from '../../../contexts/AuthContext'
 import { formatCPF, formatCNH, formatPhone } from '../../../utils/formatters'
 import * as yup from 'yup'
+import { UserAvatar } from '../../../Components/UserAvatar'
 
 const formatDateBr = (dateStr?: string) => {
   if (!dateStr) return ''
@@ -89,9 +91,11 @@ function EditUsersContent() {
     try {
       setIsDeleting(true)
       let endpoint = ''
-      if (userToDelete.role === 'admin' || userToDelete.role === 'superadmin') endpoint = `/admins/delete/${userToDelete.id}`
+      if (userToDelete.role === 'admin' || userToDelete.role === 'superadmin')
+        endpoint = `/admins/delete/${userToDelete.id}`
       else if (userToDelete.role === 'aluno') endpoint = `/alunos/delete/${userToDelete.id}`
-      else if (userToDelete.role === 'professor') endpoint = `/professores/delete/${userToDelete.id}`
+      else if (userToDelete.role === 'professor')
+        endpoint = `/professores/delete/${userToDelete.id}`
       else if (userToDelete.role === 'pai') endpoint = `/pais/delete/${userToDelete.id}`
 
       await api.delete(endpoint)
@@ -115,7 +119,7 @@ function EditUsersContent() {
         api.get('/admins/find').catch(() => ({ data: [] })),
         api.get('/alunos/find').catch(() => ({ data: [] })),
         api.get('/professores/find').catch(() => ({ data: [] })),
-        api.get('/pais/find').catch(() => ({ data: [] }))
+        api.get('/pais/find').catch(() => ({ data: [] })),
       ])
 
       const admins: BaseUser[] = (resAdmins.data || []).map((u: any) => ({
@@ -124,7 +128,7 @@ function EditUsersContent() {
         name: u.nome_completo || 'Admin Sem Nome',
         email: u.email,
         photo: u.foto_perfil_url,
-        raw: u
+        raw: u,
       }))
 
       const alunos: BaseUser[] = (resAlunos.data || []).map((u: any) => ({
@@ -139,7 +143,7 @@ function EditUsersContent() {
         documentBackPhoto: u.documento_verso_url,
         birthDate: formatDateBr(u.data_nascimento),
         numero_matricula: u.numero_matricula,
-        raw: u
+        raw: u,
       }))
 
       const profs: BaseUser[] = (resProfs.data || []).map((u: any) => ({
@@ -154,7 +158,7 @@ function EditUsersContent() {
         documentBackPhoto: u.documento_verso_url,
         birthDate: formatDateBr(u.data_nascimento),
         formacao: u.formacao,
-        raw: u
+        raw: u,
       }))
 
       const pais: BaseUser[] = (resPais.data || []).map((u: any) => ({
@@ -171,7 +175,7 @@ function EditUsersContent() {
         birthDate: formatDateBr(u.data_nascimento),
         profissao: u.profissao,
         recebe_beneficio_social: u.recebe_beneficio_social,
-        raw: u
+        raw: u,
       }))
 
       setUsers([...admins, ...alunos, ...profs, ...pais])
@@ -182,32 +186,37 @@ function EditUsersContent() {
     }
   }
 
-
   const getValidationSchema = (role: UserRole, documentType: string) => {
     return yup.object().shape({
       name: yup.string().required('Nome completo é obrigatório'),
       email: yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
-      ...(role !== 'admin' && role !== 'superadmin' && {
-        phone: yup.string().required('Telefone é obrigatório').min(14, 'Telefone incompleto'),
-        birthDate: yup.string().required('Data de nascimento é obrigatória').length(10, 'Data incompleta'),
-        document: yup.string()
-          .required('Documento é obrigatório')
-          .test('doc-valid', 'Documento inválido', (val) => {
-             if (!val) return false
-             if (role === 'pai' && documentType === 'CNH') return val.replace(/\D/g, '').length === 11
-             return val.replace(/\D/g, '').length === 11 
-          })
-      }),
+      ...(role !== 'admin' &&
+        role !== 'superadmin' && {
+          phone: yup.string().required('Telefone é obrigatório').min(14, 'Telefone incompleto'),
+          birthDate: yup
+            .string()
+            .required('Data de nascimento é obrigatória')
+            .length(10, 'Data incompleta'),
+          document: yup
+            .string()
+            .required('Documento é obrigatório')
+            .test('doc-valid', 'Documento inválido', val => {
+              if (!val) return false
+              if (role === 'pai' && documentType === 'CNH')
+                return val.replace(/\D/g, '').length === 11
+              return val.replace(/\D/g, '').length === 11
+            }),
+        }),
       ...(role === 'professor' && {
-        formacao: yup.string().required('Formação é obrigatória')
+        formacao: yup.string().required('Formação é obrigatória'),
       }),
       ...(role === 'pai' && {
         profissao: yup.string().required('Profissão é obrigatória'),
-        recebe_beneficio_social: yup.boolean().required('Informação sobre benefício é obrigatória')
+        recebe_beneficio_social: yup.boolean().required('Informação sobre benefício é obrigatória'),
       }),
       ...(role === 'aluno' && {
-        numero_matricula: yup.string().optional()
-      })
+        numero_matricula: yup.string().optional(),
+      }),
     })
   }
 
@@ -234,15 +243,22 @@ function EditUsersContent() {
         newErrors.documentPhoto = 'Documento frente é obrigatório'
         hasMediaErrors = true
       }
-      if (!editData.documentBackPhoto && !selectedUser.documentBackPhoto && !(editData as any).newDocBackFile) {
+      if (
+        !editData.documentBackPhoto &&
+        !selectedUser.documentBackPhoto &&
+        !(editData as any).newDocBackFile
+      ) {
         newErrors.documentBackPhoto = 'Documento verso é obrigatório'
         hasMediaErrors = true
       }
     }
 
     try {
-      const schema = getValidationSchema(selectedUser.role, editData.documentType || selectedUser.documentType || 'CPF')
-      
+      const schema = getValidationSchema(
+        selectedUser.role,
+        editData.documentType || selectedUser.documentType || 'CPF'
+      )
+
       // Sanitizar dados para validação
       const dataToValidate = {
         name: editData.name,
@@ -253,13 +269,13 @@ function EditUsersContent() {
         formacao: editData.formacao,
         profissao: editData.profissao,
         recebe_beneficio_social: editData.recebe_beneficio_social,
-        numero_matricula: editData.numero_matricula
+        numero_matricula: editData.numero_matricula,
       }
-      
+
       await schema.validate(dataToValidate, { abortEarly: false })
     } catch (err) {
       if (err instanceof yup.ValidationError) {
-        err.inner.forEach((e) => {
+        err.inner.forEach(e => {
           if (e.path) newErrors[e.path] = e.message
         })
       }
@@ -285,7 +301,7 @@ function EditUsersContent() {
       if ((editData as any).newPhotoFile) {
         formData.append('foto_perfil_url', (editData as any).newPhotoFile)
       }
-      
+
       if ((editData as any).newDocFile) {
         formData.append('documento_frente_url', (editData as any).newDocFile)
       }
@@ -306,7 +322,8 @@ function EditUsersContent() {
         formData.append('telefone', editData.phone || '')
         formData.append('data_nascimento', editData.birthDate || '')
         formData.append('status_aluno', 'ativo')
-        if (editData.numero_matricula) formData.append('numero_matricula', editData.numero_matricula)
+        if (editData.numero_matricula)
+          formData.append('numero_matricula', editData.numero_matricula)
       } else if (selectedUser.role === 'professor') {
         endpoint = `/professores/update/${selectedUser.id}`
         formData.append('nome_completo', editData.name || '')
@@ -330,19 +347,22 @@ function EditUsersContent() {
 
       await api.put(endpoint, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       })
 
       await fetchAllUsers()
-      
+
       setSelectedUser(null)
       setShowSaveModal(false)
       showAlert('success', 'Sucesso', 'Dados salvos com sucesso!')
     } catch (error: any) {
       console.error('Erro ao salvar dados:', error)
       const msg = error.response?.data?.message || 'Erro ao salvar dados do usuário.'
-      if (msg.toLowerCase().includes('cpf já cadastrado') || msg.toLowerCase().includes('documento já cadastrado')) {
+      if (
+        msg.toLowerCase().includes('cpf já cadastrado') ||
+        msg.toLowerCase().includes('documento já cadastrado')
+      ) {
         setErrors(prev => ({ ...prev, document: 'CPF já cadastrado' }))
         showAlert('destructive', 'Erro de Validação', 'CPF já cadastrado no sistema!')
       } else if (msg.toLowerCase().includes('e-mail já cadastrado')) {
@@ -378,21 +398,31 @@ function EditUsersContent() {
 
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case 'superadmin': return <Shield className="h-4 w-4 text-red-500" />
-      case 'admin': return <Shield className="h-4 w-4 text-purple-500" />
-      case 'aluno': return <GraduationCap className="h-4 w-4 text-blue-500" />
-      case 'professor': return <Briefcase className="h-4 w-4 text-yellow-500" />
-      case 'pai': return <UserIcon className="h-4 w-4 text-green-500" />
+      case 'superadmin':
+        return <Shield className="h-4 w-4 text-red-500" />
+      case 'admin':
+        return <Shield className="h-4 w-4 text-purple-500" />
+      case 'aluno':
+        return <GraduationCap className="h-4 w-4 text-blue-500" />
+      case 'professor':
+        return <Briefcase className="h-4 w-4 text-yellow-500" />
+      case 'pai':
+        return <UserIcon className="h-4 w-4 text-green-500" />
     }
   }
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
-      case 'superadmin': return 'Super Admin'
-      case 'admin': return 'Admin'
-      case 'aluno': return 'Aluno'
-      case 'professor': return 'Professor'
-      case 'pai': return 'Pai/Responsável'
+      case 'superadmin':
+        return 'Super Admin'
+      case 'admin':
+        return 'Admin'
+      case 'aluno':
+        return 'Aluno'
+      case 'professor':
+        return 'Professor'
+      case 'pai':
+        return 'Pai/Responsável'
     }
   }
 
@@ -402,7 +432,9 @@ function EditUsersContent() {
     >
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
         <div className="flex-1">
-          <h1 className="font-title text-xl uppercase font-extrabold text-gray-900">Gerenciar Usuários</h1>
+          <h1 className="font-title text-xl uppercase font-extrabold text-gray-900">
+            Gerenciar Usuários
+          </h1>
           <p className="font-body text-xs text-gray-400">
             Listagem e edição de alunos, professores, pais e administradores
           </p>
@@ -426,7 +458,7 @@ function EditUsersContent() {
             <select
               className="w-full sm:w-48 bg-gray-50 border-none outline-none text-sm text-gray-700 py-2 px-3 rounded-xl font-medium"
               value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value as any)}
+              onChange={e => setFilterRole(e.target.value as any)}
             >
               <option value="todos">Todos os Papéis</option>
               <option value="aluno">Alunos</option>
@@ -466,48 +498,44 @@ function EditUsersContent() {
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                     {canEdit(user) && (
                       <>
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user)
+                            setEditData({ ...user })
+                            setErrors({})
+                          }}
+                          className="p-2 rounded-xl hover:bg-yellow-50 text-yellow-600 transition cursor-pointer"
+                          title="Ver Perfil"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        {currentUser?.nivel_acesso === 'superadmin' && (
                           <button
                             onClick={() => {
-                              setSelectedUser(user)
-                              setEditData({ ...user })
-                              setErrors({})
+                              setUserToDelete(user)
+                              setShowDeleteModal(true)
                             }}
-                            className="p-2 rounded-xl hover:bg-yellow-50 text-yellow-600 transition cursor-pointer"
-                            title="Ver Perfil"
+                            className="p-2 rounded-xl hover:bg-red-50 text-red-600 transition cursor-pointer"
+                            title="Excluir Usuário"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
-                          {currentUser?.nivel_acesso === 'superadmin' && (
-                            <button
-                              onClick={() => {
-                                setUserToDelete(user)
-                                setShowDeleteModal(true)
-                              }}
-                              className="p-2 rounded-xl hover:bg-red-50 text-red-600 transition cursor-pointer"
-                              title="Excluir Usuário"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
+                        )}
                       </>
                     )}
                   </div>
                 </div>
 
                 <div className="flex flex-col items-center mb-4">
-                  {user.photo ? (
-                    <img src={getImageUrl(user.photo)} alt={user.name} className="h-16 w-16 rounded-full object-cover mb-3 shadow-sm" />
-                  ) : (
-                    <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                      <UserIcon className="h-8 w-8 text-gray-400" />
-                    </div>
-                  )}
+                  <UserAvatar
+                    src={user.photo}
+                    name={user.name}
+                    className="h-16 w-16 mb-3"
+                  />
                   <h3 className="font-title text-center text-sm font-bold text-gray-900 line-clamp-1">
                     {user.name}
                   </h3>
-                  <p className="text-xs text-gray-500 line-clamp-1">
-                    {user.email}
-                  </p>
+                  <p className="text-xs text-gray-500 line-clamp-1">{user.email}</p>
                 </div>
               </div>
             ))}
@@ -526,7 +554,9 @@ function EditUsersContent() {
                 </div>
                 <div>
                   <h2 className="font-title text-xl font-bold text-gray-900">Perfil do Usuário</h2>
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{getRoleLabel(selectedUser.role)}</p>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                    {getRoleLabel(selectedUser.role)}
+                  </p>
                 </div>
               </div>
               <button
@@ -540,25 +570,29 @@ function EditUsersContent() {
             <div className="p-6">
               <div className="flex flex-col sm:flex-row gap-8 items-start mb-8">
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`relative group rounded-3xl overflow-hidden cursor-pointer ${errors.photo ? 'ring-2 ring-red-500' : ''}`}>
-                    {editData.photo || selectedUser.photo ? (
-                      <img src={getImageUrl(editData.photo || selectedUser.photo)} alt="Perfil" className="h-32 w-32 object-cover shadow-sm transition group-hover:brightness-75" />
-                    ) : (
-                      <div className="h-32 w-32 bg-gray-100 flex items-center justify-center transition group-hover:brightness-95">
-                        <UserIcon className="h-12 w-12 text-gray-400" />
-                      </div>
-                    )}
+                  <div
+                    className={`relative group rounded-3xl overflow-hidden cursor-pointer ${errors.photo ? 'ring-2 ring-red-500' : ''}`}
+                  >
+                    <UserAvatar
+                      src={editData.photo || selectedUser.photo}
+                      name={editData.name || selectedUser.name}
+                      className="h-32 w-32 transition group-hover:brightness-75"
+                    />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/20">
                       <Edit className="h-6 w-6 text-white" />
                     </div>
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       accept="image/*"
-                      className="absolute inset-0 opacity-0 cursor-pointer" 
-                      onChange={(e) => {
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={e => {
                         const file = e.target.files?.[0]
                         if (file) {
-                          setEditData({ ...editData, newPhotoFile: file, photo: URL.createObjectURL(file) } as any)
+                          setEditData({
+                            ...editData,
+                            newPhotoFile: file,
+                            photo: URL.createObjectURL(file),
+                          } as any)
                           setErrors(prev => ({ ...prev, photo: '' }))
                         }
                       }}
@@ -566,35 +600,47 @@ function EditUsersContent() {
                   </div>
                   <span className="text-xs font-bold text-gray-400 uppercase">Foto de Perfil</span>
                 </div>
-                
+
                 <div className="flex-1 space-y-4 w-full">
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Nome Completo</label>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                      Nome Completo
+                    </label>
                     <input
                       type="text"
                       placeholder="Obrigatório"
                       className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
                       value={editData.name || ''}
-                      onChange={(e) => {
+                      onChange={e => {
                         setEditData({ ...editData, name: e.target.value })
                         setErrors(prev => ({ ...prev, name: '' }))
                       }}
                     />
-                    {errors.name && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.name}</span>}
+                    {errors.name && (
+                      <span className="text-xs text-red-500 font-medium mt-1 block">
+                        {errors.name}
+                      </span>
+                    )}
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">E-mail</label>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                      E-mail
+                    </label>
                     <input
                       type="email"
                       placeholder="Obrigatório"
                       className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
                       value={editData.email || ''}
-                      onChange={(e) => {
+                      onChange={e => {
                         setEditData({ ...editData, email: e.target.value })
                         setErrors(prev => ({ ...prev, email: '' }))
                       }}
                     />
-                    {errors.email && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.email}</span>}
+                    {errors.email && (
+                      <span className="text-xs text-red-500 font-medium mt-1 block">
+                        {errors.email}
+                      </span>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {selectedUser.role !== 'admin' && selectedUser.role !== 'superadmin' && (
@@ -607,7 +653,12 @@ function EditUsersContent() {
                             <select
                               className="bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border border-gray-200 outline-none focus:border-yellow-500 transition"
                               value={editData.documentType || 'CPF'}
-                              onChange={(e) => setEditData({ ...editData, documentType: e.target.value as 'CPF' | 'CNH' })}
+                              onChange={e =>
+                                setEditData({
+                                  ...editData,
+                                  documentType: e.target.value as 'CPF' | 'CNH',
+                                })
+                              }
                             >
                               <option value="CPF">CPF</option>
                               <option value="CNH">CNH</option>
@@ -619,48 +670,68 @@ function EditUsersContent() {
                               placeholder="Obrigatório"
                               className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.document ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
                               value={editData.document || ''}
-                              onChange={(e) => {
+                              onChange={e => {
                                 const val = e.target.value
-                                const isCNH = selectedUser.role === 'pai' && editData.documentType === 'CNH'
-                                setEditData({ ...editData, document: isCNH ? formatCNH(val) : formatCPF(val) })
+                                const isCNH =
+                                  selectedUser.role === 'pai' && editData.documentType === 'CNH'
+                                setEditData({
+                                  ...editData,
+                                  document: isCNH ? formatCNH(val) : formatCPF(val),
+                                })
                                 setErrors(prev => ({ ...prev, document: '' }))
                               }}
                             />
                           </div>
                         </div>
-                        {errors.document && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.document}</span>}
+                        {errors.document && (
+                          <span className="text-xs text-red-500 font-medium mt-1 block">
+                            {errors.document}
+                          </span>
+                        )}
                       </div>
                     )}
                     {selectedUser.role !== 'admin' && selectedUser.role !== 'superadmin' && (
                       <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Telefone</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                          Telefone
+                        </label>
                         <input
                           type="text"
                           placeholder="Obrigatório"
                           className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
                           value={editData.phone || ''}
-                          onChange={(e) => {
+                          onChange={e => {
                             setEditData({ ...editData, phone: formatPhone(e.target.value) })
                             setErrors(prev => ({ ...prev, phone: '' }))
                           }}
                         />
-                        {errors.phone && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.phone}</span>}
+                        {errors.phone && (
+                          <span className="text-xs text-red-500 font-medium mt-1 block">
+                            {errors.phone}
+                          </span>
+                        )}
                       </div>
                     )}
                     {selectedUser.role !== 'admin' && selectedUser.role !== 'superadmin' && (
                       <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Data de Nascimento</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                          Data de Nascimento
+                        </label>
                         <input
                           type="text"
                           placeholder="DD/MM/AAAA"
                           className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.birthDate ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
                           value={editData.birthDate || ''}
-                          onChange={(e) => {
+                          onChange={e => {
                             setEditData({ ...editData, birthDate: formatDateInput(e.target.value) })
                             setErrors(prev => ({ ...prev, birthDate: '' }))
                           }}
                         />
-                        {errors.birthDate && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.birthDate}</span>}
+                        {errors.birthDate && (
+                          <span className="text-xs text-red-500 font-medium mt-1 block">
+                            {errors.birthDate}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -668,62 +739,89 @@ function EditUsersContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {selectedUser.role === 'professor' && (
                       <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Formação</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                          Formação
+                        </label>
                         <input
                           type="text"
                           placeholder="Obrigatório"
                           className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.formacao ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
                           value={editData.formacao || ''}
-                          onChange={(e) => {
+                          onChange={e => {
                             setEditData({ ...editData, formacao: e.target.value })
                             setErrors(prev => ({ ...prev, formacao: '' }))
                           }}
                         />
-                        {errors.formacao && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.formacao}</span>}
+                        {errors.formacao && (
+                          <span className="text-xs text-red-500 font-medium mt-1 block">
+                            {errors.formacao}
+                          </span>
+                        )}
                       </div>
                     )}
                     {selectedUser.role === 'pai' && (
                       <>
                         <div>
-                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Profissão</label>
+                          <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                            Profissão
+                          </label>
                           <input
                             type="text"
                             placeholder="Obrigatório"
                             className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.profissao ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
                             value={editData.profissao || ''}
-                            onChange={(e) => {
+                            onChange={e => {
                               setEditData({ ...editData, profissao: e.target.value })
                               setErrors(prev => ({ ...prev, profissao: '' }))
                             }}
                           />
-                          {errors.profissao && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.profissao}</span>}
+                          {errors.profissao && (
+                            <span className="text-xs text-red-500 font-medium mt-1 block">
+                              {errors.profissao}
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-col justify-center pt-5">
-                           <label className="flex items-center gap-3 cursor-pointer group">
-                             <div className="relative">
-                               <input
-                                 type="checkbox"
-                                 className="sr-only"
-                                 checked={!!editData.recebe_beneficio_social}
-                                 onChange={(e) => setEditData({ ...editData, recebe_beneficio_social: e.target.checked })}
-                               />
-                               <div className={`block w-10 h-6 rounded-full transition ${editData.recebe_beneficio_social ? 'bg-yellow-400' : 'bg-gray-300'}`}></div>
-                               <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${editData.recebe_beneficio_social ? 'transform translate-x-4' : ''}`}></div>
-                             </div>
-                             <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Recebe Benefício Social</span>
-                           </label>
+                          <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={!!editData.recebe_beneficio_social}
+                                onChange={e =>
+                                  setEditData({
+                                    ...editData,
+                                    recebe_beneficio_social: e.target.checked,
+                                  })
+                                }
+                              />
+                              <div
+                                className={`block w-10 h-6 rounded-full transition ${editData.recebe_beneficio_social ? 'bg-yellow-400' : 'bg-gray-300'}`}
+                              ></div>
+                              <div
+                                className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${editData.recebe_beneficio_social ? 'transform translate-x-4' : ''}`}
+                              ></div>
+                            </div>
+                            <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                              Recebe Benefício Social
+                            </span>
+                          </label>
                         </div>
                       </>
                     )}
                     {selectedUser.role === 'aluno' && (
                       <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Número de Matrícula</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                          Número de Matrícula
+                        </label>
                         <input
                           type="text"
                           placeholder="Opcional"
                           className="w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border border-gray-200 outline-none focus:border-yellow-500 transition"
                           value={editData.numero_matricula || ''}
-                          onChange={(e) => setEditData({ ...editData, numero_matricula: e.target.value })}
+                          onChange={e =>
+                            setEditData({ ...editData, numero_matricula: e.target.value })
+                          }
                         />
                       </div>
                     )}
@@ -731,81 +829,111 @@ function EditUsersContent() {
                 </div>
               </div>
 
-
-                {selectedUser.role !== 'admin' && selectedUser.role !== 'superadmin' && (
-                  <div className="mt-6 border-t border-gray-100 pt-6">
-                    <h3 className="font-title text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-yellow-500" />
-                      Documentos Anexados
-                    </h3>
-                    <div className="flex flex-wrap gap-6">
-                      <div className="flex flex-col gap-2">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Frente</span>
-                        <div className={`relative inline-block rounded-3xl overflow-hidden border group cursor-pointer ${errors.documentPhoto ? 'border-red-500 ring-2 ring-red-500/50' : 'border-gray-200'}`}>
-                          {editData.documentPhoto || selectedUser.documentPhoto ? (
-                            <img 
-                              src={getImageUrl(editData.documentPhoto || selectedUser.documentPhoto)} 
-                              alt="Documento Frente" 
-                              className="h-32 w-48 object-cover bg-gray-50 transition group-hover:brightness-75"
-                            />
-                          ) : (
-                            <div className="h-32 w-48 bg-gray-50 flex items-center justify-center text-xs text-gray-400 font-bold uppercase transition group-hover:brightness-95">
-                              Nenhum documento
-                            </div>
-                          )}
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/10">
-                            <Edit className="h-8 w-8 text-white drop-shadow-md" />
-                          </div>
-                          <input 
-                            type="file" 
-                            accept="image/*"
-                            className="absolute inset-0 opacity-0 cursor-pointer" 
-                            onChange={(e) => {
-                              const file = e.target.files?.[0]
-                              if (file) {
-                                setEditData({ ...editData, newDocFile: file, documentPhoto: URL.createObjectURL(file) } as any)
-                                setErrors(prev => ({ ...prev, documentPhoto: '' }))
-                              }
+              {selectedUser.role !== 'admin' && selectedUser.role !== 'superadmin' && (
+                <div className="mt-6 border-t border-gray-100 pt-6">
+                  <h3 className="font-title text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-yellow-500" />
+                    Documentos Anexados
+                  </h3>
+                  <div className="flex flex-wrap gap-6">
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                        Frente
+                      </span>
+                      <div
+                        className={`relative inline-block rounded-3xl overflow-hidden border group cursor-pointer ${errors.documentPhoto ? 'border-red-500 ring-2 ring-red-500/50' : 'border-gray-200'}`}
+                      >
+                        {editData.documentPhoto || selectedUser.documentPhoto ? (
+                          <img
+                            src={getImageUrl(editData.documentPhoto || selectedUser.documentPhoto)}
+                            alt="Documento Frente"
+                            onError={(e: any) => {
+                              console.warn(
+                                'Erro ao carregar documento frente:',
+                                e.currentTarget.src
+                              )
+                              e.currentTarget.onerror = null
+                              e.currentTarget.src = logoImg
                             }}
+                            className="h-32 w-48 object-cover bg-gray-50 transition group-hover:brightness-75"
                           />
+                        ) : (
+                          <div className="h-32 w-48 bg-gray-50 flex items-center justify-center text-xs text-gray-400 font-bold uppercase transition group-hover:brightness-95">
+                            Nenhum documento
+                          </div>
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/10">
+                          <Edit className="h-8 w-8 text-white drop-shadow-md" />
                         </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={e => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              setEditData({
+                                ...editData,
+                                newDocFile: file,
+                                documentPhoto: URL.createObjectURL(file),
+                              } as any)
+                              setErrors(prev => ({ ...prev, documentPhoto: '' }))
+                            }
+                          }}
+                        />
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Verso</span>
-                        <div className={`relative inline-block rounded-3xl overflow-hidden border group cursor-pointer ${errors.documentBackPhoto ? 'border-red-500 ring-2 ring-red-500/50' : 'border-gray-200'}`}>
-                          {editData.documentBackPhoto || selectedUser.documentBackPhoto ? (
-                            <img 
-                              src={getImageUrl(editData.documentBackPhoto || selectedUser.documentBackPhoto)} 
-                              alt="Documento Verso" 
-                              className="h-32 w-48 object-cover bg-gray-50 transition group-hover:brightness-75"
-                            />
-                          ) : (
-                            <div className="h-32 w-48 bg-gray-50 flex items-center justify-center text-xs text-gray-400 font-bold uppercase transition group-hover:brightness-95">
-                              Nenhum documento
-                            </div>
-                          )}
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/10">
-                            <Edit className="h-8 w-8 text-white drop-shadow-md" />
-                          </div>
-                          <input 
-                            type="file" 
-                            accept="image/*"
-                            className="absolute inset-0 opacity-0 cursor-pointer" 
-                            onChange={(e) => {
-                              const file = e.target.files?.[0]
-                              if (file) {
-                                setEditData({ ...editData, newDocBackFile: file, documentBackPhoto: URL.createObjectURL(file) } as any)
-                                setErrors(prev => ({ ...prev, documentBackPhoto: '' }))
-                              }
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                        Verso
+                      </span>
+                      <div
+                        className={`relative inline-block rounded-3xl overflow-hidden border group cursor-pointer ${errors.documentBackPhoto ? 'border-red-500 ring-2 ring-red-500/50' : 'border-gray-200'}`}
+                      >
+                        {editData.documentBackPhoto || selectedUser.documentBackPhoto ? (
+                          <img
+                            src={getImageUrl(
+                              editData.documentBackPhoto || selectedUser.documentBackPhoto
+                            )}
+                            alt="Documento Verso"
+                            onError={(e: any) => {
+                              console.warn('Erro ao carregar documento verso:', e.currentTarget.src)
+                              e.currentTarget.onerror = null
+                              e.currentTarget.src = logoImg
                             }}
+                            className="h-32 w-48 object-cover bg-gray-50 transition group-hover:brightness-75"
                           />
+                        ) : (
+                          <div className="h-32 w-48 bg-gray-50 flex items-center justify-center text-xs text-gray-400 font-bold uppercase transition group-hover:brightness-95">
+                            Nenhum documento
+                          </div>
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/10">
+                          <Edit className="h-8 w-8 text-white drop-shadow-md" />
                         </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={e => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              setEditData({
+                                ...editData,
+                                newDocBackFile: file,
+                                documentBackPhoto: URL.createObjectURL(file),
+                              } as any)
+                              setErrors(prev => ({ ...prev, documentBackPhoto: '' }))
+                            }
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
             </div>
-            
+
             <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 rounded-b-3xl">
               <button
                 onClick={() => setSelectedUser(null)}
@@ -863,7 +991,8 @@ function EditUsersContent() {
             </div>
             <h3 className="font-title text-lg font-bold text-gray-900 mb-2">Excluir Usuário</h3>
             <p className="text-sm text-gray-500 mb-6">
-              Deseja realmente excluir <strong>{userToDelete?.name}</strong>? Esta ação não pode ser desfeita.
+              Deseja realmente excluir <strong>{userToDelete?.name}</strong>? Esta ação não pode ser
+              desfeita.
             </p>
             <div className="flex gap-3 w-full">
               <button

@@ -45,12 +45,11 @@ describe('LogDetailModal Component', () => {
     // Verifica se os dados principais estão na tela
     expect(screen.getByText('Cleber Junior')).toBeInTheDocument()
     
-    // Como "Admin" aparece no cargo e no módulo, usamos getAllByText e testamos a presença do primeiro
-    const adminElements = screen.getAllByText('Admin')
-    expect(adminElements.length).toBeGreaterThanOrEqual(1)
-    expect(adminElements[0]).toBeInTheDocument()
+    // Como os termos são exibidos em português, verificamos cargo e módulo traduzidos
+    expect(screen.getByText('Administrador')).toBeInTheDocument()
+    expect(screen.getByText('Administração')).toBeInTheDocument()
     
-    expect(screen.getByText('UPDATE_USER')).toBeInTheDocument()
+    expect(screen.getByText('Atualização de Usuário')).toBeInTheDocument()
     expect(screen.getByText('Cleber atualizou as configurações do usuário.')).toBeInTheDocument()
     expect(screen.getByText('Sucesso')).toBeInTheDocument()
   })

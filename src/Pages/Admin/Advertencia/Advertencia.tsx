@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
+import { UserAvatar } from '../../../Components/UserAvatar'
 import {
   ChevronLeft,
   Calendar,
@@ -414,19 +415,11 @@ function AdvertenciaContent() {
                         className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm flex items-center justify-between group transition-all hover:shadow-md"
                       >
                         <div className="flex items-center gap-6">
-                          <div className="h-16 w-16 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200 relative">
-                            {student.foto_perfil_url ? (
-                              <img
-                                src={`http://localhost:3001${student.foto_perfil_url}`}
-                                alt=""
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 font-black font-title text-2xl">
-                                {student.nome_completo.charAt(0)}
-                              </div>
-                            )}
-                          </div>
+                          <UserAvatar
+                            src={student.foto_perfil_url}
+                            name={student.nome_completo}
+                            className="h-16 w-16 rounded-2xl border border-gray-200"
+                          />
                           <div>
                             <h4 className="font-title text-sm font-bold text-gray-900 uppercase">
                               {student.nome_completo}
@@ -498,19 +491,11 @@ function AdvertenciaContent() {
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <div className="h-14 w-14 rounded-2xl bg-gray-50 overflow-hidden border border-gray-200 shadow-sm">
-                                {adv.aluno?.foto_perfil_url ? (
-                                  <img
-                                    src={`http://localhost:3001${adv.aluno.foto_perfil_url}`}
-                                    alt=""
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="h-full w-full flex items-center justify-center text-base font-black font-title bg-yellow-50 text-yellow-600 uppercase">
-                                    {adv.aluno?.nome_completo.charAt(0)}
-                                  </div>
-                                )}
-                              </div>
+                              <UserAvatar
+                                src={adv.aluno?.foto_perfil_url}
+                                name={adv.aluno?.nome_completo}
+                                className="h-14 w-14 rounded-2xl border border-gray-200"
+                              />
                               <div>
                                 <h4 className="text-sm font-bold font-title text-gray-900 uppercase leading-tight">
                                   {adv.aluno?.nome_completo}
@@ -608,19 +593,11 @@ function AdvertenciaContent() {
             </div>
             <div className="p-8 space-y-6">
               <div className="flex items-center gap-4 p-4 bg-red-50 rounded-2xl border border-red-100">
-                <div className="h-10 w-10 rounded-xl overflow-hidden bg-white border border-red-200 shrink-0">
-                  {deleteTarget.aluno?.foto_perfil_url ? (
-                    <img
-                      src={`http://localhost:3001${deleteTarget.aluno.foto_perfil_url}`}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center bg-red-100 text-red-600 font-black">
-                      {deleteTarget.aluno?.nome_completo.charAt(0)}
-                    </div>
-                  )}
-                </div>
+                <UserAvatar
+                  src={deleteTarget.aluno?.foto_perfil_url}
+                  name={deleteTarget.aluno?.nome_completo}
+                  className="h-10 w-10 rounded-xl border border-red-200"
+                />
                 <div>
                   <p className="text-[10px] font-black text-red-400 uppercase tracking-tighter">
                     Aluno
@@ -687,19 +664,11 @@ function AdvertenciaContent() {
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <div className="h-12 w-12 rounded-xl overflow-hidden bg-white border border-gray-200">
-                  {selectedStudent.foto_perfil_url ? (
-                    <img
-                      src={`http://localhost:3001${selectedStudent.foto_perfil_url}`}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 font-black text-xl">
-                      {selectedStudent.nome_completo.charAt(0)}
-                    </div>
-                  )}
-                </div>
+                <UserAvatar
+                  src={selectedStudent.foto_perfil_url}
+                  name={selectedStudent.nome_completo}
+                  className="h-12 w-12 rounded-xl border border-gray-200"
+                />
                 <div>
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">
                     ALUNO

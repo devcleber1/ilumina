@@ -20,6 +20,7 @@ import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'rechar
 import { api } from '../../../lib/api'
 import { NavLink } from 'react-router-dom'
 import { getSocket } from '../../../lib/socket'
+import { getImageUrl } from '../../../Components/UserAvatar'
 
 interface Stats {
   summary: {
@@ -250,7 +251,7 @@ function DashboardContent() {
                            <div className="flex items-center gap-2">
                               <div className="h-6 w-6 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
                                  {adv.aluno?.foto_perfil_url ? (
-                                   <img src={`http://localhost:3001${adv.aluno.foto_perfil_url}`} alt="" className="h-full w-full object-cover" />
+                                   <img src={getImageUrl(adv.aluno.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
                                  ) : (
                                    <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 text-[8px] font-black">{adv.aluno?.nome_completo?.charAt(0)}</div>
                                  )}
@@ -265,9 +266,9 @@ function DashboardContent() {
                            <div className="flex items-center gap-2">
                               <div className="h-5 w-5 rounded-full bg-gray-50 overflow-hidden shrink-0 border border-gray-100">
                                  {adv.professor_registrador?.foto_perfil_url ? (
-                                   <img src={`http://localhost:3001${adv.professor_registrador.foto_perfil_url}`} alt="" className="h-full w-full object-cover" />
+                                   <img src={getImageUrl(adv.professor_registrador.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
                                  ) : adv.admin_registrador?.foto_perfil_url ? (
-                                   <img src={`http://localhost:3001${adv.admin_registrador.foto_perfil_url}`} alt="" className="h-full w-full object-cover" />
+                                   <img src={getImageUrl(adv.admin_registrador.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
                                  ) : (
                                    <div className="h-full w-full flex items-center justify-center bg-gray-100 text-gray-400 text-[7px] font-bold">
                                       {(adv.professor_registrador?.nome_completo || adv.admin_registrador?.nome_completo || '?').charAt(0)}
@@ -308,7 +309,7 @@ function DashboardContent() {
                         {idx === 0 && <span className="absolute -top-1 -right-1 text-[10px]">👑</span>}
                         {aluno.foto_url ? (
                           <img 
-                            src={aluno.foto_url.startsWith('http') ? aluno.foto_url : `http://localhost:3001${aluno.foto_url}`} 
+                            src={getImageUrl(aluno.foto_url)} 
                             alt="" 
                             className="h-full w-full object-cover" 
                           />
@@ -415,7 +416,7 @@ function DashboardContent() {
                   <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
                      <div className="h-12 w-12 rounded-xl overflow-hidden bg-white border border-gray-200">
                         {selectedAdv.aluno?.foto_perfil_url ? (
-                          <img src={`http://localhost:3001${selectedAdv.aluno.foto_perfil_url}`} alt="" className="h-full w-full object-cover" />
+                          <img src={getImageUrl(selectedAdv.aluno.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center bg-red-50 text-red-600 font-black text-lg">
                              {selectedAdv.aluno?.nome_completo?.charAt(0)}
@@ -450,9 +451,9 @@ function DashboardContent() {
                   <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
                      <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
                         {selectedAdv.professor_registrador?.foto_perfil_url ? (
-                          <img src={`http://localhost:3001${selectedAdv.professor_registrador.foto_perfil_url}`} alt="" className="h-full w-full object-cover" />
+                          <img src={getImageUrl(selectedAdv.professor_registrador.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
                         ) : selectedAdv.admin_registrador?.foto_perfil_url ? (
-                          <img src={`http://localhost:3001${selectedAdv.admin_registrador.foto_perfil_url}`} alt="" className="h-full w-full object-cover" />
+                          <img src={getImageUrl(selectedAdv.admin_registrador.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center text-gray-400"><User className="h-5 w-5" /></div>
                         )}
