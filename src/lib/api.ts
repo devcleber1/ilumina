@@ -22,6 +22,11 @@ api.interceptors.request.use(config => {
 let isRefreshing = false
 let failedQueue: any[] = []
 
+export let isLoggingOut = false
+export const setLoggingOut = (value: boolean) => {
+  isLoggingOut = value
+}
+
 const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach(prom => {
     if (error) {
@@ -38,6 +43,14 @@ api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config
+
+    // Ignora erros pendentes de outras rotas se estivermos no meio do logout
+    if (isLoggingOut) {
+      if (originalRequest?.url?.includes('/auth/logout')) {
+        return Promise.reject(error)
+      }
+      return new Promise(() => {}) // pending infinito para suprimir o erro nos componentes
+    }
 
     // Disparar evento global de servidor indisponível
     if (error.code === 'ERR_NETWORK') {

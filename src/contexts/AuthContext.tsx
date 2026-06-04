@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import { api } from '../lib/api'
+import { api, setLoggingOut } from '../lib/api'
 import { useAlert } from './AlertContext'
 import { SessionTimeoutModal } from '../Components/SessionTimeoutModal'
 import { storageService } from '../lib/storageService'
@@ -158,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
+    setLoggingOut(true)
     try {
       await api.post('/auth/logout')
     } catch (err) {
@@ -171,7 +172,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setExpiresAt(null)
     setShowSessionModal(false)
     setIsModalDismissed(false)
-    showAlert('warning', 'Sessão encerrada', 'Você foi desconectado por segurança.')
+    showAlert('success', 'Sessão encerrada', 'Logout realizado com sucesso.')
+    
+    setTimeout(() => {
+      setLoggingOut(false)
+    }, 1000)
   }
 
   const renewSession = async () => {
