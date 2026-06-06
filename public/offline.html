@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffbb59" />
+    <meta name="theme-color" content="#FFD700" />
     <title>Ilumina Offline</title>
     <style>
       :root {
@@ -15,6 +15,7 @@
         margin: 0;
         min-height: 100vh;
         font-family:
+          Poppins,
           Inter,
           system-ui,
           -apple-system,
@@ -36,6 +37,18 @@
         border: 1px solid rgba(255, 255, 255, 0.12);
         box-shadow: 0 28px 120px rgba(0, 0, 0, 0.24);
         backdrop-filter: blur(20px);
+      }
+      .retry-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 1.5rem;
+        border-radius: 999px;
+        background: #ffd700;
+        color: #09030f;
+        text-decoration: none;
+        font-weight: 700;
+        margin-top: 1rem;
       }
       h1 {
         margin: 0 0 1rem;
@@ -83,7 +96,7 @@
         O aplicativo Ilumina continua disponível mesmo quando não há conexão. Verifique sua internet
         e tente novamente ou use o aplicativo instalado.
       </p>
-      <a href="/">Voltar ao início</a>
+      <a href="/" class="retry-button" onclick="location.reload()">Reload</a>
     </main>
   </body>
 </html>

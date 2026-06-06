@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { api } from '../lib/api'
 
 interface UserAvatarProps {
@@ -53,7 +53,7 @@ export const UserAvatar = ({ src, name = 'Usuário', className = 'h-10 w-10' }: 
 
   if (!cleanSrc || hasError) {
     return (
-      <div 
+      <div
         className={`rounded-full flex items-center justify-center font-bold text-xs shadow-sm select-none shrink-0 ${getBackgroundColor(name)} ${className}`}
         data-testid="avatar-fallback"
       >

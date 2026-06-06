@@ -7,12 +7,9 @@ import {
   Terminal,
   ChevronDown,
   ChevronUp,
-  User as UserIcon,
-  Shield,
-  Eye,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react'
 import { api } from '../lib/api'
 
@@ -58,14 +55,14 @@ function getAvatarBgColor(name: string): string {
     'bg-indigo-100 text-indigo-700 border-indigo-200',
     'bg-rose-100 text-rose-700 border-rose-200',
     'bg-amber-100 text-amber-700 border-amber-200',
-    'bg-cyan-100 text-cyan-700 border-cyan-200'
+    'bg-cyan-100 text-cyan-700 border-cyan-200',
   ]
   return colors[hash % colors.length]
 }
 
 export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDetailModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
-  
+
   // Seções colapsáveis e dados estendidos do usuário
   const [isColapsableOpen, setIsColapsableOpen] = useState(false)
   const [lastSeen, setLastSeen] = useState<string | null>(null)
@@ -106,7 +103,7 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
         const focusableElements = modalRef.current.querySelectorAll(
           'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]'
         )
-        
+
         const firstElement = focusableElements[0] as HTMLElement
         const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement
 
@@ -139,7 +136,7 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
     }, 100)
 
     window.addEventListener('keydown', handleKeyDown)
-    
+
     return () => {
       document.body.style.overflow = 'unset'
       window.removeEventListener('keydown', handleKeyDown)
@@ -201,7 +198,7 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
     ACCESS_DENIED: 'Acesso Negado',
     EXPORT_DATA: 'Exportação de Dados',
     SYSTEM_CRON: 'Tarefa do Sistema',
-    ERROR: 'Erro do Sistema'
+    ERROR: 'Erro do Sistema',
   }
 
   const getActionLabel = (action: string): string => {
@@ -221,7 +218,7 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
     Presenca: 'Presenças',
     Advertencia: 'Advertências',
     Logs: 'Auditoria',
-    Geral: 'Geral'
+    Geral: 'Geral',
   }
 
   const getModuleLabel = (mod: string): string => {
@@ -269,7 +266,7 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit'
+      second: '2-digit',
     })
   }
 
@@ -281,7 +278,7 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
@@ -324,24 +321,35 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
           <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-yellow-400 shadow-md flex items-center justify-center mb-3">
             {log.userAvatar ? (
               <img
-                src={log.userAvatar.startsWith('http') || log.userAvatar.startsWith('data:') ? log.userAvatar : `http://localhost:3001${log.userAvatar}`}
+                src={
+                  log.userAvatar.startsWith('http') || log.userAvatar.startsWith('data:')
+                    ? log.userAvatar
+                    : `http://localhost:3001${log.userAvatar}`
+                }
                 alt={log.userName}
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className={`h-full w-full flex items-center justify-center text-xl font-black border ${getAvatarBgColor(log.userName || 'Sistema')}`}>
+              <div
+                className={`h-full w-full flex items-center justify-center text-xl font-black border ${getAvatarBgColor(log.userName || 'Sistema')}`}
+              >
                 {getInitials(log.userName || 'Sistema')}
               </div>
             )}
           </div>
 
           {/* Nome e Cargo */}
-          <h2 id="modal-title" className="font-title text-lg font-black text-gray-900 leading-tight">
+          <h2
+            id="modal-title"
+            className="font-title text-lg font-black text-gray-900 leading-tight"
+          >
             {log.userName || 'Sistema / Automático'}
           </h2>
 
           <div className="flex items-center gap-2 mt-2">
-            <span className={`text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${getRoleBadgeClasses(log.userRole)}`}>
+            <span
+              className={`text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${getRoleBadgeClasses(log.userRole)}`}
+            >
               {getRoleLabel(log.userRole)}
             </span>
           </div>
@@ -364,12 +372,16 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
           {/* Seção Principal de Detalhes */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Status da Ação</span>
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+                Status da Ação
+              </span>
               {getStatusBadge(log.status)}
             </div>
 
             <div className="space-y-1">
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Módulo</span>
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+                Módulo
+              </span>
               <div className="px-3 py-2 bg-indigo-50/50 text-indigo-700 border border-indigo-100 rounded-xl font-bold uppercase tracking-wider inline-block">
                 {getModuleLabel(log.module)}
               </div>
@@ -377,14 +389,18 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
           </div>
 
           <div className="space-y-1">
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Ação Realizada</span>
+            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+              Ação Realizada
+            </span>
             <div className="px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 font-black">
               {getActionLabel(log.action)}
             </div>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Data e Hora Completa</span>
+            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+              Data e Hora Completa
+            </span>
             <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gray-400" />
               {formatFullDate(log.createdAt)}
@@ -392,7 +408,9 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
           </div>
 
           <div className="space-y-1">
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Descrição da Ação</span>
+            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+              Descrição da Ação
+            </span>
             <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl font-semibold text-gray-700 leading-relaxed">
               {log.description}
             </div>
@@ -409,14 +427,20 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
                 <Terminal className="h-4 w-4 text-yellow-500" />
                 Dados do Ambiente e Metadados
               </span>
-              {isColapsableOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {isColapsableOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </button>
 
             {isColapsableOpen && (
               <div className="p-4 space-y-4 border-t border-gray-150 animate-in slide-in-from-top-2 duration-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Endereço IP (Mascarado)</span>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+                      Endereço IP (Mascarado)
+                    </span>
                     <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 font-mono font-medium flex items-center gap-1.5">
                       <Globe className="h-3.5 w-3.5 text-gray-400" />
                       {maskIp(log.ip)}
@@ -424,15 +448,22 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Navegador</span>
-                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 font-mono font-medium truncate" title={log.userAgent}>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+                      Navegador
+                    </span>
+                    <div
+                      className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 font-mono font-medium truncate"
+                      title={log.userAgent}
+                    >
                       {log.userAgent}
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Metadados de Contexto</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+                    Metadados de Contexto
+                  </span>
                   {log.metadata && Object.keys(log.metadata).length > 0 ? (
                     <div className="p-4 bg-gray-950 text-emerald-400 rounded-2xl overflow-x-auto max-h-[150px] leading-relaxed shadow-inner font-mono text-[10px]">
                       <pre>{JSON.stringify(log.metadata, null, 2)}</pre>
@@ -461,7 +492,7 @@ export function LogDetailModal({ log, isOpen, onClose, onFilterByUser }: LogDeta
               Ver todos os logs deste usuário
             </button>
           ) : null}
-          
+
           <button
             onClick={onClose}
             className="px-6 py-3 border border-gray-200 hover:bg-gray-100 rounded-xl text-gray-600 font-bold transition cursor-pointer"

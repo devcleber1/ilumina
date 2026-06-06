@@ -14,6 +14,7 @@ O portal é construído seguindo os padrões mais exigentes de performance, tipa
 - **Roteamento:** [React Router Dom v7](https://reactrouter.com/) (Gestão de rotas e níveis de acesso)
 - **Ícones & Componentes:** [Lucide React](https://lucide.dev/) + [Shadcn/UI](https://ui.shadcn.com/) / [Radix UI](https://www.radix-ui.com/)
 - **Testes:** [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) (76 testes unitários e de integração ativos)
+- **PWA:** `manifest.json`, `sw.js`, `offline.html` e instalabilidade via manifest instalável
 
 ---
 
@@ -86,8 +87,32 @@ yarn dev
 Para executar a suíte com os 76 testes validados:
 
 ```bash
-npx yarn test --run
+yarn test
 ```
+
+### 5. Auditoria PWA
+
+O projeto também oferece auditoria de PWA via Lighthouse fixado na versão `10.4.0`.
+Para executar a auditoria, mantenha o servidor local ativo em `http://127.0.0.1:5173` e execute:
+
+```bash
+yarn dev --host 127.0.0.1 --port 5173
+yarn audit:pwa
+```
+
+O resultado é gravado em `lighthouse-pwa-v10.json`.
+
+Esta auditoria usa o binário local do `lighthouse` instalado no projeto, garantindo a versão fixada `10.4.0`.
+
+Esta auditoria valida o manifesto, o service worker, a instalabilidade e o fallback offline do app.
+
+Para inspecionar o relatório JSON localmente:
+
+```bash
+cat lighthouse-pwa-v10.json | less
+```
+
+> Validação local concluída com score PWA = 100% (1.0) no relatório gerado.
 
 ---
 
@@ -202,15 +227,25 @@ O portal possui controle estrito de acessos baseado no tipo de usuário logado (
 
 ## 🧪 Suíte de Testes e Qualidade de Código
 
-O projeto conta com testes unitários e de integração robustos implementados com **Vitest** e **React Testing Library**. Para rodar a verificação de sanidade do sistema:
+O projeto conta com testes unitários e de integração robustos implementados com **Vitest** e **React Testing Library**, além de auditoria PWA automatizada via Lighthouse.
+
+### Comandos principais
 
 ```bash
 # Rodar todos os testes (38 arquivos com 76 testes verdes)
-npx yarn test --run
+yarn test
 ```
 
-Nossas regras garantem que:
+```bash
+# Executar a auditoria de PWA
 
-1.  **Strict Mode:** TypeScript configurado sem permissão para o tipo `any` ou variáveis não utilizadas.
-2.  **Modularidade:** Funções sempre contidas abaixo de 40 linhas e com profundidade de identação máxima de 2 níveis.
-3.  **Segurança:** Variáveis sensíveis e segredos nunca são incluídos em arquivos públicos, utilizando sempre variáveis de ambiente configuradas no `.env`.
+yarn audit:pwa
+```
+
+Consulte `TESTES.md` para mais detalhes de execução e cobertura.
+
+### Regras do projeto
+
+1. **Strict Mode:** TypeScript configurado sem permissão para o tipo `any` ou variáveis não utilizadas.
+2. **Modularidade:** Funções sempre contidas abaixo de 40 linhas e com profundidade de identação máxima de 2 níveis.
+3. **Segurança:** Variáveis sensíveis e segredos nunca são incluídos em arquivos públicos, utilizando sempre variáveis de ambiente configuradas no `.env`.

@@ -1,5 +1,8 @@
-const CACHE_NAME = 'ilumina-pwa-v2'
+const CACHE_NAME = 'ilumina-cache-v2'
 const OFFLINE_URL = '/offline.html'
+const API_PATH = '/api/'
+const CACHE_FIRST = 'CacheFirst'
+const NETWORK_FIRST = 'NetworkFirst'
 const ASSETS = [
   '/',
   OFFLINE_URL,
@@ -51,6 +54,21 @@ self.addEventListener('fetch', event => {
   }
 
   if (!isSameOrigin) {
+    return
+  }
+
+  if (requestUrl.pathname.startsWith(API_PATH)) {
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone()
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone))
+          }
+          return networkResponse
+        })
+        .catch(() => caches.match(event.request))
+    )
     return
   }
 

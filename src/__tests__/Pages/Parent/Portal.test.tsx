@@ -4,7 +4,6 @@ import PortalResponsavel from '../../../Pages/Parent/Portal'
 import { useAuth } from '../../../contexts/AuthContext'
 import { api } from '../../../lib/api'
 import { MemoryRouter } from 'react-router-dom'
-import React from 'react'
 
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
@@ -41,7 +40,9 @@ vi.mock('../../../lib/storageService', () => ({
 }))
 
 vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+  ResponsiveContainer: ({ children }: any) => (
+    <div data-testid="responsive-container">{children}</div>
+  ),
   BarChart: ({ children }: any) => <div data-testid="bar-chart">{children}</div>,
   Bar: () => <div data-testid="bar" />,
   XAxis: () => <div data-testid="x-axis" />,
@@ -97,12 +98,30 @@ const mockPortalDataUmFilho = {
       ],
       advertencias_list: [],
       historico_presenca: [
-        { id: 1, data: '2026-05-20', oficina: 'Teatro', presente: true, observacoes: 'Participou bem' },
+        {
+          id: 1,
+          data: '2026-05-20',
+          oficina: 'Teatro',
+          presente: true,
+          observacoes: 'Participou bem',
+        },
         { id: 2, data: '2026-05-22', oficina: 'Teatro', presente: true, observacoes: '' },
-        { id: 3, data: '2026-05-18', oficina: 'Teatro', presente: false, observacoes: 'Faltou sem justificativa' },
+        {
+          id: 3,
+          data: '2026-05-18',
+          oficina: 'Teatro',
+          presente: false,
+          observacoes: 'Faltou sem justificativa',
+        },
         { id: 4, data: '2026-05-25', oficina: 'Teatro', presente: true, observacoes: '' },
         { id: 5, data: '2026-05-24', oficina: 'Teatro', presente: true, observacoes: '' },
-        { id: 6, data: '2026-05-19', oficina: 'Teatro', presente: false, observacoes: 'Consulta médica' },
+        {
+          id: 6,
+          data: '2026-05-19',
+          oficina: 'Teatro',
+          presente: false,
+          observacoes: 'Consulta médica',
+        },
       ],
     },
   ],

@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   LogOut,
   X,
-  User,
   Settings,
   Camera,
   CheckCircle2,
@@ -23,7 +22,7 @@ import {
   PenTool,
   Send,
   Lock,
-  Save
+  Save,
 } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
@@ -123,12 +122,15 @@ export default function PortalTeacher() {
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
   const [blockModalMessage, setBlockModalMessage] = useState('')
 
-
   // Controle de presenças inline
-  const [changedPresencas, setChangedPresencas] = useState<Record<number, { presente: boolean; justificativa: string }>>({})
+  const [changedPresencas, setChangedPresencas] = useState<
+    Record<number, { presente: boolean; justificativa: string }>
+  >({})
   const [savingPresencaStudentId, setSavingPresencaStudentId] = useState<number | null>(null)
   const [editingPresencaAlunoId, setEditingPresencaAlunoId] = useState<number | null>(null)
-  const [expandedNewAdvertenciaAlunoId, setExpandedNewAdvertenciaAlunoId] = useState<number | null>(null)
+  const [expandedNewAdvertenciaAlunoId, setExpandedNewAdvertenciaAlunoId] = useState<number | null>(
+    null
+  )
 
   // Form de Perfil
   const [profileForm, setProfileForm] = useState({
@@ -136,60 +138,63 @@ export default function PortalTeacher() {
     email: '',
     telefone: '',
     formacao: '',
-    data_nascimento: ''
+    data_nascimento: '',
   })
 
   // Form de Senha
   const [passwords, setPasswords] = useState({
     atual: '',
     nova: '',
-    confirmar: ''
+    confirmar: '',
   })
   const [showPassword, setShowPassword] = useState({
     atual: false,
     nova: false,
-    confirmar: false
+    confirmar: false,
   })
 
   // Form de Advertência
   const [advertenciaForm, setAdvertenciaForm] = useState({
     tipo_advertencia: '',
     gravidade: 'media' as 'baixa' | 'media' | 'alta',
-    descricao: ''
+    descricao: '',
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Buscar dados consolidados do portal
-  const fetchPortalData = useCallback(async (showLoading = true) => {
-    try {
-      if (showLoading) setLoading(true)
-      const response = await api.get('/professores/me/portal')
-      if (response.data.success) {
-        setData(response.data)
-        
-        // Inicializar profileForm
-        const prof = response.data.professor
-        setProfileForm({
-          nome_completo: prof.nome_completo || '',
-          email: prof.email || '',
-          telefone: prof.telefone || '',
-          formacao: prof.formacao || '',
-          data_nascimento: prof.data_nascimento ? prof.data_nascimento.substring(0, 10) : ''
-        })
+  const fetchPortalData = useCallback(
+    async (showLoading = true) => {
+      try {
+        if (showLoading) setLoading(true)
+        const response = await api.get('/professores/me/portal')
+        if (response.data.success) {
+          setData(response.data)
 
-        // Pré-selecionar oficina se houver
-        if (response.data.oficinas.length > 0) {
-          setActiveOficinaId(prev => prev || response.data.oficinas[0].id)
+          // Inicializar profileForm
+          const prof = response.data.professor
+          setProfileForm({
+            nome_completo: prof.nome_completo || '',
+            email: prof.email || '',
+            telefone: prof.telefone || '',
+            formacao: prof.formacao || '',
+            data_nascimento: prof.data_nascimento ? prof.data_nascimento.substring(0, 10) : '',
+          })
+
+          // Pré-selecionar oficina se houver
+          if (response.data.oficinas.length > 0) {
+            setActiveOficinaId(prev => prev || response.data.oficinas[0].id)
+          }
         }
+      } catch (error: any) {
+        console.error('Erro ao buscar dados do portal:', error)
+        showAlert('destructive', 'Erro', 'Não foi possível carregar os dados do portal.')
+      } finally {
+        if (showLoading) setLoading(false)
       }
-    } catch (error: any) {
-      console.error('Erro ao buscar dados do portal:', error)
-      showAlert('destructive', 'Erro', 'Não foi possível carregar os dados do portal.')
-    } finally {
-      if (showLoading) setLoading(false)
-    }
-  }, [showAlert])
+    },
+    [showAlert]
+  )
 
   // Escutar eventos Socket.io em tempo real
   useEffect(() => {
@@ -227,7 +232,11 @@ export default function PortalTeacher() {
   }
 
   // Lançar ou alterar presença do dia de forma inline (Toggles rápidos)
-  const handleTogglePresenca = (alunoId: number, novoPresente: boolean, presencaHoje: PresencaHoje | null) => {
+  const handleTogglePresenca = (
+    alunoId: number,
+    novoPresente: boolean,
+    presencaHoje: PresencaHoje | null
+  ) => {
     // Se a presença já foi registrada e o professor já atingiu o limite de edições
     if (presencaHoje && (presencaHoje.edicoes_professor || 0) >= 1) {
       setBlockModalMessage(
@@ -241,19 +250,25 @@ export default function PortalTeacher() {
       ...prev,
       [alunoId]: {
         presente: novoPresente,
-        justificativa: novoPresente ? '' : (prev[alunoId]?.justificativa ?? presencaHoje?.justificativa ?? '')
-      }
+        justificativa: novoPresente
+          ? ''
+          : (prev[alunoId]?.justificativa ?? presencaHoje?.justificativa ?? ''),
+      },
     }))
   }
 
   // Alterar justificativa de falta inline
-  const handleJustificativaChangeLocal = (alunoId: number, texto: string, presencaHoje: PresencaHoje | null) => {
+  const handleJustificativaChangeLocal = (
+    alunoId: number,
+    texto: string,
+    presencaHoje: PresencaHoje | null
+  ) => {
     setChangedPresencas(prev => ({
       ...prev,
       [alunoId]: {
         presente: prev[alunoId]?.presente ?? presencaHoje?.presente ?? false,
-        justificativa: texto
-      }
+        justificativa: texto,
+      },
     }))
   }
 
@@ -281,14 +296,16 @@ export default function PortalTeacher() {
 
     try {
       setSavingPresencaStudentId(alunoId)
-      const hoje = new Date().toLocaleString('sv', { timeZone: 'America/Sao_Paulo' }).substring(0, 10)
+      const hoje = new Date()
+        .toLocaleString('sv', { timeZone: 'America/Sao_Paulo' })
+        .substring(0, 10)
 
       if (presencaHoje?.id) {
         // Rota correta do backend de edições: /presencas/atualizar/:id
         const response = await api.put(`/presencas/atualizar/${presencaHoje.id}`, {
           presente: alteracao.presente,
           justificativa: alteracao.justificativa,
-          data: hoje
+          data: hoje,
         })
 
         if (response.data.success) {
@@ -308,7 +325,7 @@ export default function PortalTeacher() {
           oficina_id: activeOficinaId,
           data: hoje,
           presente: alteracao.presente,
-          justificativa: alteracao.justificativa
+          justificativa: alteracao.justificativa,
         })
 
         if (response.data.success) {
@@ -336,14 +353,20 @@ export default function PortalTeacher() {
     try {
       const schema = Yup.object().shape({
         tipo_advertencia: Yup.string().required('Tipo de ocorrência é obrigatório'),
-        gravidade: Yup.string().oneOf(['baixa', 'media', 'alta']).required('Gravidade é obrigatória'),
-        descricao: Yup.string().min(10, 'Descreva com pelo menos 10 caracteres').required('Descrição é obrigatória')
+        gravidade: Yup.string()
+          .oneOf(['baixa', 'media', 'alta'])
+          .required('Gravidade é obrigatória'),
+        descricao: Yup.string()
+          .min(10, 'Descreva com pelo menos 10 caracteres')
+          .required('Descrição é obrigatória'),
       })
 
       await schema.validate(advertenciaForm, { abortEarly: false })
       setErrors({})
 
-      const hoje = new Date().toLocaleString('sv', { timeZone: 'America/Sao_Paulo' }).substring(0, 10)
+      const hoje = new Date()
+        .toLocaleString('sv', { timeZone: 'America/Sao_Paulo' })
+        .substring(0, 10)
       const response = await api.post('/advertencias/registrar', {
         aluno_id: selectedAluno.id,
         tipo_advertencia: advertenciaForm.tipo_advertencia,
@@ -351,7 +374,7 @@ export default function PortalTeacher() {
         data_advertencia: hoje,
         gravidade: advertenciaForm.gravidade,
         status: 'pendente',
-        oficina_id: activeOficinaId
+        oficina_id: activeOficinaId,
       })
 
       if (response.data.success) {
@@ -370,7 +393,11 @@ export default function PortalTeacher() {
         setErrors(errMap)
       } else {
         console.error('Erro ao registrar ocorrência:', error)
-        showAlert('destructive', 'Erro', error.response?.data?.message || 'Erro ao criar ocorrência.')
+        showAlert(
+          'destructive',
+          'Erro',
+          error.response?.data?.message || 'Erro ao criar ocorrência.'
+        )
       }
     }
   }
@@ -390,8 +417,10 @@ export default function PortalTeacher() {
     try {
       const schema = Yup.object().shape({
         tipo_advertencia: Yup.string().required('Tipo é obrigatório'),
-        gravidade: Yup.string().oneOf(['baixa', 'media', 'alta']).required('Gravidade é obrigatória'),
-        descricao: Yup.string().min(10, 'Mínimo 10 caracteres').required('Descrição é obrigatória')
+        gravidade: Yup.string()
+          .oneOf(['baixa', 'media', 'alta'])
+          .required('Gravidade é obrigatória'),
+        descricao: Yup.string().min(10, 'Mínimo 10 caracteres').required('Descrição é obrigatória'),
       })
 
       await schema.validate(advertenciaForm, { abortEarly: false })
@@ -400,7 +429,7 @@ export default function PortalTeacher() {
       const response = await api.put(`/advertencias/update/${selectedAdvertencia.id}`, {
         tipo_advertencia: advertenciaForm.tipo_advertencia,
         gravidade: advertenciaForm.gravidade,
-        descricao: advertenciaForm.descricao
+        descricao: advertenciaForm.descricao,
       })
 
       if (response.data.success) {
@@ -419,7 +448,11 @@ export default function PortalTeacher() {
         setErrors(errMap)
       } else {
         console.error('Erro ao editar ocorrência:', error)
-        showAlert('destructive', 'Erro', error.response?.data?.message || 'Erro ao editar ocorrência.')
+        showAlert(
+          'destructive',
+          'Erro',
+          error.response?.data?.message || 'Erro ao editar ocorrência.'
+        )
       }
     }
   }
@@ -433,7 +466,7 @@ export default function PortalTeacher() {
         email: Yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
         telefone: Yup.string().required('Telefone é obrigatório'),
         formacao: Yup.string().required('Formação é obrigatória'),
-        data_nascimento: Yup.string().required('Data de nascimento é obrigatória')
+        data_nascimento: Yup.string().required('Data de nascimento é obrigatória'),
       })
 
       await schema.validate(profileForm, { abortEarly: false })
@@ -456,7 +489,11 @@ export default function PortalTeacher() {
         setErrors(errMap)
       } else {
         console.error('Erro ao atualizar perfil:', error)
-        showAlert('destructive', 'Erro', error.response?.data?.message || 'Erro ao atualizar perfil.')
+        showAlert(
+          'destructive',
+          'Erro',
+          error.response?.data?.message || 'Erro ao atualizar perfil.'
+        )
       }
     } finally {
       setIsSaving(false)
@@ -478,7 +515,7 @@ export default function PortalTeacher() {
           .matches(/[@$!%*?&#]/, 'Deve conter caracteres especiais (@$!%*?&#)'),
         confirmar: Yup.string()
           .oneOf([Yup.ref('nova')], 'As senhas não coincidem')
-          .required('Confirme a nova senha')
+          .required('Confirme a nova senha'),
       })
 
       await schema.validate(passwords, { abortEarly: false })
@@ -487,7 +524,7 @@ export default function PortalTeacher() {
 
       const response = await api.put(`/professores/trocar-senha/${data.professor.id}`, {
         senhaAtual: passwords.atual,
-        novaSenha: passwords.nova
+        novaSenha: passwords.nova,
       })
 
       if (response.status === 200 || response.data?.success) {
@@ -519,7 +556,7 @@ export default function PortalTeacher() {
     try {
       setIsSaving(true)
       const response = await api.put(`/professores/me/update`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
 
       if (response.data.success) {
@@ -535,11 +572,13 @@ export default function PortalTeacher() {
   }
 
   // Filtrar alunos pela oficina ativa
-  const filteredAlunos = data?.alunos.filter(aluno => 
-    activeOficinaId ? aluno.oficinas.includes(activeOficinaId) : false
-  ) || []
+  const filteredAlunos =
+    data?.alunos.filter(aluno =>
+      activeOficinaId ? aluno.oficinas.includes(activeOficinaId) : false
+    ) || []
 
-  const activeOficinaName = data?.oficinas.find(o => o.id === activeOficinaId)?.nome_oficina || 'Minha Oficina'
+  const activeOficinaName =
+    data?.oficinas.find(o => o.id === activeOficinaId)?.nome_oficina || 'Minha Oficina'
 
   if (loading) {
     return (
@@ -562,9 +601,7 @@ export default function PortalTeacher() {
               <span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest block">
                 Portal do Colaborador
               </span>
-              <h1 className="text-lg font-black text-gray-900 leading-tight">
-                Área do Professor
-              </h1>
+              <h1 className="text-lg font-black text-gray-900 leading-tight">Área do Professor</h1>
             </div>
           </div>
 
@@ -626,7 +663,9 @@ export default function PortalTeacher() {
                 <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest block mb-1">
                   Professor Responsável
                 </span>
-                <h2 className="text-2xl font-black tracking-tight">{data?.professor.nome_completo}</h2>
+                <h2 className="text-2xl font-black tracking-tight">
+                  {data?.professor.nome_completo}
+                </h2>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-xs text-gray-300">
                   <span className="flex items-center gap-1">
                     <BookOpen className="h-3.5 w-3.5 text-yellow-400" />
@@ -659,7 +698,11 @@ export default function PortalTeacher() {
                     className="w-full bg-white/5 border border-white/10 text-white font-bold py-2.5 px-4 rounded-[16px] appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
                   >
                     {data.oficinas.map(oficina => (
-                      <option key={oficina.id} value={oficina.id} className="text-gray-900 font-bold">
+                      <option
+                        key={oficina.id}
+                        value={oficina.id}
+                        className="text-gray-900 font-bold"
+                      >
                         {oficina.nome_oficina}
                       </option>
                     ))}
@@ -672,8 +715,13 @@ export default function PortalTeacher() {
                     <Calendar className="h-3.5 w-3.5 text-yellow-400" />
                     <span>
                       {data.oficinas.find(o => o.id === activeOficinaId)?.dias_semana} das{' '}
-                      {data.oficinas.find(o => o.id === activeOficinaId)?.horario_inicio.substring(0, 5)} às{' '}
-                      {data.oficinas.find(o => o.id === activeOficinaId)?.horario_fim.substring(0, 5)}
+                      {data.oficinas
+                        .find(o => o.id === activeOficinaId)
+                        ?.horario_inicio.substring(0, 5)}{' '}
+                      às{' '}
+                      {data.oficinas
+                        .find(o => o.id === activeOficinaId)
+                        ?.horario_fim.substring(0, 5)}
                     </span>
                   </div>
                 )}
@@ -688,13 +736,16 @@ export default function PortalTeacher() {
             <div>
               <h3 className="text-xl font-black text-gray-900">Alunos Matriculados</h3>
               <p className="text-xs font-semibold text-gray-500 mt-1">
-                Visualizando estudantes vinculados à oficina <span className="text-yellow-600 font-bold">{activeOficinaName}</span>
+                Visualizando estudantes vinculados à oficina{' '}
+                <span className="text-yellow-600 font-bold">{activeOficinaName}</span>
               </p>
             </div>
 
             <div className="flex items-center gap-3 bg-white border border-gray-100 p-2.5 rounded-[20px] shadow-sm">
               <Users className="h-5 w-5 text-yellow-500 ml-2" />
-              <span className="text-xs font-black uppercase text-gray-400 tracking-wider">Total de Alunos:</span>
+              <span className="text-xs font-black uppercase text-gray-400 tracking-wider">
+                Total de Alunos:
+              </span>
               <span className="text-sm font-black text-gray-900 bg-yellow-100 px-3 py-1 rounded-xl">
                 {filteredAlunos.length}
               </span>
@@ -706,7 +757,8 @@ export default function PortalTeacher() {
               <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h4 className="text-base font-black text-gray-800">Nenhum aluno matriculado</h4>
               <p className="text-xs text-gray-500 mt-2 max-w-md mx-auto">
-                Não encontramos alunos associados a esta oficina específica. Se achar que é um erro, consulte a coordenação.
+                Não encontramos alunos associados a esta oficina específica. Se achar que é um erro,
+                consulte a coordenação.
               </p>
             </div>
           ) : (
@@ -716,8 +768,10 @@ export default function PortalTeacher() {
                   ? aluno.advertencias.filter(a => a.oficina_id === activeOficinaId)
                   : aluno.advertencias
 
-                const totalAdvertenciasPendente = advertenciasFiltradas.filter(a => a.status === 'pendente').length
-                
+                const totalAdvertenciasPendente = advertenciasFiltradas.filter(
+                  a => a.status === 'pendente'
+                ).length
+
                 // Regra de cores do número de ocorrências:
                 // Verde: 0 advertências
                 // Vermelho: se houver pelo menos 1 pendente
@@ -731,27 +785,36 @@ export default function PortalTeacher() {
                   }
                 }
 
-                const presencasOficina = (activeOficinaId && aluno.presencas_oficina)
-                  ? (aluno.presencas_oficina[activeOficinaId]?.presencas ?? 0)
-                  : aluno.total_presencas
+                const presencasOficina =
+                  activeOficinaId && aluno.presencas_oficina
+                    ? (aluno.presencas_oficina[activeOficinaId]?.presencas ?? 0)
+                    : aluno.total_presencas
 
-                const faltasOficina = (activeOficinaId && aluno.presencas_oficina)
-                  ? (aluno.presencas_oficina[activeOficinaId]?.faltas ?? 0)
-                  : aluno.total_faltas
+                const faltasOficina =
+                  activeOficinaId && aluno.presencas_oficina
+                    ? (aluno.presencas_oficina[activeOficinaId]?.faltas ?? 0)
+                    : aluno.total_faltas
 
-                const presencaHoje = activeOficinaId && aluno.presencas_hoje
-                  ? (aluno.presencas_hoje.find(p => p.oficina_id === activeOficinaId) ?? null)
-                  : null
+                const presencaHoje =
+                  activeOficinaId && aluno.presencas_hoje
+                    ? (aluno.presencas_hoje.find(p => p.oficina_id === activeOficinaId) ?? null)
+                    : null
 
                 // Mapear presença local inline
                 const alteracaoLocal = changedPresencas[aluno.id]
-                const isPresente = alteracaoLocal !== undefined
-                  ? alteracaoLocal.presente
-                  : (presencaHoje ? presencaHoje.presente : null)
+                const isPresente =
+                  alteracaoLocal !== undefined
+                    ? alteracaoLocal.presente
+                    : presencaHoje
+                      ? presencaHoje.presente
+                      : null
 
-                const justificativaLocal = alteracaoLocal !== undefined
-                  ? alteracaoLocal.justificativa
-                  : (presencaHoje ? (presencaHoje.justificativa || '') : '')
+                const justificativaLocal =
+                  alteracaoLocal !== undefined
+                    ? alteracaoLocal.justificativa
+                    : presencaHoje
+                      ? presencaHoje.justificativa || ''
+                      : ''
 
                 const temAlteracao = alteracaoLocal !== undefined
                 const isLocked = presencaHoje && (presencaHoje.edicoes_professor || 0) >= 1
@@ -789,7 +852,9 @@ export default function PortalTeacher() {
                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">
                           Presenças
                         </span>
-                        <span className="text-sm font-black text-green-600">{presencasOficina}</span>
+                        <span className="text-sm font-black text-green-600">
+                          {presencasOficina}
+                        </span>
                       </div>
                       <div className="text-center border-x border-gray-100">
                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">
@@ -868,7 +933,13 @@ export default function PortalTeacher() {
                                 </label>
                                 <textarea
                                   value={justificativaLocal}
-                                  onChange={e => handleJustificativaChangeLocal(aluno.id, e.target.value, presencaHoje)}
+                                  onChange={e =>
+                                    handleJustificativaChangeLocal(
+                                      aluno.id,
+                                      e.target.value,
+                                      presencaHoje
+                                    )
+                                  }
                                   placeholder="Informe o motivo da falta..."
                                   className="w-full rounded-xl border border-red-100 bg-white px-3 py-2 text-xs text-gray-800 placeholder:text-gray-300 outline-none focus:border-red-400 focus:ring-1 focus:ring-red-100/50 resize-none h-16 transition"
                                 />
@@ -926,127 +997,154 @@ export default function PortalTeacher() {
                     </div>
 
                     {/* SEÇÃO DE OCORRÊNCIAS PEDAGÓGICAS */}
-                      <div className="space-y-3 pt-3 border-t border-gray-50">
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
+                    <div className="space-y-3 pt-3 border-t border-gray-50">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAluno(aluno)
+                            setIsAdvertenciasModalOpen(true)
+                          }}
+                          className="flex-1 border border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-gray-900 font-black py-2.5 rounded-[16px] text-[10px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer bg-white"
+                        >
+                          <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />
+                          Histórico ({advertenciasFiltradas.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isAddingAdvertencia) {
+                              setExpandedNewAdvertenciaAlunoId(null)
+                            } else {
                               setSelectedAluno(aluno)
-                              setIsAdvertenciasModalOpen(true)
-                            }}
-                            className="flex-1 border border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-gray-900 font-black py-2.5 rounded-[16px] text-[10px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer bg-white"
-                          >
-                            <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />
-                            Histórico ({advertenciasFiltradas.length})
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (isAddingAdvertencia) {
-                                setExpandedNewAdvertenciaAlunoId(null)
-                              } else {
-                                setSelectedAluno(aluno)
-                                setAdvertenciaForm({ tipo_advertencia: '', gravidade: 'media', descricao: '' })
-                                setErrors({})
-                                setExpandedNewAdvertenciaAlunoId(aluno.id)
-                              }
-                            }}
-                            className={`flex-1 border font-black py-2.5 rounded-[16px] text-[10px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                              isAddingAdvertencia
-                                ? 'bg-yellow-400 text-gray-900 border-yellow-400 shadow-md shadow-yellow-100'
-                                : 'border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-gray-900 bg-white'
-                            }`}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            Nova Ocorrência
-                          </button>
-                        </div>
+                              setAdvertenciaForm({
+                                tipo_advertencia: '',
+                                gravidade: 'media',
+                                descricao: '',
+                              })
+                              setErrors({})
+                              setExpandedNewAdvertenciaAlunoId(aluno.id)
+                            }
+                          }}
+                          className={`flex-1 border font-black py-2.5 rounded-[16px] text-[10px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                            isAddingAdvertencia
+                              ? 'bg-yellow-400 text-gray-900 border-yellow-400 shadow-md shadow-yellow-100'
+                              : 'border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-gray-900 bg-white'
+                          }`}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Nova Ocorrência
+                        </button>
+                      </div>
 
-                        {/* FORMULÁRIO INLINE DE NOVA OCORRÊNCIA PEDAGÓGICA */}
-                        {isAddingAdvertencia && (
-                          <div className="mt-3 p-4 bg-yellow-50/20 rounded-[20px] border border-dashed border-yellow-200/50 animate-in slide-in-from-top-2 duration-200">
-                            <div className="flex justify-between items-center mb-3">
-                              <span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest flex items-center gap-1">
-                                <AlertOctagon className="h-3.5 w-3.5" />
-                                Registrar Ocorrência
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => setExpandedNewAdvertenciaAlunoId(null)}
-                                className="text-gray-400 hover:text-gray-600 transition cursor-pointer"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            </div>
-
-                            <div className="space-y-3">
-                              <div>
-                                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                                  Tipo da Ocorrência
-                                </label>
-                                <input
-                                  type="text"
-                                  value={advertenciaForm.tipo_advertencia}
-                                  onChange={e => setAdvertenciaForm({ ...advertenciaForm, tipo_advertencia: e.target.value })}
-                                  placeholder="Ex: Indisciplina, Uso de Celular, Atraso"
-                                  className="w-full p-2.5 border border-gray-200 focus:border-yellow-400 rounded-xl text-xs font-bold bg-white focus:outline-none"
-                                />
-                                {errors.tipo_advertencia && <p className="text-[9px] text-red-500 font-bold mt-0.5">{errors.tipo_advertencia}</p>}
-                              </div>
-
-                              <div>
-                                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                                  Gravidade
-                                </label>
-                                <div className="grid grid-cols-3 gap-1.5">
-                                  {(['baixa', 'media', 'alta'] as const).map(g => {
-                                    let gColor = 'border-green-200 text-green-700 bg-green-50'
-                                    if (g === 'media') gColor = 'border-yellow-200 text-yellow-700 bg-yellow-50'
-                                    if (g === 'alta') gColor = 'border-red-200 text-red-700 bg-red-50'
-
-                                    const isSelected = advertenciaForm.gravidade === g
-
-                                    return (
-                                      <button
-                                        type="button"
-                                        key={g}
-                                        onClick={() => setAdvertenciaForm({ ...advertenciaForm, gravidade: g })}
-                                        className={`py-2 px-1 border rounded-xl text-[10px] font-black uppercase transition cursor-pointer text-center ${
-                                          isSelected ? `${gColor} ring-1 ring-yellow-400` : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
-                                        }`}
-                                      >
-                                        {g}
-                                      </button>
-                                    )
-                                  })}
-                                </div>
-                              </div>
-
-                              <div>
-                                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                                  Descrição dos Fatos
-                                </label>
-                                <textarea
-                                  value={advertenciaForm.descricao}
-                                  onChange={e => setAdvertenciaForm({ ...advertenciaForm, descricao: e.target.value })}
-                                  placeholder="Descreva detalhadamente o ocorrido..."
-                                  rows={3}
-                                  className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-xl resize-none text-xs font-bold bg-white focus:outline-none"
-                                />
-                                {errors.descricao && <p className="text-[9px] text-red-500 font-bold mt-0.5">{errors.descricao}</p>}
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={handleCriarAdvertencia}
-                                className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-yellow-100 flex items-center justify-center gap-1.5"
-                              >
-                                <Send className="h-3.5 w-3.5" />
-                                Salvar Ocorrência
-                              </button>
-                            </div>
+                      {/* FORMULÁRIO INLINE DE NOVA OCORRÊNCIA PEDAGÓGICA */}
+                      {isAddingAdvertencia && (
+                        <div className="mt-3 p-4 bg-yellow-50/20 rounded-[20px] border border-dashed border-yellow-200/50 animate-in slide-in-from-top-2 duration-200">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest flex items-center gap-1">
+                              <AlertOctagon className="h-3.5 w-3.5" />
+                              Registrar Ocorrência
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedNewAdvertenciaAlunoId(null)}
+                              className="text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
                           </div>
-                        )}
+
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                                Tipo da Ocorrência
+                              </label>
+                              <input
+                                type="text"
+                                value={advertenciaForm.tipo_advertencia}
+                                onChange={e =>
+                                  setAdvertenciaForm({
+                                    ...advertenciaForm,
+                                    tipo_advertencia: e.target.value,
+                                  })
+                                }
+                                placeholder="Ex: Indisciplina, Uso de Celular, Atraso"
+                                className="w-full p-2.5 border border-gray-200 focus:border-yellow-400 rounded-xl text-xs font-bold bg-white focus:outline-none"
+                              />
+                              {errors.tipo_advertencia && (
+                                <p className="text-[9px] text-red-500 font-bold mt-0.5">
+                                  {errors.tipo_advertencia}
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                                Gravidade
+                              </label>
+                              <div className="grid grid-cols-3 gap-1.5">
+                                {(['baixa', 'media', 'alta'] as const).map(g => {
+                                  let gColor = 'border-green-200 text-green-700 bg-green-50'
+                                  if (g === 'media')
+                                    gColor = 'border-yellow-200 text-yellow-700 bg-yellow-50'
+                                  if (g === 'alta') gColor = 'border-red-200 text-red-700 bg-red-50'
+
+                                  const isSelected = advertenciaForm.gravidade === g
+
+                                  return (
+                                    <button
+                                      type="button"
+                                      key={g}
+                                      onClick={() =>
+                                        setAdvertenciaForm({ ...advertenciaForm, gravidade: g })
+                                      }
+                                      className={`py-2 px-1 border rounded-xl text-[10px] font-black uppercase transition cursor-pointer text-center ${
+                                        isSelected
+                                          ? `${gColor} ring-1 ring-yellow-400`
+                                          : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
+                                      }`}
+                                    >
+                                      {g}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                                Descrição dos Fatos
+                              </label>
+                              <textarea
+                                value={advertenciaForm.descricao}
+                                onChange={e =>
+                                  setAdvertenciaForm({
+                                    ...advertenciaForm,
+                                    descricao: e.target.value,
+                                  })
+                                }
+                                placeholder="Descreva detalhadamente o ocorrido..."
+                                rows={3}
+                                className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-xl resize-none text-xs font-bold bg-white focus:outline-none"
+                              />
+                              {errors.descricao && (
+                                <p className="text-[9px] text-red-500 font-bold mt-0.5">
+                                  {errors.descricao}
+                                </p>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={handleCriarAdvertencia}
+                              className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-yellow-100 flex items-center justify-center gap-1.5"
+                            >
+                              <Send className="h-3.5 w-3.5" />
+                              Salvar Ocorrência
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )
@@ -1078,8 +1176,6 @@ export default function PortalTeacher() {
           </div>
         </div>
       )}
-
-
 
       {/* MODAL LISTAGEM DE ADVERTÊNCIAS PEDAGÓGICAS */}
       {isAdvertenciasModalOpen && selectedAluno && (
@@ -1118,12 +1214,16 @@ export default function PortalTeacher() {
               </button>
 
               {(() => {
-                const advertenciasFiltradas = selectedAluno.advertencias.filter(a => a.oficina_id === activeOficinaId)
+                const advertenciasFiltradas = selectedAluno.advertencias.filter(
+                  a => a.oficina_id === activeOficinaId
+                )
                 if (advertenciasFiltradas.length === 0) {
                   return (
                     <div className="text-center py-12 bg-gray-50 rounded-[24px] border border-gray-100">
                       <AlertTriangle className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                      <p className="text-xs font-bold text-gray-500">Nenhuma ocorrência registrada nesta oficina.</p>
+                      <p className="text-xs font-bold text-gray-500">
+                        Nenhuma ocorrência registrada nesta oficina.
+                      </p>
                     </div>
                   )
                 }
@@ -1132,21 +1232,25 @@ export default function PortalTeacher() {
                   const isAuthor = adv.registrado_por_professor_id === data?.professor.id
 
                   let gravidadeColor = 'bg-green-50 text-green-700 border-green-200'
-                  if (adv.gravidade === 'media') gravidadeColor = 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                  if (adv.gravidade === 'alta') gravidadeColor = 'bg-red-50 text-red-700 border-red-200'
+                  if (adv.gravidade === 'media')
+                    gravidadeColor = 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                  if (adv.gravidade === 'alta')
+                    gravidadeColor = 'bg-red-50 text-red-700 border-red-200'
 
                   return (
                     <div
                       key={adv.id}
                       className={`p-5 rounded-[24px] border transition shadow-sm ${
-                        isResolvida 
-                          ? 'bg-green-50/20 border-green-100' 
+                        isResolvida
+                          ? 'bg-green-50/20 border-green-100'
                           : 'bg-red-50/20 border-dashed border-red-200'
                       }`}
                     >
                       <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`px-2.5 py-1 text-[10px] font-black uppercase rounded-lg border ${gravidadeColor}`}>
+                          <span
+                            className={`px-2.5 py-1 text-[10px] font-black uppercase rounded-lg border ${gravidadeColor}`}
+                          >
                             {adv.gravidade}
                           </span>
                           <span className="text-xs font-black text-gray-900">
@@ -1165,7 +1269,10 @@ export default function PortalTeacher() {
 
                       <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
                         <span className="text-[10px] text-gray-400 font-semibold">
-                          Por: {adv.professor_registrador?.nome_completo || adv.admin_registrador?.nome_completo || 'Administrador'}
+                          Por:{' '}
+                          {adv.professor_registrador?.nome_completo ||
+                            adv.admin_registrador?.nome_completo ||
+                            'Administrador'}
                         </span>
 
                         <div className="flex items-center gap-2">
@@ -1223,11 +1330,17 @@ export default function PortalTeacher() {
                 <input
                   type="text"
                   value={advertenciaForm.tipo_advertencia}
-                  onChange={e => setAdvertenciaForm({ ...advertenciaForm, tipo_advertencia: e.target.value })}
+                  onChange={e =>
+                    setAdvertenciaForm({ ...advertenciaForm, tipo_advertencia: e.target.value })
+                  }
                   placeholder="Ex: Indisciplina, Desrespeito, Uso de Celular"
                   className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-[16px] text-xs font-bold focus:outline-none"
                 />
-                {errors.tipo_advertencia && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.tipo_advertencia}</p>}
+                {errors.tipo_advertencia && (
+                  <p className="text-[10px] text-red-500 font-bold mt-1">
+                    {errors.tipo_advertencia}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1247,7 +1360,9 @@ export default function PortalTeacher() {
                         key={g}
                         onClick={() => setAdvertenciaForm({ ...advertenciaForm, gravidade: g })}
                         className={`py-3 px-2 border rounded-[16px] text-xs font-black uppercase transition cursor-pointer ${
-                          isSelected ? `${gColor} ring-2 ring-offset-2 ring-yellow-400 scale-102` : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
+                          isSelected
+                            ? `${gColor} ring-2 ring-offset-2 ring-yellow-400 scale-102`
+                            : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
                         }`}
                       >
                         {g}
@@ -1263,12 +1378,16 @@ export default function PortalTeacher() {
                 </label>
                 <textarea
                   value={advertenciaForm.descricao}
-                  onChange={e => setAdvertenciaForm({ ...advertenciaForm, descricao: e.target.value })}
+                  onChange={e =>
+                    setAdvertenciaForm({ ...advertenciaForm, descricao: e.target.value })
+                  }
                   placeholder="Descreva detalhadamente o ocorrido com o aluno..."
                   rows={4}
                   className="w-full p-4 border border-gray-200 focus:border-yellow-400 rounded-[20px] resize-none text-xs font-bold focus:outline-none"
                 />
-                {errors.descricao && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.descricao}</p>}
+                {errors.descricao && (
+                  <p className="text-[10px] text-red-500 font-bold mt-1">{errors.descricao}</p>
+                )}
               </div>
             </div>
 
@@ -1316,11 +1435,17 @@ export default function PortalTeacher() {
                 <input
                   type="text"
                   value={advertenciaForm.tipo_advertencia}
-                  onChange={e => setAdvertenciaForm({ ...advertenciaForm, tipo_advertencia: e.target.value })}
+                  onChange={e =>
+                    setAdvertenciaForm({ ...advertenciaForm, tipo_advertencia: e.target.value })
+                  }
                   placeholder="Ex: Indisciplina, Desrespeito"
                   className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-[16px] text-xs font-bold focus:outline-none"
                 />
-                {errors.tipo_advertencia && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.tipo_advertencia}</p>}
+                {errors.tipo_advertencia && (
+                  <p className="text-[10px] text-red-500 font-bold mt-1">
+                    {errors.tipo_advertencia}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1340,7 +1465,9 @@ export default function PortalTeacher() {
                         key={g}
                         onClick={() => setAdvertenciaForm({ ...advertenciaForm, gravidade: g })}
                         className={`py-3 px-2 border rounded-[16px] text-xs font-black uppercase transition cursor-pointer ${
-                          isSelected ? `${gColor} ring-2 ring-offset-2 ring-yellow-400 scale-102` : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
+                          isSelected
+                            ? `${gColor} ring-2 ring-offset-2 ring-yellow-400 scale-102`
+                            : 'border-gray-200 text-gray-500 bg-white hover:bg-gray-50'
                         }`}
                       >
                         {g}
@@ -1356,12 +1483,16 @@ export default function PortalTeacher() {
                 </label>
                 <textarea
                   value={advertenciaForm.descricao}
-                  onChange={e => setAdvertenciaForm({ ...advertenciaForm, descricao: e.target.value })}
+                  onChange={e =>
+                    setAdvertenciaForm({ ...advertenciaForm, descricao: e.target.value })
+                  }
                   placeholder="Descreva o ocorrido..."
                   rows={4}
                   className="w-full p-4 border border-gray-200 focus:border-yellow-400 rounded-[20px] resize-none text-xs font-bold focus:outline-none"
                 />
-                {errors.descricao && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.descricao}</p>}
+                {errors.descricao && (
+                  <p className="text-[10px] text-red-500 font-bold mt-1">{errors.descricao}</p>
+                )}
               </div>
             </div>
 
@@ -1469,10 +1600,16 @@ export default function PortalTeacher() {
                     <input
                       type="text"
                       value={profileForm.nome_completo}
-                      onChange={e => setProfileForm({ ...profileForm, nome_completo: e.target.value })}
+                      onChange={e =>
+                        setProfileForm({ ...profileForm, nome_completo: e.target.value })
+                      }
                       className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-[16px] text-xs font-bold focus:outline-none"
                     />
-                    {errors.nome_completo && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.nome_completo}</p>}
+                    {errors.nome_completo && (
+                      <p className="text-[10px] text-red-500 font-bold mt-1">
+                        {errors.nome_completo}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -1485,7 +1622,9 @@ export default function PortalTeacher() {
                       onChange={e => setProfileForm({ ...profileForm, formacao: e.target.value })}
                       className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-[16px] text-xs font-bold focus:outline-none"
                     />
-                    {errors.formacao && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.formacao}</p>}
+                    {errors.formacao && (
+                      <p className="text-[10px] text-red-500 font-bold mt-1">{errors.formacao}</p>
+                    )}
                   </div>
 
                   <div>
@@ -1498,7 +1637,9 @@ export default function PortalTeacher() {
                       onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
                       className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-[16px] text-xs font-bold focus:outline-none"
                     />
-                    {errors.email && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.email}</p>}
+                    {errors.email && (
+                      <p className="text-[10px] text-red-500 font-bold mt-1">{errors.email}</p>
+                    )}
                   </div>
 
                   <div>
@@ -1511,7 +1652,9 @@ export default function PortalTeacher() {
                       onChange={e => setProfileForm({ ...profileForm, telefone: e.target.value })}
                       className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-[16px] text-xs font-bold focus:outline-none"
                     />
-                    {errors.telefone && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.telefone}</p>}
+                    {errors.telefone && (
+                      <p className="text-[10px] text-red-500 font-bold mt-1">{errors.telefone}</p>
+                    )}
                   </div>
 
                   <div>
@@ -1521,10 +1664,16 @@ export default function PortalTeacher() {
                     <input
                       type="date"
                       value={profileForm.data_nascimento}
-                      onChange={e => setProfileForm({ ...profileForm, data_nascimento: e.target.value })}
+                      onChange={e =>
+                        setProfileForm({ ...profileForm, data_nascimento: e.target.value })
+                      }
                       className="w-full p-3 border border-gray-200 focus:border-yellow-400 rounded-[16px] text-xs font-bold focus:outline-none"
                     />
-                    {errors.data_nascimento && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.data_nascimento}</p>}
+                    {errors.data_nascimento && (
+                      <p className="text-[10px] text-red-500 font-bold mt-1">
+                        {errors.data_nascimento}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -1545,7 +1694,9 @@ export default function PortalTeacher() {
                 <div className="bg-yellow-50 border border-yellow-200/50 p-4 rounded-[20px] flex gap-3 text-yellow-800 text-xs font-semibold">
                   <ShieldCheck className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
                   <p>
-                    Para alterar sua senha, preencha os campos abaixo. A nova senha deve ter pelo menos 12 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais (@$!%*?&#).
+                    Para alterar sua senha, preencha os campos abaixo. A nova senha deve ter pelo
+                    menos 12 caracteres, incluindo letras maiúsculas, minúsculas, números e
+                    caracteres especiais (@$!%*?&#).
                   </p>
                 </div>
 
@@ -1562,12 +1713,20 @@ export default function PortalTeacher() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword({ ...showPassword, atual: !showPassword.atual })}
+                      onClick={() =>
+                        setShowPassword({ ...showPassword, atual: !showPassword.atual })
+                      }
                       className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition cursor-pointer"
                     >
-                      {showPassword.atual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword.atual ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
-                    {errors.atual && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.atual}</p>}
+                    {errors.atual && (
+                      <p className="text-[10px] text-red-500 font-bold mt-1">{errors.atual}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1583,12 +1742,20 @@ export default function PortalTeacher() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword({ ...showPassword, nova: !showPassword.nova })}
+                        onClick={() =>
+                          setShowPassword({ ...showPassword, nova: !showPassword.nova })
+                        }
                         className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition cursor-pointer"
                       >
-                        {showPassword.nova ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword.nova ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
-                      {errors.nova && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.nova}</p>}
+                      {errors.nova && (
+                        <p className="text-[10px] text-red-500 font-bold mt-1">{errors.nova}</p>
+                      )}
                     </div>
 
                     <div className="relative">
@@ -1603,12 +1770,22 @@ export default function PortalTeacher() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword({ ...showPassword, confirmar: !showPassword.confirmar })}
+                        onClick={() =>
+                          setShowPassword({ ...showPassword, confirmar: !showPassword.confirmar })
+                        }
                         className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition cursor-pointer"
                       >
-                        {showPassword.confirmar ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword.confirmar ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
-                      {errors.confirmar && <p className="text-[10px] text-red-500 font-bold mt-1">{errors.confirmar}</p>}
+                      {errors.confirmar && (
+                        <p className="text-[10px] text-red-500 font-bold mt-1">
+                          {errors.confirmar}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
