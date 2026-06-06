@@ -6,16 +6,16 @@ describe('Service Worker', () => {
     expect(fs.existsSync('./public/sw.js')).toBe(true)
   })
 
-  it('sw.js contém estratégia Cache First', async () => {
+  it('sw.js contém lógica de cache (Cache First nativo)', async () => {
     const content = fs.readFileSync('./public/sw.js', 'utf-8')
-    expect(content).toContain('cache')
-    expect(content).toContain('CacheFirst')
+    expect(content).toContain('caches.match')
+    expect(content).toContain('caches.open')
   })
 
-  it('sw.js contém estratégia Network First para API', async () => {
+  it('sw.js contém estratégia Network Only para API', async () => {
     const content = fs.readFileSync('./public/sw.js', 'utf-8')
-    expect(content).toContain('/api/')
-    expect(content).toContain('NetworkFirst')
+    expect(content).toContain('API_PATH')
+    expect(content).toContain('fetch(event.request)')
   })
 
   it('sw.js contém fallback offline', async () => {

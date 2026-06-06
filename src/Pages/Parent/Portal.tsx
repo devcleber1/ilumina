@@ -127,7 +127,7 @@ export default function PortalResponsavel() {
   const [isSaving, setIsSaving] = useState(false)
 
   const fetchPortalData = async (showLoading = false) => {
-    if (!storageService.getItem('token')) return
+    if (!storageService.getItem('user')) return
     try {
       if (showLoading) setLoading(true)
       const response = await api.get('/pais/me/portal')

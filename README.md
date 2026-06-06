@@ -249,3 +249,14 @@ Consulte `TESTES.md` para mais detalhes de execução e cobertura.
 1. **Strict Mode:** TypeScript configurado sem permissão para o tipo `any` ou variáveis não utilizadas.
 2. **Modularidade:** Funções sempre contidas abaixo de 40 linhas e com profundidade de identação máxima de 2 níveis.
 3. **Segurança:** Variáveis sensíveis e segredos nunca são incluídos em arquivos públicos, utilizando sempre variáveis de ambiente configuradas no `.env`.
+
+---
+
+## 🔒 Segurança e Resiliência (PWA)
+
+O frontend implementa as melhores práticas recomendadas de segurança voltadas para Single Page Applications (SPA) e PWA:
+
+- **Auth Stateless Seguro**: Gerenciamento de sessão movido 100% para cookies `HttpOnly` com validação de backend. O *localStorage* está imune a vazamentos de tokens de autenticação (mitigação contra XSS via injeção de script de terceiros).
+- **Hardening no Service Worker**: Todo o tráfego da API (`/api/`) usa `NetworkOnly` by-pass e jamais sofre cache (para evitar vazamento de payload local offline).
+- **Política de Conteúdo (CSP)**: Acesso ao `unsafe-eval` foi barrado, fechando brechas para execução não planejada de scripts e pacotes maliciosos.
+- **Forced Updates PWA**: Uma rotina agressiva de interceptação força os usuários a invalidarem a cache do Service Worker logo ao logarem, se novos builds entrarem em produção.

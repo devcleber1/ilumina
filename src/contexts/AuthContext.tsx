@@ -26,11 +26,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!storageService.getItem('token'))
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => !!storageService.getItem<User>('user')
+  )
   const [user, setUser] = useState<User | null>(() => {
     return storageService.getItem<User>('user') || null
   })
-  
+
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [isModalDismissed, setIsModalDismissed] = useState(false)
   const [expiresAt, setExpiresAt] = useState<number | null>(() => {
@@ -48,12 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkSession = () => {
       const now = Date.now()
       const timeLeft = expiresAt - now
-      
+
       // Mostrar aviso faltando 2 minutos (120.000 ms)
       if (timeLeft <= 120000 && timeLeft > 0 && !showSessionModal && !isModalDismissed) {
         setShowSessionModal(true)
       }
-      
+
       // Se expirou e o modal não renovou, força logout
       if (timeLeft <= 0) {
         logout()
@@ -80,35 +82,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (isAuthenticated && !user) {
-        try {
-          const response = await api.get('/auth/me')
-          if (response.data.success) {
-            const userData = response.data.user
-            setUser(userData)
-            storageService.setItem('user', userData)
-            
-            // Garantir que expiresAt seja definido se estiver faltando
-            if (!storageService.getItem('expiresAt')) {
-               const newExpiresAt = Date.now() + (15 * 60 * 1000)
-               storageService.setItem('expiresAt', String(newExpiresAt))
-               setExpiresAt(newExpiresAt)
-            }
+      if (!isAuthenticated) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        const response = await api.get('/auth/me')
+        if (response.data.success) {
+          const userData = response.data.user
+          setUser(userData)
+          storageService.setItem('user', userData)
+
+          if (!storageService.getItem('expiresAt')) {
+            const newExpiresAt = Date.now() + 15 * 60 * 1000
+            storageService.setItem('expiresAt', String(newExpiresAt))
+            setExpiresAt(newExpiresAt)
           }
-        } catch (error) {
-          console.error('Erro ao recuperar perfil:', error)
-          if ((error as any).response?.status === 401) {
-            logout()
-          }
-        } finally {
-          setLoading(false)
+
+          setIsAuthenticated(true)
         }
-      } else {
+      } catch (error) {
+        console.error('Erro ao recuperar perfil:', error)
+        if ((error as any).response?.status === 401) {
+          logout()
+        }
+      } finally {
         setLoading(false)
       }
     }
+
     fetchUser()
-  }, [isAuthenticated, user])
+  }, [isAuthenticated])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -119,21 +124,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.status === 200) {
         const data = response.data
-        if (data.accessToken && data.user) {
-          // O backend retorna 15m para o access_token
-          const expirationTime = 15 * 60 * 1000 
+        if (data.user) {
+          const expirationTime = 15 * 60 * 1000
           const newExpiresAt = Date.now() + expirationTime
-          
-          storageService.setItem('token', data.accessToken)
+
           storageService.setItem('user', data.user)
           storageService.setItem('expiresAt', String(newExpiresAt))
-          
+
           setExpiresAt(newExpiresAt)
           setIsAuthenticated(true)
           setUser(data.user)
           setShowSessionModal(false)
           setIsModalDismissed(false)
-          
+
           showAlert('success', 'Login realizado com sucesso!', 'Bem-vindo ao sistema.')
           return true
         }
@@ -148,7 +151,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Retorna false silenciosamente para que o Auth.tsx cuide do erro (texto vermelho nos inputs)
         return false
       } else if (error.response?.status === 429) {
-        showAlert('destructive', 'Acesso bloqueado temporariamente', 'Muitas tentativas de login. Tente novamente mais tarde.')
+        showAlert(
+          'destructive',
+          'Acesso bloqueado temporariamente',
+          'Muitas tentativas de login. Tente novamente mais tarde.'
+        )
         return false
       } else {
         showAlert('destructive', 'Erro no login', 'Verifique sua conexão e tente novamente.')
@@ -164,7 +171,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.warn('Erro ao chamar logout no backend:', err)
     }
-    storageService.removeItem('token')
     storageService.removeItem('user')
     storageService.removeItem('expiresAt')
     setIsAuthenticated(false)
@@ -173,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setShowSessionModal(false)
     setIsModalDismissed(false)
     showAlert('success', 'Sessão encerrada', 'Logout realizado com sucesso.')
-    
+
     setTimeout(() => {
       setLoggingOut(false)
     }, 1000)
@@ -183,18 +189,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.post('/auth/refresh')
       const { accessToken } = response.data
-      
+
+      const expirationTime = 15 * 60 * 1000
+      const newExpiresAt = Date.now() + expirationTime
+      storageService.setItem('expiresAt', String(newExpiresAt))
+      setExpiresAt(newExpiresAt)
+      setShowSessionModal(false)
+      setIsModalDismissed(false)
+      window.dispatchEvent(new Event('session-renewed'))
+      showAlert('success', 'Sessão renovada', 'Sua conexão permanecerá ativa.')
+
       if (accessToken) {
-        storageService.setItem('token', accessToken)
-        const expirationTime = 15 * 60 * 1000
-        const newExpiresAt = Date.now() + expirationTime
-        
-        storageService.setItem('expiresAt', String(newExpiresAt))
-        setExpiresAt(newExpiresAt)
-        setShowSessionModal(false)
-        setIsModalDismissed(false)
-        window.dispatchEvent(new Event('session-renewed'))
-        showAlert('success', 'Sessão renovada', 'Sua conexão permanecerá ativa.')
+        // O backend atualiza o cookie HttpOnly; o frontend não persiste o token.
       }
     } catch (error) {
       console.error('Erro ao renovar sessão:', error)
@@ -205,7 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout, renewSession, loading }}>
       {children}
-      <SessionTimeoutModal 
+      <SessionTimeoutModal
         isOpen={showSessionModal}
         onRenew={renewSession}
         onLogout={logout}
