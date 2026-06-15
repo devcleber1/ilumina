@@ -851,7 +851,7 @@ function LogsContent() {
                               log.userAvatar.startsWith('http') ||
                               log.userAvatar.startsWith('data:')
                                 ? log.userAvatar
-                                : `http://localhost:3001${log.userAvatar}`
+                                : `${api.defaults.baseURL || 'http://localhost:3001'}${log.userAvatar}`
                             }
                             alt={log.userName}
                             className="h-full w-full object-cover"

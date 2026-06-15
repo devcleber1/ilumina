@@ -265,7 +265,7 @@ export function AppSidebar() {
                   <div className={`h-24 w-24 rounded-full overflow-hidden border-4 ${errors.foto ? 'border-red-500' : 'border-yellow-400'} shadow-md`}>
                     {profileData.foto_perfil_url ? (
                       <img 
-                        src={profileData.foto_perfil_url.startsWith('blob') ? profileData.foto_perfil_url : `http://localhost:3001${profileData.foto_perfil_url}`} 
+                        src={profileData.foto_perfil_url.startsWith('blob') || profileData.foto_perfil_url.startsWith('http') ? profileData.foto_perfil_url : `${api.defaults.baseURL || 'http://localhost:3001'}${profileData.foto_perfil_url}`} 
                         alt="Perfil" 
                         className="h-full w-full object-cover" 
                       />
@@ -461,7 +461,7 @@ export function AppSidebar() {
                     src={
                       user.foto_perfil_url.startsWith('http')
                         ? user.foto_perfil_url
-                        : `http://localhost:3001${user.foto_perfil_url}`
+                        : `${api.defaults.baseURL || 'http://localhost:3001'}${user.foto_perfil_url}`
                     }
                     alt="Avatar"
                     className="h-full w-full object-cover"

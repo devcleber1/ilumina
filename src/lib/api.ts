@@ -1,8 +1,18 @@
 import axios from 'axios'
 import { storageService } from './storageService'
 
+const isLocalhost = Boolean(
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '[::1]' ||
+  window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
+)
+
+const DEFAULT_API_URL = isLocalhost 
+  ? 'http://localhost:3001' 
+  : 'https://back-end-ilumina-production.up.railway.app'
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  baseURL: import.meta.env.VITE_API_URL || DEFAULT_API_URL,
   withCredentials: true,
 })
 
