@@ -18,13 +18,23 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'https://ilumina-server.onrender.com',
+        target: 'https://back-end-ilumina-production.up.railway.app',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq) => {
-            proxyReq.removeHeader('origin');
-          });
+        configure: proxy => {
+          proxy.on('proxyReq', proxyReq => {
+            proxyReq.removeHeader('origin')
+          })
+        },
+      },
+      '/socket.io': {
+        target: 'https://back-end-ilumina-production.up.railway.app',
+        ws: true,
+        changeOrigin: true,
+        configure: proxy => {
+          proxy.on('proxyReq', proxyReq => {
+            proxyReq.removeHeader('origin')
+          })
         },
       },
     },
