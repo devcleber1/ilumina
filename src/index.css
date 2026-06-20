@@ -131,4 +131,8 @@
   html {
     @apply font-sans;
   }
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
 }
