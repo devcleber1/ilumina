@@ -7,8 +7,9 @@ import CryptoJS from 'crypto-js';
  * dados sensíveis e conta apenas com cookies HttpOnly. Aqui, o frontend usa como UX.
  */
 const getEncryptionKey = (): string => {
-  // Cria uma assinatura única do navegador durante esta sessão
-  const fingerprint = `${navigator.userAgent}-${navigator.language}-${screen.colorDepth}-${window.location.origin}`;
+  // Usamos propriedades de ambiente estáveis para evitar incompatibilidade
+  // de chaves e falso-positivos de decodificação no PWA do iOS (onde o userAgent do standalone difere do Safari).
+  const fingerprint = `${navigator.language}-${screen.colorDepth}-${window.location.origin}`;
   // Mistura com uma variável de ambiente (se existir) para maior entropia
   const salt = import.meta.env.VITE_STORAGE_SALT || 'ilumina-frontend-secure-salt-2026';
   return CryptoJS.SHA256(fingerprint + salt).toString();
