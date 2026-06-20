@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ilumina-cache-v2'
+const CACHE_NAME = 'ilumina-cache-v3'
 const OFFLINE_URL = '/offline.html'
 const API_PATH = '/api/'
 const ASSETS = [
