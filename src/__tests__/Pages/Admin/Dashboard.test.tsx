@@ -5,7 +5,6 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { MemoryRouter } from 'react-router-dom'
 import { api } from '../../../lib/api'
 
-
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
@@ -40,7 +39,9 @@ vi.mock('../../../Components/ui/sidebar', () => ({
 
 // Mock de recharts para não falhar nos testes sem window/canvas reais
 vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+  ResponsiveContainer: ({ children }: any) => (
+    <div data-testid="responsive-container">{children}</div>
+  ),
   BarChart: ({ children }: any) => <div data-testid="bar-chart">{children}</div>,
   Bar: () => <div data-testid="bar" />,
   XAxis: () => <div data-testid="x-axis" />,
@@ -58,7 +59,7 @@ describe('Dashboard Page Admin', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/stats/dashboard')) {
         return {
           data: {
@@ -84,9 +85,7 @@ describe('Dashboard Page Admin', () => {
                 oficina: { nome_oficina: 'Oficina de Teatro' },
               },
             ],
-            presencasPorOficina: [
-              { turma: 'Oficina de Teatro', percentual: 90 },
-            ],
+            presencasPorOficina: [{ turma: 'Oficina de Teatro', percentual: 90 }],
           },
         }
       }

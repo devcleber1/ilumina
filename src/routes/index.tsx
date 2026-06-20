@@ -21,23 +21,128 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Auth />} />
-      <Route path="/portal" element={<AuthGuard><PortalResponsavel /></AuthGuard>} />
-      <Route path="/portal-professor" element={<AuthGuard><PortalTeacher /></AuthGuard>} />
-      
+      <Route
+        path="/portal"
+        element={
+          <AuthGuard>
+            <PortalResponsavel />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/portal-professor"
+        element={
+          <AuthGuard>
+            <PortalTeacher />
+          </AuthGuard>
+        }
+      />
+
       {/* Rotas Protegidas */}
-      <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
-      <Route path="/dashboard/cadastro-pais" element={<AuthGuard><RegisterParent /></AuthGuard>} />
-      <Route path="/dashboard/cadastro-alunos" element={<AuthGuard><RegisterStudent /></AuthGuard>} />
-      <Route path="/dashboard/cadastro-professores" element={<AuthGuard><RegisterTeacher /></AuthGuard>} />
-      <Route path="/dashboard/cadastro-oficinas" element={<AuthGuard><RegisterWorkshop /></AuthGuard>} />
-      <Route path="/dashboard/oficinas" element={<AuthGuard><Workshops /></AuthGuard>} />
-      <Route path="/dashboard/presenca" element={<AuthGuard><Presenca /></AuthGuard>} />
-      <Route path="/dashboard/advertencia" element={<AuthGuard><Advertencia /></AuthGuard>} />
-      <Route path="/dashboard/editar-usuarios" element={<AuthGuard><EditUsers /></AuthGuard>} />
-      <Route path="/dashboard/reset-senha" element={<AuthGuard><ResetPassword /></AuthGuard>} />
-      <Route path="/dashboard/cadastro-admin" element={<AuthGuard><RegisterAdmin /></AuthGuard>} />
-      <Route path="/dashboard/reuniao" element={<AuthGuard><Meetings /></AuthGuard>} />
-      <Route path="/dashboard/logs" element={<AuthGuard><LogsPage /></AuthGuard>} />
+      <Route
+        path="/dashboard"
+        element={
+          <AuthGuard>
+            <Dashboard />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/cadastro-pais"
+        element={
+          <AuthGuard>
+            <RegisterParent />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/cadastro-alunos"
+        element={
+          <AuthGuard>
+            <RegisterStudent />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/cadastro-professores"
+        element={
+          <AuthGuard>
+            <RegisterTeacher />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/cadastro-oficinas"
+        element={
+          <AuthGuard>
+            <RegisterWorkshop />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/oficinas"
+        element={
+          <AuthGuard>
+            <Workshops />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/presenca"
+        element={
+          <AuthGuard>
+            <Presenca />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/advertencia"
+        element={
+          <AuthGuard>
+            <Advertencia />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/editar-usuarios"
+        element={
+          <AuthGuard>
+            <EditUsers />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/reset-senha"
+        element={
+          <AuthGuard>
+            <ResetPassword />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/cadastro-admin"
+        element={
+          <AuthGuard>
+            <RegisterAdmin />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/reuniao"
+        element={
+          <AuthGuard>
+            <Meetings />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/dashboard/logs"
+        element={
+          <AuthGuard>
+            <LogsPage />
+          </AuthGuard>
+        }
+      />
     </Routes>
   )
 }

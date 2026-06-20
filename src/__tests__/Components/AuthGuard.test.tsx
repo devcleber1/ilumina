@@ -4,7 +4,6 @@ import { AuthGuard } from '../../Components/AuthGuard'
 import { useAuth } from '../../contexts/AuthContext'
 import { MemoryRouter } from 'react-router-dom'
 
-
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))

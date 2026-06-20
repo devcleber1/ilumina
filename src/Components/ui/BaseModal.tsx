@@ -9,12 +9,20 @@ interface BaseModalProps {
   hideCloseButton?: boolean
 }
 
-export function BaseModal({ isOpen, onClose, children, className = '', hideCloseButton = false }: BaseModalProps) {
+export function BaseModal({
+  isOpen,
+  onClose,
+  children,
+  className = '',
+  hideCloseButton = false,
+}: BaseModalProps) {
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
-      <div className={`bg-white rounded-[40px] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300 relative ${className}`}>
+      <div
+        className={`bg-white rounded-[40px] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300 relative ${className}`}
+      >
         {!hideCloseButton && onClose && (
           <button
             onClick={onClose}

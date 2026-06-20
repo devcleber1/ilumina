@@ -10,7 +10,11 @@ import logo from '../../assets/logo.png'
 import kids from '../../assets/kidsL.png'
 
 const schema = yup.object({
-  email: yup.string().email('Email inválido').max(100, 'Tamanho máximo excedido').required('Email é obrigatório'),
+  email: yup
+    .string()
+    .email('Email inválido')
+    .max(100, 'Tamanho máximo excedido')
+    .required('Email é obrigatório'),
   password: yup.string().max(255, 'Tamanho máximo excedido').required('Senha é obrigatória'),
 })
 
@@ -64,12 +68,12 @@ export default function Auth() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center px-4 py-8"
+      className="flex min-h-[100dvh] items-center justify-center p-3 md:p-6"
       style={{
         background: 'linear-gradient(135deg, #FFEA01 0%, #FBC329 50%, #FBC02D 100%)',
       }}
     >
-      <div className="flex flex-col md:flex-row w-full max-w-[860px] min-h-[500px] rounded-[28px] overflow-hidden shadow-2xl">
+      <div className="flex flex-col md:flex-row w-full max-w-[860px] min-h-0 md:min-h-[500px] rounded-[24px] md:rounded-[28px] overflow-hidden shadow-2xl">
         {/* Lado esquerdo — imagem (oculta no mobile) */}
         <div className="hidden md:block md:w-[380px] flex-shrink-0">
           <img
@@ -80,23 +84,23 @@ export default function Auth() {
         </div>
 
         {/* Lado direito — formulário */}
-        <div className="flex flex-1 flex-col justify-center px-6 py-10 md:px-10 md:py-12 bg-gray-50">
-          <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-1 flex-col justify-center px-5 py-7 md:px-10 md:py-12 bg-gray-50">
+          <div className="flex flex-col items-center mb-4 md:mb-6">
             <img
               src={logo}
               alt="Logo ONG Iluminando o Futuro"
-              className="h-16 w-16 rounded-full object-cover shadow-md mb-4"
+              className="h-14 w-14 md:h-16 md:w-16 rounded-full object-cover shadow-md mb-3 md:mb-4"
               style={{ border: '3px solid #FBC329' }}
             />
-            <h2 className="font-title text-center text-[17px] font-extrabold text-gray-900">
+            <h2 className="font-title text-center text-[15px] md:text-[17px] font-extrabold text-gray-900 leading-tight">
               Bem-vindo(a) à Plataforma da ONG Iluminando o Futuro
             </h2>
-            <p className="font-body mt-1 text-center text-[13px] text-gray-400">
+            <p className="font-body mt-1 text-center text-[11px] md:text-[13px] text-gray-400">
               Faça login para acessar os recursos do sistema
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-5">
             {/* Email */}
             <div className="space-y-2">
               <FormInput
@@ -139,7 +143,7 @@ export default function Auth() {
         </div>
       </div>
 
-      <ChangePasswordModal 
+      <ChangePasswordModal
         isOpen={isChangePasswordModalOpen}
         onSuccess={() => {
           setIsChangePasswordModalOpen(false)

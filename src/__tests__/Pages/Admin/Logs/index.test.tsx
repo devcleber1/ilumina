@@ -26,7 +26,7 @@ let mockCurrentUser: any = {
   nome_completo: 'Admin Ilumina',
   tipo: 'admin',
   nivel_acesso: 'superadmin',
-  foto_perfil_url: ''
+  foto_perfil_url: '',
 }
 
 vi.mock('../../../../contexts/AuthContext', () => ({
@@ -34,15 +34,15 @@ vi.mock('../../../../contexts/AuthContext', () => ({
     user: mockCurrentUser,
     isAuthenticated: true,
     logout: mockLogout,
-    loading: false
-  })
+    loading: false,
+  }),
 }))
 
 // Mock de alertas globais
 vi.mock('../../../../contexts/AlertContext', () => ({
   useAlert: () => ({
-    showAlert: vi.fn()
-  })
+    showAlert: vi.fn(),
+  }),
 }))
 
 // Mock da API inteligente para cobrir listagem e resumo do usuário no modal
@@ -54,8 +54,8 @@ vi.mock('../../../../lib/api', () => ({
           data: {
             totalActions: 15,
             lastSeen: '2026-05-18T12:00:00.000Z',
-            mostFrequentAction: 'MARK_ATTENDANCE'
-          }
+            mostFrequentAction: 'MARK_ATTENDANCE',
+          },
         })
       }
       return Promise.resolve({
@@ -64,19 +64,19 @@ vi.mock('../../../../lib/api', () => ({
           total: 0,
           page: 1,
           limit: 20,
-          totalPages: 1
-        }
+          totalPages: 1,
+        },
       })
     }),
     defaults: {
-      baseURL: 'http://localhost:3001'
-    }
-  }
+      baseURL: 'http://localhost:3001',
+    },
+  },
 }))
 
 // Mock da Sidebar do Layout do Admin (AppSidebar)
 vi.mock('../../../../Components/AppSidebar', () => ({
-  AppSidebar: () => <div data-testid="app-sidebar">Sidebar Mock</div>
+  AppSidebar: () => <div data-testid="app-sidebar">Sidebar Mock</div>,
 }))
 
 const mockLogsData = [
@@ -92,7 +92,7 @@ const mockLogsData = [
     status: 'success',
     ip: '192.168.1.xxx',
     userAgent: 'Mozilla/5.0 Chrome/120.0',
-    createdAt: '2026-05-18T12:00:00.000Z'
+    createdAt: '2026-05-18T12:00:00.000Z',
   },
   {
     _id: 'log-2',
@@ -106,8 +106,8 @@ const mockLogsData = [
     status: 'success',
     ip: '10.0.0.xxx',
     userAgent: 'Mozilla/5.0 Safari/17.0',
-    createdAt: '2026-05-18T12:15:00.000Z'
-  }
+    createdAt: '2026-05-18T12:15:00.000Z',
+  },
 ]
 
 describe('Logs Page (Frontend)', () => {
@@ -119,7 +119,7 @@ describe('Logs Page (Frontend)', () => {
       nome_completo: 'Admin Ilumina',
       tipo: 'admin',
       nivel_acesso: 'superadmin',
-      foto_perfil_url: ''
+      foto_perfil_url: '',
     }
   })
 
@@ -137,7 +137,7 @@ describe('Logs Page (Frontend)', () => {
 
   it('deve renderizar a página normalmente para usuários admins', async () => {
     mockCurrentUser.tipo = 'admin'
-    
+
     await act(async () => {
       renderComponent()
     })
@@ -149,14 +149,18 @@ describe('Logs Page (Frontend)', () => {
   it('deve exibir skeletons na tabela durante o carregamento de logs', async () => {
     // Mantém a requisição de API em suspenso para simular carregamento perpétuo
     let resolveApi: any
-    const apiPromise = new Promise((resolve) => {
+    const apiPromise = new Promise(resolve => {
       resolveApi = resolve
     })
-    
+
     vi.mocked(api.get).mockImplementationOnce((url: string) => {
       if (url.includes('/logs/user/')) {
         return Promise.resolve({
-          data: { totalActions: 5, lastSeen: '2026-05-18T12:00:00.000Z', mostFrequentAction: 'LOGIN' }
+          data: {
+            totalActions: 5,
+            lastSeen: '2026-05-18T12:00:00.000Z',
+            mostFrequentAction: 'LOGIN',
+          },
         })
       }
       return apiPromise as any
@@ -173,7 +177,7 @@ describe('Logs Page (Frontend)', () => {
     // Resolve a API para evitar leaks nos testes
     await act(async () => {
       resolveApi({
-        data: { data: [], total: 0, page: 1, limit: 20, totalPages: 1 }
+        data: { data: [], total: 0, page: 1, limit: 20, totalPages: 1 },
       })
     })
   })
@@ -182,7 +186,11 @@ describe('Logs Page (Frontend)', () => {
     vi.mocked(api.get).mockImplementationOnce((url: string) => {
       if (url.includes('/logs/user/')) {
         return Promise.resolve({
-          data: { totalActions: 5, lastSeen: '2026-05-18T12:00:00.000Z', mostFrequentAction: 'LOGIN' }
+          data: {
+            totalActions: 5,
+            lastSeen: '2026-05-18T12:00:00.000Z',
+            mostFrequentAction: 'LOGIN',
+          },
         })
       }
       return Promise.resolve({
@@ -191,8 +199,8 @@ describe('Logs Page (Frontend)', () => {
           total: 2,
           page: 1,
           limit: 20,
-          totalPages: 1
-        }
+          totalPages: 1,
+        },
       }) as any
     })
 
@@ -223,8 +231,8 @@ describe('Logs Page (Frontend)', () => {
           data: {
             totalActions: 15,
             lastSeen: '2026-05-18T12:00:00.000Z',
-            mostFrequentAction: 'MARK_ATTENDANCE'
-          }
+            mostFrequentAction: 'MARK_ATTENDANCE',
+          },
         })
       }
       return Promise.resolve({
@@ -233,8 +241,8 @@ describe('Logs Page (Frontend)', () => {
           total: 2,
           page: 1,
           limit: 20,
-          totalPages: 1
-        }
+          totalPages: 1,
+        },
       }) as any
     })
 
@@ -259,7 +267,7 @@ describe('Logs Page (Frontend)', () => {
     })
 
     const searchInput = screen.getByPlaceholderText('Nome do usuário ou descrição...')
-    
+
     await act(async () => {
       fireEvent.change(searchInput, { target: { value: 'Cleber' } })
     })

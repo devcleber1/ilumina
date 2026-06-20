@@ -6,7 +6,6 @@ import { AlertProvider } from '../../../contexts/AlertContext'
 import { MemoryRouter } from 'react-router-dom'
 import { api } from '../../../lib/api'
 
-
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
@@ -42,9 +41,18 @@ describe('EditUsers Page Admin', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/admins/find')) {
-        return { data: [{ id: 2, nome_completo: 'Outro Admin', email: 'outro@admin.com', nivel_acesso: 'admin' }] }
+        return {
+          data: [
+            {
+              id: 2,
+              nome_completo: 'Outro Admin',
+              email: 'outro@admin.com',
+              nivel_acesso: 'admin',
+            },
+          ],
+        }
       }
       return { data: [] }
     })

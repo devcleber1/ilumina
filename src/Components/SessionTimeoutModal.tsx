@@ -10,7 +10,13 @@ interface SessionTimeoutModalProps {
   expiresInSeconds: number
 }
 
-export function SessionTimeoutModal({ isOpen, onRenew, onLogout, onClose, expiresInSeconds }: SessionTimeoutModalProps) {
+export function SessionTimeoutModal({
+  isOpen,
+  onRenew,
+  onLogout,
+  onClose,
+  expiresInSeconds,
+}: SessionTimeoutModalProps) {
   const [timeLeft, setTimeLeft] = useState(expiresInSeconds)
   const [isRenewing, setIsRenewing] = useState(false)
 
@@ -49,50 +55,60 @@ export function SessionTimeoutModal({ isOpen, onRenew, onLogout, onClose, expire
   }
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} className="w-full max-w-md p-8 bg-white rounded-[32px]">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="w-full max-w-md p-8 bg-white rounded-[32px]"
+    >
       <div className="flex flex-col items-center text-center">
-          <div className="bg-yellow-50 p-4 rounded-3xl mb-6 relative">
-             <Clock className="h-10 w-10 text-yellow-500 animate-pulse" />
-             <div className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full border-2 border-white">
-                <ShieldAlert className="h-4 w-4" />
-             </div>
-          </div>
-          
-          <h2 className="font-title text-2xl font-black text-gray-900 mb-2">Sua sessão vai expirar!</h2>
-          <p className="font-body text-sm text-gray-500 mb-8 px-4">
-            Por segurança, sua conexão será encerrada em breve. Deseja continuar logado no sistema?
-          </p>
-
-          <div className="bg-gray-50 w-full py-4 rounded-2xl mb-8 flex flex-col items-center">
-             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Tempo restante</span>
-             <span className={`font-title text-3xl font-black tabular-nums ${timeLeft < 30 ? 'text-red-500 animate-pulse' : 'text-gray-900'}`}>
-                {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
-             </span>
-          </div>
-
-          <div className="flex flex-col w-full gap-3">
-             <button
-              onClick={handleRenew}
-              disabled={isRenewing}
-              className="w-full flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold py-4 rounded-2xl transition-all shadow-lg shadow-yellow-100 cursor-pointer disabled:opacity-50"
-             >
-               {isRenewing ? (
-                 <RefreshCw className="h-5 w-5 animate-spin" />
-               ) : (
-                 <RefreshCw className="h-5 w-5" />
-               )}
-               Permanecer Logado
-             </button>
-             
-             <button
-              onClick={onLogout}
-              className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-400 font-semibold py-3 rounded-2xl transition-all cursor-pointer"
-             >
-               <LogOut className="h-4 w-4" />
-               Sair agora
-             </button>
+        <div className="bg-yellow-50 p-4 rounded-3xl mb-6 relative">
+          <Clock className="h-10 w-10 text-yellow-500 animate-pulse" />
+          <div className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full border-2 border-white">
+            <ShieldAlert className="h-4 w-4" />
           </div>
         </div>
+
+        <h2 className="font-title text-2xl font-black text-gray-900 mb-2">
+          Sua sessão vai expirar!
+        </h2>
+        <p className="font-body text-sm text-gray-500 mb-8 px-4">
+          Por segurança, sua conexão será encerrada em breve. Deseja continuar logado no sistema?
+        </p>
+
+        <div className="bg-gray-50 w-full py-4 rounded-2xl mb-8 flex flex-col items-center">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+            Tempo restante
+          </span>
+          <span
+            className={`font-title text-3xl font-black tabular-nums ${timeLeft < 30 ? 'text-red-500 animate-pulse' : 'text-gray-900'}`}
+          >
+            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+          </span>
+        </div>
+
+        <div className="flex flex-col w-full gap-3">
+          <button
+            onClick={handleRenew}
+            disabled={isRenewing}
+            className="w-full flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold py-4 rounded-2xl transition-all shadow-lg shadow-yellow-100 cursor-pointer disabled:opacity-50"
+          >
+            {isRenewing ? (
+              <RefreshCw className="h-5 w-5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-5 w-5" />
+            )}
+            Permanecer Logado
+          </button>
+
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-400 font-semibold py-3 rounded-2xl transition-all cursor-pointer"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair agora
+          </button>
+        </div>
+      </div>
     </BaseModal>
   )
 }

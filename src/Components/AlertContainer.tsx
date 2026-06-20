@@ -10,12 +10,13 @@ export function AlertContainer() {
   return (
     <div className="fixed top-4 right-4 z-50 space-y-3 max-w-sm">
       {alerts.map(alert => {
-        const Icon = {
-          success: CheckCircle,
-          warning: AlertTriangle,
-          destructive: XCircle,
-          info: Info,
-        }[alert.type] || Info
+        const Icon =
+          {
+            success: CheckCircle,
+            warning: AlertTriangle,
+            destructive: XCircle,
+            info: Info,
+          }[alert.type] || Info
 
         return (
           <Alert

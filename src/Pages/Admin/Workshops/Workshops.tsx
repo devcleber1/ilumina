@@ -14,7 +14,7 @@ import {
   Calendar,
   X,
   UserPlus,
-  GraduationCap
+  GraduationCap,
 } from 'lucide-react'
 
 interface Professor {
@@ -22,7 +22,6 @@ interface Professor {
   nome_completo: string
   formacao?: string
 }
-
 
 interface Aluno {
   id: number
@@ -124,7 +123,7 @@ function WorkshopsContent() {
     try {
       const resAlunos = await api.get('/alunos/find')
       setAllStudents(resAlunos.data || [])
-      
+
       const resVinculados = await api.get(`/oficinas/${workshop.id}/alunos`)
       const idsVinculados = (resVinculados.data?.data || []).map((a: any) => a.id)
       setLinkedStudentIds(idsVinculados)
@@ -144,7 +143,7 @@ function WorkshopsContent() {
   const toggleStudentLink = async (alunoId: number) => {
     if (!workshopToLink) return
     const isLinked = linkedStudentIds.includes(alunoId)
-    
+
     try {
       if (isLinked) {
         await api.delete(`/alunos/${alunoId}/desvincular-oficina/${workshopToLink.id}`)
@@ -167,9 +166,11 @@ function WorkshopsContent() {
     try {
       const resProfs = await api.get('/professores/find')
       setAllProfs(resProfs.data || [])
-      
+
       const resVinculados = await api.get(`/oficinas/${workshop.id}/professores`)
-      const idsVinculados = (resVinculados.data?.data || []).map((p: any) => p.professor?.id || p.professor_id)
+      const idsVinculados = (resVinculados.data?.data || []).map(
+        (p: any) => p.professor?.id || p.professor_id
+      )
       setLinkedProfIds(idsVinculados)
     } catch (error) {
       console.error('Erro ao buscar dados de professores', error)
@@ -182,13 +183,15 @@ function WorkshopsContent() {
   const toggleProfLink = async (profId: number) => {
     if (!workshopToLinkProf) return
     const isLinked = linkedProfIds.includes(profId)
-    
+
     try {
       if (isLinked) {
         await api.delete(`/oficinas/${workshopToLinkProf.id}/desvincular-professor/${profId}`)
         setLinkedProfIds(prev => prev.filter(id => id !== profId))
       } else {
-        await api.post(`/oficinas/${workshopToLinkProf.id}/vincular-professor`, { professor_id: profId })
+        await api.post(`/oficinas/${workshopToLinkProf.id}/vincular-professor`, {
+          professor_id: profId,
+        })
         setLinkedProfIds(prev => [...prev, profId])
       }
     } catch (error: any) {
@@ -206,7 +209,11 @@ function WorkshopsContent() {
     const schema = yup.object().shape({
       nome_oficina: yup.string().required('Nome da oficina é obrigatório'),
       descricao: yup.string().required('Descrição é obrigatória'),
-      capacidade_maxima: yup.number().typeError('Deve ser um número').min(1, 'Mínimo 1 vaga').required('Capacidade é obrigatória'),
+      capacidade_maxima: yup
+        .number()
+        .typeError('Deve ser um número')
+        .min(1, 'Mínimo 1 vaga')
+        .required('Capacidade é obrigatória'),
       horario_inicio: yup.string().required('Horário de início é obrigatório'),
       horario_fim: yup.string().required('Horário de fim é obrigatório'),
       status_oficina: yup.string().oneOf(['ativa', 'inativa']).required(),
@@ -218,7 +225,7 @@ function WorkshopsContent() {
     } catch (err) {
       const newErrors: Record<string, string> = {}
       if (err instanceof yup.ValidationError) {
-        err.inner.forEach((e) => {
+        err.inner.forEach(e => {
           if (e.path) newErrors[e.path] = e.message
         })
       }
@@ -306,11 +313,12 @@ function WorkshopsContent() {
                     <div className="p-3 rounded-2xl bg-yellow-50 text-yellow-500">
                       <Wrench className="h-6 w-6" />
                     </div>
-                    {workshop.inscricoes_alunos && workshop.inscricoes_alunos.length >= workshop.capacidade_maxima && (
-                      <span className="text-[9px] font-black tracking-wider bg-red-100 text-red-600 px-2.5 py-1 rounded-lg uppercase">
-                        Cheia
-                      </span>
-                    )}
+                    {workshop.inscricoes_alunos &&
+                      workshop.inscricoes_alunos.length >= workshop.capacidade_maxima && (
+                        <span className="text-[9px] font-black tracking-wider bg-red-100 text-red-600 px-2.5 py-1 rounded-lg uppercase">
+                          Cheia
+                        </span>
+                      )}
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
                     <button
@@ -366,7 +374,8 @@ function WorkshopsContent() {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <UsersIcon className="h-3.5 w-3.5 text-yellow-500" />
-                    Alunos inscritos: {workshop.inscricoes_alunos?.length || 0} / {workshop.capacidade_maxima}
+                    Alunos inscritos: {workshop.inscricoes_alunos?.length || 0} /{' '}
+                    {workshop.capacidade_maxima}
                   </div>
                 </div>
               </div>
@@ -386,7 +395,9 @@ function WorkshopsContent() {
                 </div>
                 <div>
                   <h2 className="font-title text-xl font-bold text-gray-900">Editar Oficina</h2>
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Ajuste os dados da atividade</p>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                    Ajuste os dados da atividade
+                  </p>
                 </div>
               </div>
               <button
@@ -399,7 +410,9 @@ function WorkshopsContent() {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Nome da Oficina</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                  Nome da Oficina
+                </label>
                 <input
                   type="text"
                   placeholder="Obrigatório"
@@ -410,11 +423,17 @@ function WorkshopsContent() {
                     setErrors(prev => ({ ...prev, nome_oficina: '' }))
                   }}
                 />
-                {errors.nome_oficina && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.nome_oficina}</span>}
+                {errors.nome_oficina && (
+                  <span className="text-xs text-red-500 font-medium mt-1 block">
+                    {errors.nome_oficina}
+                  </span>
+                )}
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Descrição</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                  Descrição
+                </label>
                 <textarea
                   rows={3}
                   placeholder="Obrigatório"
@@ -425,12 +444,18 @@ function WorkshopsContent() {
                     setErrors(prev => ({ ...prev, descricao: '' }))
                   }}
                 />
-                {errors.descricao && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.descricao}</span>}
+                {errors.descricao && (
+                  <span className="text-xs text-red-500 font-medium mt-1 block">
+                    {errors.descricao}
+                  </span>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Capacidade Máxima</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                    Capacidade Máxima
+                  </label>
                   <input
                     type="number"
                     placeholder="Ex: 20"
@@ -441,27 +466,42 @@ function WorkshopsContent() {
                       setErrors(prev => ({ ...prev, capacidade_maxima: '' }))
                     }}
                   />
-                  {errors.capacidade_maxima && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.capacidade_maxima}</span>}
+                  {errors.capacidade_maxima && (
+                    <span className="text-xs text-red-500 font-medium mt-1 block">
+                      {errors.capacidade_maxima}
+                    </span>
+                  )}
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Status</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                    Status
+                  </label>
                   <select
                     className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.status_oficina ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
                     value={editData.status_oficina || 'ativa'}
                     onChange={e => {
-                      setEditData({ ...editData, status_oficina: e.target.value as 'ativa' | 'inativa' })
+                      setEditData({
+                        ...editData,
+                        status_oficina: e.target.value as 'ativa' | 'inativa',
+                      })
                       setErrors(prev => ({ ...prev, status_oficina: '' }))
                     }}
                   >
                     <option value="ativa">Ativa</option>
                     <option value="inativa">Inativa</option>
                   </select>
-                  {errors.status_oficina && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.status_oficina}</span>}
+                  {errors.status_oficina && (
+                    <span className="text-xs text-red-500 font-medium mt-1 block">
+                      {errors.status_oficina}
+                    </span>
+                  )}
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Horário Início</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                    Horário Início
+                  </label>
                   <input
                     type="time"
                     className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.horario_inicio ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
@@ -471,11 +511,17 @@ function WorkshopsContent() {
                       setErrors(prev => ({ ...prev, horario_inicio: '' }))
                     }}
                   />
-                  {errors.horario_inicio && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.horario_inicio}</span>}
+                  {errors.horario_inicio && (
+                    <span className="text-xs text-red-500 font-medium mt-1 block">
+                      {errors.horario_inicio}
+                    </span>
+                  )}
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Horário Fim</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                    Horário Fim
+                  </label>
                   <input
                     type="time"
                     className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.horario_fim ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200 focus:border-yellow-500 focus:ring-yellow-500'}`}
@@ -485,13 +531,21 @@ function WorkshopsContent() {
                       setErrors(prev => ({ ...prev, horario_fim: '' }))
                     }}
                   />
-                  {errors.horario_fim && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.horario_fim}</span>}
+                  {errors.horario_fim && (
+                    <span className="text-xs text-red-500 font-medium mt-1 block">
+                      {errors.horario_fim}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">Dias da Semana</label>
-                <div className={`flex flex-wrap gap-2 p-3 rounded-xl border ${errors.dias_semana ? 'border-red-500 bg-red-50/20' : 'border-gray-200 bg-gray-50'}`}>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">
+                  Dias da Semana
+                </label>
+                <div
+                  className={`flex flex-wrap gap-2 p-3 rounded-xl border ${errors.dias_semana ? 'border-red-500 bg-red-50/20' : 'border-gray-200 bg-gray-50'}`}
+                >
                   {daysOfWeek.map(day => {
                     const isSelected = editData.dias_semana?.split(',').includes(day)
                     return (
@@ -510,7 +564,11 @@ function WorkshopsContent() {
                     )
                   })}
                 </div>
-                {errors.dias_semana && <span className="text-xs text-red-500 font-medium mt-1 block">{errors.dias_semana}</span>}
+                {errors.dias_semana && (
+                  <span className="text-xs text-red-500 font-medium mt-1 block">
+                    {errors.dias_semana}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -571,7 +629,8 @@ function WorkshopsContent() {
             </div>
             <h3 className="font-title text-lg font-bold text-gray-900 mb-2">Excluir Oficina</h3>
             <p className="text-sm text-gray-500 mb-6">
-              Tem certeza que deseja excluir a oficina <strong>{workshopToDelete.nome_oficina}</strong>? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir a oficina{' '}
+              <strong>{workshopToDelete.nome_oficina}</strong>? Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-3 w-full">
               <button
@@ -603,7 +662,9 @@ function WorkshopsContent() {
                 <div>
                   <h2 className="font-title text-xl font-bold text-gray-900">Vincular Alunos</h2>
                   <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{workshopToLink.nome_oficina}</p>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                      {workshopToLink.nome_oficina}
+                    </p>
                     <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-gray-100 text-gray-600">
                       {linkedStudentIds.length} / {workshopToLink.capacidade_maxima} Vagas
                     </span>
@@ -641,30 +702,48 @@ function WorkshopsContent() {
                     <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" />
                   </div>
                 ) : allStudents.length === 0 ? (
-                  <div className="text-center p-8 text-sm text-gray-500">Nenhum aluno cadastrado no sistema.</div>
+                  <div className="text-center p-8 text-sm text-gray-500">
+                    Nenhum aluno cadastrado no sistema.
+                  </div>
                 ) : (
                   allStudents
-                    .filter(a => a.nome_completo.toLowerCase().includes(studentSearch.toLowerCase()))
+                    .filter(a =>
+                      a.nome_completo.toLowerCase().includes(studentSearch.toLowerCase())
+                    )
                     .map(aluno => {
                       const isLinked = linkedStudentIds.includes(aluno.id)
                       return (
-                        <div key={aluno.id} className={`flex items-center justify-between p-4 rounded-xl border transition ${isLinked ? 'border-blue-200 bg-blue-50/50' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
+                        <div
+                          key={aluno.id}
+                          className={`flex items-center justify-between p-4 rounded-xl border transition ${isLinked ? 'border-blue-200 bg-blue-50/50' : 'border-gray-100 bg-white hover:border-gray-200'}`}
+                        >
                           <div>
                             <p className="font-bold text-sm text-gray-900">{aluno.nome_completo}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">{aluno.numero_matricula ? `Matrícula: ${aluno.numero_matricula}` : 'Sem matrícula'}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {aluno.numero_matricula
+                                ? `Matrícula: ${aluno.numero_matricula}`
+                                : 'Sem matrícula'}
+                            </p>
                           </div>
                           <button
                             onClick={() => toggleStudentLink(aluno.id)}
-                            disabled={!isLinked && linkedStudentIds.length >= workshopToLink.capacidade_maxima}
+                            disabled={
+                              !isLinked &&
+                              linkedStudentIds.length >= workshopToLink.capacidade_maxima
+                            }
                             className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
-                              isLinked 
-                                ? 'bg-red-100 text-red-600 hover:bg-red-200 cursor-pointer' 
+                              isLinked
+                                ? 'bg-red-100 text-red-600 hover:bg-red-200 cursor-pointer'
                                 : linkedStudentIds.length >= workshopToLink.capacidade_maxima
                                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                   : 'bg-blue-100 text-blue-600 hover:bg-blue-200 cursor-pointer'
                             }`}
                           >
-                            {isLinked ? 'Remover' : linkedStudentIds.length >= workshopToLink.capacidade_maxima ? 'Sem Vagas' : 'Adicionar'}
+                            {isLinked
+                              ? 'Remover'
+                              : linkedStudentIds.length >= workshopToLink.capacidade_maxima
+                                ? 'Sem Vagas'
+                                : 'Adicionar'}
                           </button>
                         </div>
                       )
@@ -695,8 +774,12 @@ function WorkshopsContent() {
                   <GraduationCap className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="font-title text-xl font-bold text-gray-900">Vincular Professores</h2>
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{workshopToLinkProf.nome_oficina}</p>
+                  <h2 className="font-title text-xl font-bold text-gray-900">
+                    Vincular Professores
+                  </h2>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                    {workshopToLinkProf.nome_oficina}
+                  </p>
                 </div>
               </div>
               <button
@@ -725,17 +808,24 @@ function WorkshopsContent() {
                     <div className="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full" />
                   </div>
                 ) : allProfs.length === 0 ? (
-                  <div className="text-center p-8 text-sm text-gray-500">Nenhum professor cadastrado no sistema.</div>
+                  <div className="text-center p-8 text-sm text-gray-500">
+                    Nenhum professor cadastrado no sistema.
+                  </div>
                 ) : (
                   allProfs
                     .filter(p => p.nome_completo.toLowerCase().includes(profSearch.toLowerCase()))
                     .map(prof => {
                       const isLinked = linkedProfIds.includes(prof.id)
                       return (
-                        <div key={prof.id} className={`flex items-center justify-between p-4 rounded-xl border transition ${isLinked ? 'border-green-200 bg-green-50/50' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
+                        <div
+                          key={prof.id}
+                          className={`flex items-center justify-between p-4 rounded-xl border transition ${isLinked ? 'border-green-200 bg-green-50/50' : 'border-gray-100 bg-white hover:border-gray-200'}`}
+                        >
                           <div>
                             <p className="font-bold text-sm text-gray-900">{prof.nome_completo}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">{prof.formacao ? `Formação: ${prof.formacao}` : 'Cargo: Professor(a)'}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {prof.formacao ? `Formação: ${prof.formacao}` : 'Cargo: Professor(a)'}
+                            </p>
                           </div>
                           <button
                             onClick={() => toggleProfLink(prof.id)}

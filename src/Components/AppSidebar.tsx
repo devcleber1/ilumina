@@ -13,7 +13,7 @@ import {
   User as UserIcon,
   X,
   Save,
-  Camera
+  Camera,
 } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
@@ -98,7 +98,7 @@ export function AppSidebar() {
     email: '',
     senha: '',
     confirmarSenha: '',
-    foto_perfil_url: ''
+    foto_perfil_url: '',
   })
   const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -114,7 +114,7 @@ export function AppSidebar() {
       email: user?.email || '',
       senha: '',
       confirmarSenha: '',
-      foto_perfil_url: user?.foto_perfil_url || ''
+      foto_perfil_url: user?.foto_perfil_url || '',
     })
     setNewPhotoFile(null)
     setErrors({})
@@ -129,8 +129,16 @@ export function AppSidebar() {
       const schema = yup.object().shape({
         nome_completo: yup.string().required('Nome completo é obrigatório'),
         email: yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
-        senha: yup.string().transform(v => v === '' ? null : v).nullable().min(6, 'A senha deve ter pelo menos 6 caracteres'),
-        confirmarSenha: yup.string().transform(v => v === '' ? null : v).nullable().oneOf([yup.ref('senha'), null], 'As senhas não coincidem')
+        senha: yup
+          .string()
+          .transform(v => (v === '' ? null : v))
+          .nullable()
+          .min(6, 'A senha deve ter pelo menos 6 caracteres'),
+        confirmarSenha: yup
+          .string()
+          .transform(v => (v === '' ? null : v))
+          .nullable()
+          .oneOf([yup.ref('senha'), null], 'As senhas não coincidem'),
       })
 
       await schema.validate(profileData, { abortEarly: false })
@@ -146,15 +154,21 @@ export function AppSidebar() {
       }
 
       await api.put(`/admins/update/${user?.id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
 
-      showAlert('success', 'Sucesso', 'Perfil atualizado com sucesso! Faça login novamente para ver as alterações se necessário.')
+      showAlert(
+        'success',
+        'Sucesso',
+        'Perfil atualizado com sucesso! Faça login novamente para ver as alterações se necessário.'
+      )
       setIsProfileModalOpen(false)
     } catch (err) {
       if (err instanceof yup.ValidationError) {
         const newErrors: Record<string, string> = {}
-        err.inner.forEach(e => { if (e.path) newErrors[e.path] = e.message })
+        err.inner.forEach(e => {
+          if (e.path) newErrors[e.path] = e.message
+        })
         setErrors(newErrors)
       } else {
         console.error('Erro ao atualizar perfil:', err)
@@ -205,8 +219,12 @@ export function AppSidebar() {
             <ChevronDown className="h-4 w-4 text-gray-400" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" align="end" className="w-48 p-2 rounded-xl shadow-xl border-none animate-in fade-in zoom-in-95 duration-200 bg-[#FFD700]">
-          <DropdownMenuItem 
+        <DropdownMenuContent
+          side="right"
+          align="end"
+          className="w-48 p-2 rounded-xl shadow-xl border-none animate-in fade-in zoom-in-95 duration-200 bg-[#FFD700]"
+        >
+          <DropdownMenuItem
             onClick={handleOpenProfileModal}
             className="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-gray-900 hover:bg-[#FBC329] hover:text-white focus:bg-[#FBC329] focus:text-white outline-none transition-colors"
           >
@@ -262,12 +280,19 @@ export function AppSidebar() {
             <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative group">
-                  <div className={`h-24 w-24 rounded-full overflow-hidden border-4 ${errors.foto ? 'border-red-500' : 'border-yellow-400'} shadow-md`}>
+                  <div
+                    className={`h-24 w-24 rounded-full overflow-hidden border-4 ${errors.foto ? 'border-red-500' : 'border-yellow-400'} shadow-md`}
+                  >
                     {profileData.foto_perfil_url ? (
-                      <img 
-                        src={profileData.foto_perfil_url.startsWith('blob') || profileData.foto_perfil_url.startsWith('http') ? profileData.foto_perfil_url : `${api.defaults.baseURL || 'http://localhost:3001'}${profileData.foto_perfil_url}`} 
-                        alt="Perfil" 
-                        className="h-full w-full object-cover" 
+                      <img
+                        src={
+                          profileData.foto_perfil_url.startsWith('blob') ||
+                          profileData.foto_perfil_url.startsWith('http')
+                            ? profileData.foto_perfil_url
+                            : `${api.defaults.baseURL || 'http://localhost:3001'}${profileData.foto_perfil_url}`
+                        }
+                        alt="Perfil"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
                       <div className="h-full w-full bg-gray-100 flex items-center justify-center text-gray-400">
@@ -277,68 +302,101 @@ export function AppSidebar() {
                   </div>
                   <label className="absolute bottom-0 right-0 p-1.5 bg-yellow-400 rounded-full shadow-lg cursor-pointer hover:scale-110 transition border-2 border-white">
                     <Camera className="h-4 w-4 text-gray-900" />
-                    <input 
-                      type="file" 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      className="hidden"
                       accept="image/*"
-                      onChange={(e) => {
+                      onChange={e => {
                         const file = e.target.files?.[0]
                         if (file) {
                           setNewPhotoFile(file)
-                          setProfileData({ ...profileData, foto_perfil_url: URL.createObjectURL(file) })
+                          setProfileData({
+                            ...profileData,
+                            foto_perfil_url: URL.createObjectURL(file),
+                          })
                         }
                       }}
                     />
                   </label>
                 </div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Alterar Foto</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  Alterar Foto
+                </span>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Nome Completo</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                    Nome Completo
+                  </label>
                   <input
                     type="text"
                     className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.nome_completo ? 'border-red-500' : 'border-gray-200 focus:border-yellow-400'}`}
                     value={profileData.nome_completo}
-                    onChange={(e) => setProfileData({ ...profileData, nome_completo: e.target.value })}
+                    onChange={e =>
+                      setProfileData({ ...profileData, nome_completo: e.target.value })
+                    }
                   />
-                  {errors.nome_completo && <span className="text-[10px] text-red-500 font-bold mt-1 block">{errors.nome_completo}</span>}
+                  {errors.nome_completo && (
+                    <span className="text-[10px] text-red-500 font-bold mt-1 block">
+                      {errors.nome_completo}
+                    </span>
+                  )}
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">E-mail</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                    E-mail
+                  </label>
                   <input
                     type="email"
                     className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.email ? 'border-red-500' : 'border-gray-200 focus:border-yellow-400'}`}
                     value={profileData.email}
-                    onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                    onChange={e => setProfileData({ ...profileData, email: e.target.value })}
                   />
-                  {errors.email && <span className="text-[10px] text-red-500 font-bold mt-1 block">{errors.email}</span>}
+                  {errors.email && (
+                    <span className="text-[10px] text-red-500 font-bold mt-1 block">
+                      {errors.email}
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Nova Senha</label>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                      Nova Senha
+                    </label>
                     <input
                       type="password"
                       placeholder="Opcional"
                       className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.senha ? 'border-red-500' : 'border-gray-200 focus:border-yellow-400'}`}
                       value={profileData.senha}
-                      onChange={(e) => setProfileData({ ...profileData, senha: e.target.value })}
+                      onChange={e => setProfileData({ ...profileData, senha: e.target.value })}
                     />
-                    {errors.senha && <span className="text-[10px] text-red-500 font-bold mt-1 block">{errors.senha}</span>}
+                    {errors.senha && (
+                      <span className="text-[10px] text-red-500 font-bold mt-1 block">
+                        {errors.senha}
+                      </span>
+                    )}
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Confirmar</label>
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                      Confirmar
+                    </label>
                     <input
                       type="password"
                       placeholder="Opcional"
                       className={`w-full bg-gray-50 p-3 rounded-xl text-sm font-medium text-gray-900 border outline-none focus:ring-1 transition ${errors.confirmarSenha ? 'border-red-500' : 'border-gray-200 focus:border-yellow-400'}`}
                       value={profileData.confirmarSenha}
-                      onChange={(e) => setProfileData({ ...profileData, confirmarSenha: e.target.value })}
+                      onChange={e =>
+                        setProfileData({ ...profileData, confirmarSenha: e.target.value })
+                      }
                     />
-                    {errors.confirmarSenha && <span className="text-[10px] text-red-500 font-bold mt-1 block">{errors.confirmarSenha}</span>}
+                    {errors.confirmarSenha && (
+                      <span className="text-[10px] text-red-500 font-bold mt-1 block">
+                        {errors.confirmarSenha}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

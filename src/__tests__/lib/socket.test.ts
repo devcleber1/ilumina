@@ -22,11 +22,14 @@ describe('socket client utility', () => {
 
   it('deve retornar uma conexao Socket com transports websocket e polling', () => {
     const socket = getSocket()
-    expect(io).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
-      transports: ['websocket', 'polling'],
-      autoConnect: true,
-      reconnection: true,
-    }))
+    expect(io).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        transports: ['websocket', 'polling'],
+        autoConnect: true,
+        reconnection: true,
+      })
+    )
     expect(socket).toBeDefined()
   })
 })

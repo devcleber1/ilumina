@@ -41,7 +41,7 @@ describe('Workshops Page', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/oficinas/find')) {
         return {
           data: [

@@ -527,11 +527,7 @@ function EditUsersContent() {
                 </div>
 
                 <div className="flex flex-col items-center mb-4">
-                  <UserAvatar
-                    src={user.photo}
-                    name={user.name}
-                    className="h-16 w-16 mb-3"
-                  />
+                  <UserAvatar src={user.photo} name={user.name} className="h-16 w-16 mb-3" />
                   <h3 className="font-title text-center text-sm font-bold text-gray-900 line-clamp-1">
                     {user.name}
                   </h3>

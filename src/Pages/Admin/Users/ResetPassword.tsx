@@ -9,7 +9,7 @@ import {
   Briefcase,
   User as UserIcon,
   RotateCcw,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react'
 import { api } from '../../../lib/api'
 import { useAlert } from '../../../contexts/AlertContext'
@@ -62,7 +62,7 @@ function ResetPasswordContent() {
       const [resAdmins, resProfs, resPais] = await Promise.all([
         api.get('/admins/find').catch(() => ({ data: [] })),
         api.get('/professores/find').catch(() => ({ data: [] })),
-        api.get('/pais/find').catch(() => ({ data: [] }))
+        api.get('/pais/find').catch(() => ({ data: [] })),
       ])
 
       const admins: BaseUser[] = (resAdmins.data || []).map((u: any) => ({
@@ -71,7 +71,7 @@ function ResetPasswordContent() {
         name: u.nome_completo || 'Admin Sem Nome',
         email: u.email,
         photo: u.foto_perfil_url,
-        raw: u
+        raw: u,
       }))
 
       const profs: BaseUser[] = (resProfs.data || []).map((u: any) => ({
@@ -81,7 +81,7 @@ function ResetPasswordContent() {
         email: u.email,
         birthDate: formatDateBr(u.data_nascimento),
         photo: u.foto_perfil_url,
-        raw: u
+        raw: u,
       }))
 
       const pais: BaseUser[] = (resPais.data || []).map((u: any) => ({
@@ -91,7 +91,7 @@ function ResetPasswordContent() {
         email: u.email,
         birthDate: formatDateBr(u.data_nascimento),
         photo: u.foto_perfil_url,
-        raw: u
+        raw: u,
       }))
 
       const allUsers = [...admins, ...profs, ...pais].filter(u => u.role !== 'aluno')
@@ -109,7 +109,7 @@ function ResetPasswordContent() {
 
     try {
       let defaultPassword = ''
-      
+
       if (userToReset.birthDate) {
         // Remove barras para padrão ddmmyyyy
         defaultPassword = userToReset.birthDate.replace(/\//g, '')
@@ -133,7 +133,11 @@ function ResetPasswordContent() {
 
       await api.put(endpoint, updatePayload)
 
-      showAlert('success', 'Sucesso', `Senha de ${userToReset.name} resetada para: ${defaultPassword}`)
+      showAlert(
+        'success',
+        'Sucesso',
+        `Senha de ${userToReset.name} resetada para: ${defaultPassword}`
+      )
       setUserToReset(null)
     } catch (error: any) {
       console.error('Erro ao resetar senha:', error)
@@ -146,15 +150,16 @@ function ResetPasswordContent() {
 
   const filteredUsers = users.filter(u => {
     // SuperAdmin não deve resetar sua própria senha por aqui (usa Editar Perfil)
-    const isCurrentUser = u.id === currentUser?.id && (u.role === 'admin' || u.role === 'superadmin')
+    const isCurrentUser =
+      u.id === currentUser?.id && (u.role === 'admin' || u.role === 'superadmin')
     if (isCurrentUser) return false
-    
+
     // Admins não podem resetar senha de SuperAdmins
     if (currentUser?.nivel_acesso !== 'superadmin' && u.role === 'superadmin') return false
 
     const userName = u.name || ''
     const matchName = userName.toLowerCase().includes(search.toLowerCase())
-    
+
     let matchRole = false
     if (filterRole === 'todos') {
       matchRole = true
@@ -176,21 +181,31 @@ function ResetPasswordContent() {
 
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case 'superadmin': return <Shield className="h-4 w-4 text-red-500" />
-      case 'admin': return <Shield className="h-4 w-4 text-purple-500" />
-      case 'aluno': return <GraduationCap className="h-4 w-4 text-blue-500" />
-      case 'professor': return <Briefcase className="h-4 w-4 text-yellow-500" />
-      case 'pai': return <UserIcon className="h-4 w-4 text-green-500" />
+      case 'superadmin':
+        return <Shield className="h-4 w-4 text-red-500" />
+      case 'admin':
+        return <Shield className="h-4 w-4 text-purple-500" />
+      case 'aluno':
+        return <GraduationCap className="h-4 w-4 text-blue-500" />
+      case 'professor':
+        return <Briefcase className="h-4 w-4 text-yellow-500" />
+      case 'pai':
+        return <UserIcon className="h-4 w-4 text-green-500" />
     }
   }
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
-      case 'superadmin': return 'Super Admin'
-      case 'admin': return 'Admin'
-      case 'aluno': return 'Aluno'
-      case 'professor': return 'Professor'
-      case 'pai': return 'Pai/Responsável'
+      case 'superadmin':
+        return 'Super Admin'
+      case 'admin':
+        return 'Admin'
+      case 'aluno':
+        return 'Aluno'
+      case 'professor':
+        return 'Professor'
+      case 'pai':
+        return 'Pai/Responsável'
     }
   }
 
@@ -200,7 +215,9 @@ function ResetPasswordContent() {
     >
       <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-40">
         <div className="flex-1">
-          <h1 className="font-title text-xl uppercase font-extrabold text-gray-900">Reset de Senha</h1>
+          <h1 className="font-title text-xl uppercase font-extrabold text-gray-900">
+            Reset de Senha
+          </h1>
           <p className="font-body text-xs text-gray-400">
             Redefina senhas de usuários para o padrão (Data de Nascimento)
           </p>
@@ -224,7 +241,7 @@ function ResetPasswordContent() {
             <select
               className="w-full sm:w-48 bg-gray-50 border-none outline-none text-sm text-gray-700 py-2 px-3 rounded-xl font-medium"
               value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value as any)}
+              onChange={e => setFilterRole(e.target.value as any)}
             >
               <option value="todos">Todos os Papéis</option>
               <option value="professor">Professores</option>
@@ -272,7 +289,11 @@ function ResetPasswordContent() {
                 <div className="flex flex-col items-center">
                   <div className="h-16 w-16 rounded-full overflow-hidden mb-3 border-2 border-gray-100 shadow-sm">
                     {user.photo ? (
-                      <img src={getImageUrl(user.photo)} alt={user.name} className="h-full w-full object-cover" />
+                      <img
+                        src={getImageUrl(user.photo)}
+                        alt={user.name}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="h-full w-full bg-gray-50 flex items-center justify-center">
                         <UserIcon className="h-8 w-8 text-gray-300" />
@@ -283,11 +304,13 @@ function ResetPasswordContent() {
                     {user.name}
                   </h3>
                   <p className="text-[10px] text-gray-500 mb-2">{user.email}</p>
-                  
+
                   {user.birthDate && (
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 rounded-lg text-blue-600">
                       <AlertCircle className="h-3 w-3" />
-                      <span className="text-[10px] font-bold uppercase tracking-tighter">Padrão: {user.birthDate}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-tighter">
+                        Padrão: {user.birthDate}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -304,12 +327,15 @@ function ResetPasswordContent() {
             <div className="mx-auto h-16 w-16 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 mb-6">
               <RotateCcw className="h-8 w-8" />
             </div>
-            
+
             <h2 className="font-title text-xl font-bold text-gray-900 mb-2">Confirmar Reset?</h2>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-              Deseja resetar a senha de <span className="font-bold text-gray-900">{userToReset.name}</span>? 
-              <br/>
-              A nova senha será: <span className="font-bold text-blue-600">{userToReset.birthDate ? userToReset.birthDate : 'ilumina@123'}</span>
+              Deseja resetar a senha de{' '}
+              <span className="font-bold text-gray-900">{userToReset.name}</span>?
+              <br />A nova senha será:{' '}
+              <span className="font-bold text-blue-600">
+                {userToReset.birthDate ? userToReset.birthDate : 'ilumina@123'}
+              </span>
             </p>
 
             <div className="flex flex-col gap-3">

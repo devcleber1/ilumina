@@ -41,9 +41,18 @@ describe('RegisterStudent Page', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/pais/find')) {
-        return { data: [{ id: 5, nome_completo: 'Pai do Aluno', documento: '123.456.789-00', telefone: '11999999999' }] }
+        return {
+          data: [
+            {
+              id: 5,
+              nome_completo: 'Pai do Aluno',
+              documento: '123.456.789-00',
+              telefone: '11999999999',
+            },
+          ],
+        }
       }
       return { data: [] }
     })

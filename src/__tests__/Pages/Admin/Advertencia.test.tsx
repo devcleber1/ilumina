@@ -6,7 +6,6 @@ import { AlertProvider } from '../../../contexts/AlertContext'
 import { MemoryRouter } from 'react-router-dom'
 import { api } from '../../../lib/api'
 
-
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
@@ -42,9 +41,19 @@ describe('Advertencia Page Admin', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/oficinas/find')) {
-        return { data: [{ id: 1, nome_oficina: 'Oficina de Teatro', dias_semana: 'Seg/Qua', horario_inicio: '14:00', horario_fim: '16:00' }] }
+        return {
+          data: [
+            {
+              id: 1,
+              nome_oficina: 'Oficina de Teatro',
+              dias_semana: 'Seg/Qua',
+              horario_inicio: '14:00',
+              horario_fim: '16:00',
+            },
+          ],
+        }
       }
       if (url.includes('/alunos/find')) {
         return { data: [{ id: 10, nome_completo: 'Aluno Teste', numero_matricula: '123' }] }

@@ -14,7 +14,8 @@ import {
   Calendar,
   User,
   Activity,
-  BarChart3
+  BarChart3,
+  Menu,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { api } from '../../../lib/api'
@@ -49,18 +50,24 @@ function StatCard({
   sub?: string
 }) {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col justify-center">
-      <div className="flex items-center justify-between mb-2">
-        <div className="p-2 bg-gray-50 rounded-xl">{icon}</div>
+    <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-gray-100 flex flex-col justify-center">
+      <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+        <div className="p-1.5 sm:p-2 bg-gray-50 rounded-xl">{icon}</div>
         {badge && (
-          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-green-100 text-green-600">
+          <span className="text-[8px] sm:text-[10px] font-bold uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-green-100 text-green-600">
             {badge}
           </span>
         )}
       </div>
-      <p className="font-body text-xs text-gray-400 font-bold uppercase tracking-wide">{label}</p>
-      <p className="font-title text-2xl font-black text-gray-900 leading-none mt-1">{value}</p>
-      {sub && <p className="font-body text-[10px] text-gray-400 truncate mt-1">{sub}</p>}
+      <p className="font-body text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wide truncate">
+        {label}
+      </p>
+      <p className="font-title text-lg sm:text-2xl font-black text-gray-900 leading-none mt-1">
+        {value}
+      </p>
+      {sub && (
+        <p className="font-body text-[9px] sm:text-[10px] text-gray-400 truncate mt-1">{sub}</p>
+      )}
     </div>
   )
 }
@@ -70,7 +77,9 @@ function SectionTitle({ title, sub, icon: Icon }: { title: string; sub?: string;
     <div className="mb-3">
       <div className="flex items-center gap-2">
         {Icon && <Icon className="h-4 w-4 text-gray-400" />}
-        <h2 className="font-title text-base font-black text-gray-900 uppercase tracking-tight">{title}</h2>
+        <h2 className="font-title text-base font-black text-gray-900 uppercase tracking-tight">
+          {title}
+        </h2>
       </div>
       {sub && <p className="font-body text-xs text-gray-400">{sub}</p>}
     </div>
@@ -78,7 +87,7 @@ function SectionTitle({ title, sub, icon: Icon }: { title: string; sub?: string;
 }
 
 function DashboardContent() {
-  const { open } = useSidebar()
+  const { open, isMobile, toggleSidebar } = useSidebar()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedAdv, setSelectedAdv] = useState<any | null>(null)
@@ -125,38 +134,52 @@ function DashboardContent() {
     )
   }
 
-
-
   return (
     <main
-      className={`flex-1 bg-gray-100 h-screen flex flex-col transition-all duration-300 ${!open ? 'pl-8' : ''}`}
+      className={`flex-1 bg-gray-100 min-h-screen md:h-screen flex flex-col transition-all duration-300 ${!open && !isMobile ? 'pl-8' : ''}`}
     >
       {/* Header */}
-      <div className="flex w-full items-center justify-between px-6 py-4 bg-white shadow-sm shrink-0 z-40">
-        <div className="flex-1">
-          <h1 className="font-title text-xl font-black text-gray-900 uppercase">Visão Geral</h1>
-          <p className="font-body text-xs text-gray-400 font-bold">Monitoramento em Tempo Real — ONG Ilumina</p>
+      <div className="flex w-full items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-white shadow-sm shrink-0 z-40">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="p-2 -ml-2 rounded-xl hover:bg-gray-100 transition cursor-pointer shrink-0"
+              title="Abrir menu"
+            >
+              <Menu className="h-5 w-5 text-gray-700" />
+            </button>
+          )}
+          <div className="min-w-0">
+            <h1 className="font-title text-base sm:text-xl font-black text-gray-900 uppercase truncate">
+              Visão Geral
+            </h1>
+            <p className="font-body text-[10px] sm:text-xs text-gray-400 font-bold mt-0.5 truncate">
+              Monitoramento em Tempo Real — ONG Ilumina
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <button className="relative p-2.5 rounded-xl hover:bg-gray-100 transition cursor-pointer">
-            <Bell className="h-5 w-5 text-gray-600" />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-white" />
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <button className="relative p-2 rounded-xl hover:bg-gray-100 transition cursor-pointer">
+            <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-gray-600" />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border-2 border-white" />
           </button>
           <NavLink
             to="/dashboard/cadastro-alunos"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-gray-900 cursor-pointer transition hover:brightness-90 uppercase tracking-tighter shadow-sm"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black text-gray-900 cursor-pointer transition hover:brightness-90 uppercase tracking-tighter shadow-sm"
             style={{ background: '#FFD700' }}
           >
-            <Plus className="h-4 w-4" />
-            Novo Aluno
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Novo Aluno</span>
+            <span className="sm:hidden">Aluno</span>
           </NavLink>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="p-6 flex-1 flex flex-col gap-6 overflow-hidden">
+      <div className="p-4 sm:p-6 flex-1 flex flex-col gap-4 sm:gap-6 overflow-y-auto md:overflow-hidden min-h-0">
         {/* StatCards Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 shrink-0">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 shrink-0">
           <StatCard
             icon={<Users className="h-5 w-5 text-gray-700" />}
             label="Alunos"
@@ -184,13 +207,17 @@ function DashboardContent() {
         </div>
 
         {/* Dynamic Grid Layout */}
-        <div className="flex-1 grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6 overflow-hidden">
+        <div className="flex-1 grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-4 sm:gap-6 min-h-0 md:overflow-hidden">
           {/* Main Column (Left) */}
-          <div className="flex flex-col gap-6 overflow-hidden">
+          <div className="flex flex-col gap-4 sm:gap-6 min-h-0 md:overflow-hidden">
             {/* Chart Area */}
-            <div className="bg-white rounded-[32px] p-6 shadow-sm h-[48%] flex flex-col border border-gray-100">
+            <div className="bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 shadow-sm h-[260px] sm:h-[320px] md:h-[350px] xl:h-[48%] flex flex-col border border-gray-100">
               <div className="flex items-center justify-between mb-4">
-                <SectionTitle title="Crescimento Mensal" sub="Matrículas nos últimos meses" icon={Activity} />
+                <SectionTitle
+                  title="Crescimento Mensal"
+                  sub="Matrículas nos últimos meses"
+                  icon={Activity}
+                />
                 <div className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-wider">
                   <div className="h-2 w-2 rounded-full bg-yellow-400" />
                   Alunos
@@ -211,14 +238,16 @@ function DashboardContent() {
                         borderRadius: '16px',
                         border: 'none',
                         boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                        fontSize: '12px'
+                        fontSize: '12px',
                       }}
                     />
                     <Bar dataKey="alunos" radius={[6, 6, 0, 0]} barSize={32}>
                       {(stats?.chartData || []).map((_, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={index === (stats?.chartData.length || 0) - 1 ? '#FFD700' : '#F3F4F6'}
+                          fill={
+                            index === (stats?.chartData.length || 0) - 1 ? '#FFD700' : '#F3F4F6'
+                          }
                         />
                       ))}
                     </Bar>
@@ -228,66 +257,105 @@ function DashboardContent() {
             </div>
 
             {/* Table Area */}
-            <div className="bg-white rounded-[32px] p-6 shadow-sm h-[52%] flex flex-col overflow-hidden border border-gray-100">
-              <SectionTitle title="Ocorrências Recentes" sub="Clique para ver detalhes" icon={AlertTriangle} />
+            <div className="bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 shadow-sm h-[350px] md:h-[400px] xl:h-[52%] flex flex-col overflow-hidden border border-gray-100">
+              <SectionTitle
+                title="Ocorrências Recentes"
+                sub="Clique para ver detalhes"
+                icon={AlertTriangle}
+              />
               <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 <table className="w-full text-left">
                   <thead className="sticky top-0 bg-white z-10">
                     <tr className="border-b border-gray-50">
-                      <th className="pb-3 text-xs font-black text-gray-400 uppercase tracking-widest">Aluno</th>
-                      <th className="pb-3 text-xs font-black text-gray-400 uppercase tracking-widest">Oficina</th>
-                      <th className="pb-3 text-xs font-black text-gray-400 uppercase tracking-widest">Registrado por</th>
-                      <th className="pb-3 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Data</th>
+                      <th className="pb-3 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">
+                        Aluno
+                      </th>
+                      <th className="pb-3 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">
+                        Oficina
+                      </th>
+                      <th className="pb-3 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest hidden md:table-cell">
+                        Registrado por
+                      </th>
+                      <th className="pb-3 text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest text-right">
+                        Data
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {(stats?.ultimasAdvertencias || []).map((adv, idx) => (
-                      <tr 
-                        key={idx} 
+                      <tr
+                        key={idx}
                         onClick={() => setSelectedAdv(adv)}
                         className="group hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <td className="py-3">
-                           <div className="flex items-center gap-2">
-                              <div className="h-6 w-6 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
-                                 {adv.aluno?.foto_perfil_url ? (
-                                   <img src={getImageUrl(adv.aluno.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
-                                 ) : (
-                                   <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 text-[8px] font-black">{adv.aluno?.nome_completo?.charAt(0)}</div>
-                                 )}
-                              </div>
-                              <span className="text-xs font-bold text-gray-900 truncate max-w-[100px]">{adv.aluno?.nome_completo}</span>
-                           </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-6 w-6 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
+                              {adv.aluno?.foto_perfil_url ? (
+                                <img
+                                  src={getImageUrl(adv.aluno.foto_perfil_url)}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center bg-yellow-50 text-yellow-600 text-[8px] font-black">
+                                  {adv.aluno?.nome_completo?.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-xs font-bold text-gray-900 truncate max-w-[90px] sm:max-w-[120px]">
+                              {adv.aluno?.nome_completo}
+                            </span>
+                          </div>
                         </td>
-                        <td className="py-3 text-xs text-gray-500 truncate max-w-[120px]">
+                        <td className="py-3 text-xs text-gray-500 truncate max-w-[80px] sm:max-w-[120px]">
                           {adv.oficina?.nome_oficina || 'Geral'}
                         </td>
-                        <td className="py-3">
-                           <div className="flex items-center gap-2">
-                              <div className="h-5 w-5 rounded-full bg-gray-50 overflow-hidden shrink-0 border border-gray-100">
-                                 {adv.professor_registrador?.foto_perfil_url ? (
-                                   <img src={getImageUrl(adv.professor_registrador.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
-                                 ) : adv.admin_registrador?.foto_perfil_url ? (
-                                   <img src={getImageUrl(adv.admin_registrador.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
-                                 ) : (
-                                   <div className="h-full w-full flex items-center justify-center bg-gray-100 text-gray-400 text-[7px] font-bold">
-                                      {(adv.professor_registrador?.nome_completo || adv.admin_registrador?.nome_completo || '?').charAt(0)}
-                                   </div>
-                                 )}
-                              </div>
-                              <span className="text-[10px] font-medium text-gray-600">
-                                 {adv.professor_registrador?.nome_completo || adv.admin_registrador?.nome_completo || 'Sistema'}
-                              </span>
-                           </div>
+                        <td className="py-3 hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            <div className="h-5 w-5 rounded-full bg-gray-50 overflow-hidden shrink-0 border border-gray-100">
+                              {adv.professor_registrador?.foto_perfil_url ? (
+                                <img
+                                  src={getImageUrl(adv.professor_registrador.foto_perfil_url)}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : adv.admin_registrador?.foto_perfil_url ? (
+                                <img
+                                  src={getImageUrl(adv.admin_registrador.foto_perfil_url)}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center bg-gray-100 text-gray-400 text-[7px] font-bold">
+                                  {(
+                                    adv.professor_registrador?.nome_completo ||
+                                    adv.admin_registrador?.nome_completo ||
+                                    '?'
+                                  ).charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-medium text-gray-600 truncate max-w-[100px]">
+                              {adv.professor_registrador?.nome_completo ||
+                                adv.admin_registrador?.nome_completo ||
+                                'Sistema'}
+                            </span>
+                          </div>
                         </td>
-                        <td className="py-3 text-right text-xs font-mono font-bold text-gray-400">
+                        <td className="py-3 text-right text-[11px] sm:text-xs font-mono font-bold text-gray-400">
                           {new Date(adv.data_advertencia).toLocaleDateString('pt-BR')}
                         </td>
                       </tr>
                     ))}
                     {(!stats?.ultimasAdvertencias || stats.ultimasAdvertencias.length === 0) && (
                       <tr>
-                        <td colSpan={4} className="py-10 text-center text-xs text-gray-400 font-bold italic">Nenhuma ocorrência registrada.</td>
+                        <td
+                          colSpan={4}
+                          className="py-10 text-center text-xs text-gray-400 font-bold italic"
+                        >
+                          Nenhuma ocorrência registrada.
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -297,101 +365,138 @@ function DashboardContent() {
           </div>
 
           {/* Side Column (Right) */}
-          <div className="flex flex-col gap-6 overflow-hidden h-full">
+          <div className="flex flex-col md:flex-row xl:flex-col gap-4 sm:gap-6 shrink-0 xl:shrink xl:h-full">
             {/* Ranking Area */}
-            <div className="bg-white rounded-[32px] p-6 shadow-sm flex-1 min-h-[200px] overflow-hidden border border-gray-100 flex flex-col">
-              <SectionTitle title="Ranking de Presença" sub="Alunos com maior assiduidade" icon={Activity} />
+            <div className="bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 shadow-sm flex-1 min-h-[250px] md:min-h-0 xl:min-h-[200px] overflow-hidden border border-gray-100 flex flex-col">
+              <SectionTitle
+                title="Ranking de Presença"
+                sub="Alunos com maior assiduidade"
+                icon={Activity}
+              />
               <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 pt-3">
                 {(stats?.rankingAlunos || []).map((aluno, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-yellow-50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm shrink-0 font-bold relative">
-                        {idx === 0 && <span className="absolute -top-1 -right-1 text-[10px]">👑</span>}
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-yellow-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm shrink-0 font-bold relative">
+                        {idx === 0 && (
+                          <span className="absolute -top-1 -right-1 text-[10px]">👑</span>
+                        )}
                         {aluno.foto_url ? (
-                          <img 
-                            src={getImageUrl(aluno.foto_url)} 
-                            alt="" 
-                            className="h-full w-full object-cover" 
+                          <img
+                            src={getImageUrl(aluno.foto_url)}
+                            alt=""
+                            className="h-full w-full object-cover"
                           />
                         ) : (
-                          <span className="text-[12px] font-black text-gray-400 uppercase">
+                          <span className="text-xs font-black text-gray-400 uppercase">
                             {aluno.nome?.substring(0, 2)}
                           </span>
                         )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[10px] font-black text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full uppercase">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-[8px] sm:text-[10px] font-black text-yellow-600 bg-yellow-100 px-1.5 sm:px-2 py-0.5 rounded-full uppercase">
                             {idx + 1}º Lugar
                           </span>
                         </div>
-                        <p className="text-xs font-black text-gray-900 leading-tight truncate max-w-[150px]">{aluno.nome}</p>
+                        <p className="text-[11px] sm:text-xs font-black text-gray-900 leading-tight truncate max-w-[100px] sm:max-w-[150px]">
+                          {aluno.nome}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-base font-black text-green-500 leading-none">{aluno.percentual}%</p>
-                      <p className="text-[9px] font-bold text-gray-400 uppercase">Frequência</p>
+                      <p className="text-sm sm:text-base font-black text-green-500 leading-none">
+                        {aluno.percentual}%
+                      </p>
+                      <p className="text-[8px] sm:text-[9px] font-bold text-gray-400 uppercase">
+                        Frequência
+                      </p>
                     </div>
                   </div>
                 ))}
                 {(!stats?.rankingAlunos || stats.rankingAlunos.length === 0) && (
-                  <p className="text-center text-xs text-gray-400 py-10 font-bold italic">Nenhum dado de presença registrado.</p>
+                  <p className="text-center text-xs text-gray-400 py-10 font-bold italic">
+                    Nenhum dado de presença registrado.
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Attendance Summary (Promoted to Main Side Section) */}
-            <div className="bg-white rounded-[32px] p-6 shadow-sm flex-[2] min-h-[350px] overflow-hidden border border-gray-100 flex flex-col">
-              <SectionTitle title="Frequência por Oficina" sub="Média de participação acadêmica" icon={BarChart3} />
+            <div className="bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 shadow-sm flex-1 md:flex-[1.5] xl:flex-[2] min-h-[300px] md:min-h-0 xl:min-h-[350px] overflow-hidden border border-gray-100 flex flex-col">
+              <SectionTitle
+                title="Frequência por Oficina"
+                sub="Média de participação acadêmica"
+                icon={BarChart3}
+              />
               <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6 pt-4">
                 {(stats?.presencasPorOficina || []).map((p, idx) => (
                   <div key={idx} className="space-y-2.5">
                     <div className="flex justify-between items-end">
                       <div>
-                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Oficina</span>
-                         <span className="text-sm font-black text-gray-800 uppercase leading-none">{p.turma}</span>
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">
+                          Oficina
+                        </span>
+                        <span className="text-sm font-black text-gray-800 uppercase leading-none">
+                          {p.turma}
+                        </span>
                       </div>
                       <div className="text-right">
-                         <span className="text-xl font-black text-gray-900 leading-none">{p.percentual}%</span>
+                        <span className="text-xl font-black text-gray-900 leading-none">
+                          {p.percentual}%
+                        </span>
                       </div>
                     </div>
                     <div className="h-3 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-100 p-0.5">
-                      <div 
+                      <div
                         className={`h-full rounded-full transition-all duration-1000 shadow-sm ${
-                           p.percentual > 80 ? 'bg-green-400' : p.percentual > 50 ? 'bg-yellow-400' : 'bg-red-400'
+                          p.percentual > 80
+                            ? 'bg-green-400'
+                            : p.percentual > 50
+                              ? 'bg-yellow-400'
+                              : 'bg-red-400'
                         }`}
                         style={{ width: `${p.percentual}%` }}
                       />
                     </div>
                     <div className="flex justify-between text-[8px] font-black text-gray-300 uppercase tracking-tighter">
-                       <span>Crítico</span>
-                       <span>Atenção</span>
-                       <span>Excelente</span>
+                      <span>Crítico</span>
+                      <span>Atenção</span>
+                      <span>Excelente</span>
                     </div>
                   </div>
                 ))}
                 {(!stats?.presencasPorOficina || stats.presencasPorOficina.length === 0) && (
                   <div className="flex flex-col items-center justify-center py-20 opacity-30">
-                     <BarChart3 className="h-12 w-12 mb-2" />
-                     <p className="text-xs font-black uppercase">Sem dados estatísticos</p>
+                    <BarChart3 className="h-12 w-12 mb-2" />
+                    <p className="text-xs font-black uppercase">Sem dados estatísticos</p>
                   </div>
                 )}
               </div>
-              
+
               {/* Total Stats Footer */}
               <div className="mt-6 pt-6 border-t border-gray-50 grid grid-cols-2 gap-4">
-                 <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
-                    <p className="text-[8px] font-black text-gray-400 uppercase">Média Geral</p>
-                    <p className="text-lg font-black text-gray-900">
-                       {stats?.presencasPorOficina.length 
-                          ? Math.round(stats.presencasPorOficina.reduce((acc, curr) => acc + curr.percentual, 0) / stats.presencasPorOficina.length)
-                          : 0}%
-                    </p>
-                 </div>
-                 <div className="bg-yellow-50 rounded-2xl p-3 border border-yellow-100">
-                    <p className="text-[8px] font-black text-yellow-600 uppercase">Engajamento</p>
-                    <p className="text-lg font-black text-yellow-700 uppercase">Alto</p>
-                 </div>
+                <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100">
+                  <p className="text-[8px] font-black text-gray-400 uppercase">Média Geral</p>
+                  <p className="text-lg font-black text-gray-900">
+                    {stats?.presencasPorOficina.length
+                      ? Math.round(
+                          stats.presencasPorOficina.reduce(
+                            (acc, curr) => acc + curr.percentual,
+                            0
+                          ) / stats.presencasPorOficina.length
+                        )
+                      : 0}
+                    %
+                  </p>
+                </div>
+                <div className="bg-yellow-50 rounded-2xl p-3 border border-yellow-100">
+                  <p className="text-[8px] font-black text-yellow-600 uppercase">Engajamento</p>
+                  <p className="text-lg font-black text-yellow-700 uppercase">Alto</p>
+                </div>
               </div>
             </div>
           </div>
@@ -400,91 +505,136 @@ function DashboardContent() {
 
       {/* Modal de Detalhes da Advertência */}
       {selectedAdv && (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-            <div className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
-               <div className="bg-red-500 px-8 py-6 flex items-center justify-between text-white">
-                  <div className="flex items-center gap-3">
-                     <AlertTriangle className="h-6 w-6" />
-                     <h2 className="font-title text-xl font-black uppercase">Detalhes da Ocorrência</h2>
-                  </div>
-                  <button onClick={() => setSelectedAdv(null)} className="p-2 hover:bg-black/10 rounded-full transition-colors cursor-pointer">
-                     <X className="h-5 w-5" />
-                  </button>
-               </div>
-
-               <div className="p-8 space-y-6">
-                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                     <div className="h-12 w-12 rounded-xl overflow-hidden bg-white border border-gray-200">
-                        {selectedAdv.aluno?.foto_perfil_url ? (
-                          <img src={getImageUrl(selectedAdv.aluno.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center bg-red-50 text-red-600 font-black text-lg">
-                             {selectedAdv.aluno?.nome_completo?.charAt(0)}
-                          </div>
-                        )}
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">ALUNO</p>
-                        <p className="text-base font-black text-gray-900">{selectedAdv.aluno?.nome_completo}</p>
-                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                     <div className="space-y-1">
-                        <p className="text-[10px] font-black text-gray-400 uppercase flex items-center gap-1.5"><BookOpen className="h-3 w-3" /> Oficina</p>
-                        <p className="text-sm font-bold text-gray-800">{selectedAdv.oficina?.nome_oficina || 'Geral'}</p>
-                     </div>
-                     <div className="space-y-1">
-                        <p className="text-[10px] font-black text-gray-400 uppercase flex items-center gap-1.5"><Calendar className="h-3 w-3" /> Data</p>
-                        <p className="text-sm font-bold text-gray-800">{new Date(selectedAdv.data_advertencia).toLocaleDateString('pt-BR')}</p>
-                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                     <p className="text-[10px] font-black text-gray-400 uppercase">Motivo e Descrição</p>
-                     <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
-                        <p className="text-xs font-black text-red-600 uppercase mb-1">{selectedAdv.tipo_advertencia}</p>
-                        <p className="text-sm text-gray-700 leading-relaxed italic">"{selectedAdv.descricao}"</p>
-                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-                     <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
-                        {selectedAdv.professor_registrador?.foto_perfil_url ? (
-                          <img src={getImageUrl(selectedAdv.professor_registrador.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
-                        ) : selectedAdv.admin_registrador?.foto_perfil_url ? (
-                          <img src={getImageUrl(selectedAdv.admin_registrador.foto_perfil_url)} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-gray-400"><User className="h-5 w-5" /></div>
-                        )}
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Registrado por</p>
-                        <p className="text-xs font-bold text-gray-800">
-                           {selectedAdv.professor_registrador?.nome_completo || selectedAdv.admin_registrador?.nome_completo || 'Sistema'}
-                        </p>
-                     </div>
-                     <div className="ml-auto">
-                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${
-                           selectedAdv.gravidade === 'alta' ? 'bg-red-100 text-red-600' : 
-                           selectedAdv.gravidade === 'media' ? 'bg-yellow-100 text-yellow-600' : 
-                           'bg-green-100 text-green-600'
-                        }`}>
-                           Gravidade: {selectedAdv.gravidade}
-                        </span>
-                     </div>
-                  </div>
-               </div>
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 max-h-[95vh] flex flex-col">
+            <div className="bg-red-500 px-5 sm:px-8 py-4 sm:py-6 flex items-center justify-between text-white shrink-0">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />
+                <h2 className="font-title text-base sm:text-xl font-black uppercase">
+                  Detalhes da Ocorrência
+                </h2>
+              </div>
+              <button
+                onClick={() => setSelectedAdv(null)}
+                className="p-2 hover:bg-black/10 rounded-full transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-         </div>
+
+            <div className="p-5 sm:p-8 space-y-4 sm:space-y-6 overflow-y-auto">
+              <div className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl overflow-hidden bg-white border border-gray-200 shrink-0">
+                  {selectedAdv.aluno?.foto_perfil_url ? (
+                    <img
+                      src={getImageUrl(selectedAdv.aluno.foto_perfil_url)}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-red-50 text-red-600 font-black text-base sm:text-lg">
+                      {selectedAdv.aluno?.nome_completo?.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-tighter">
+                    ALUNO
+                  </p>
+                  <p className="text-sm sm:text-base font-black text-gray-900">
+                    {selectedAdv.aluno?.nome_completo}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-1">
+                  <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase flex items-center gap-1.5">
+                    <BookOpen className="h-3 w-3" /> Oficina
+                  </p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-800">
+                    {selectedAdv.oficina?.nome_oficina || 'Geral'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3" /> Data
+                  </p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-800">
+                    {new Date(selectedAdv.data_advertencia).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase">
+                  Motivo e Descrição
+                </p>
+                <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
+                  <p className="text-xs font-black text-red-600 uppercase mb-1">
+                    {selectedAdv.tipo_advertencia}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-700 leading-relaxed italic">
+                    "{selectedAdv.descricao}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
+                  {selectedAdv.professor_registrador?.foto_perfil_url ? (
+                    <img
+                      src={getImageUrl(selectedAdv.professor_registrador.foto_perfil_url)}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : selectedAdv.admin_registrador?.foto_perfil_url ? (
+                    <img
+                      src={getImageUrl(selectedAdv.admin_registrador.foto_perfil_url)}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-gray-400">
+                      <User className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-tighter">
+                    Registrado por
+                  </p>
+                  <p className="text-[11px] sm:text-xs font-bold text-gray-800 truncate max-w-[100px] sm:max-w-none">
+                    {selectedAdv.professor_registrador?.nome_completo ||
+                      selectedAdv.admin_registrador?.nome_completo ||
+                      'Sistema'}
+                  </p>
+                </div>
+                <div className="ml-auto shrink-0">
+                  <span
+                    className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[9px] font-black uppercase ${
+                      selectedAdv.gravidade === 'alta'
+                        ? 'bg-red-100 text-red-600'
+                        : selectedAdv.gravidade === 'media'
+                          ? 'bg-yellow-100 text-yellow-600'
+                          : 'bg-green-100 text-green-600'
+                    }`}
+                  >
+                    {selectedAdv.gravidade}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   )
 }
 
 function OpenSidebarButton() {
-  const { toggleSidebar, open } = useSidebar()
-  if (open) return null
+  const { toggleSidebar, open, isMobile } = useSidebar()
+  if (open || isMobile) return null
   return (
     <button
       onClick={toggleSidebar}

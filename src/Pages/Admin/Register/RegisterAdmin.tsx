@@ -3,7 +3,19 @@ import Cropper, { type Area } from 'react-easy-crop'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { SidebarProvider, useSidebar } from '../../../Components/ui/sidebar'
 import { AppSidebar } from '../../../Components/AppSidebar'
-import { Camera, ChevronRight, Mail, Shield, User, UserPlus, Lock, Eye, EyeOff, CheckCircle2, Circle } from 'lucide-react'
+import {
+  Camera,
+  ChevronRight,
+  Mail,
+  Shield,
+  User,
+  UserPlus,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Circle,
+} from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -32,9 +44,18 @@ const schema = yup.object({
     .matches(/[0-9]/, 'Pelo menos um número')
     .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Pelo menos um caractere especial')
     .required('Senha é obrigatória'),
-  confirmarSenha: yup.string().oneOf([yup.ref('senha')], 'As senhas não coincidem').required('Confirmação de senha é obrigatória'),
-  nivel_acesso: yup.string().oneOf(['admin', 'superadmin']).required('Nível de acesso é obrigatório'),
-  status_admin: yup.string().oneOf(['ativo', 'inativo', 'suspenso']).required('Status é obrigatório'),
+  confirmarSenha: yup
+    .string()
+    .oneOf([yup.ref('senha')], 'As senhas não coincidem')
+    .required('Confirmação de senha é obrigatória'),
+  nivel_acesso: yup
+    .string()
+    .oneOf(['admin', 'superadmin'])
+    .required('Nível de acesso é obrigatório'),
+  status_admin: yup
+    .string()
+    .oneOf(['ativo', 'inativo', 'suspenso'])
+    .required('Status é obrigatório'),
 })
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -96,7 +117,11 @@ function RegisterAdminContent() {
 
   useEffect(() => {
     if (user && user.nivel_acesso !== 'superadmin') {
-      showAlert('destructive', 'Acesso Negado', 'Apenas super administradores podem acessar esta página.')
+      showAlert(
+        'destructive',
+        'Acesso Negado',
+        'Apenas super administradores podem acessar esta página.'
+      )
       navigate('/dashboard')
     }
   }, [user, navigate, showAlert])
@@ -121,7 +146,10 @@ function RegisterAdminContent() {
     { label: 'Letra maiúscula', test: (val: string) => /[A-Z]/.test(val) },
     { label: 'Letra minúscula', test: (val: string) => /[a-z]/.test(val) },
     { label: 'Um número', test: (val: string) => /[0-9]/.test(val) },
-    { label: 'Caractere especial (!@#$...)', test: (val: string) => /[!@#$%^&*(),.?":{}|<>]/.test(val) },
+    {
+      label: 'Caractere especial (!@#$...)',
+      test: (val: string) => /[!@#$%^&*(),.?":{}|<>]/.test(val),
+    },
   ]
 
   const [profilePhotoSrc, setProfilePhotoSrc] = useState<string | null>(null)
@@ -385,7 +413,11 @@ function RegisterAdminContent() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -407,7 +439,11 @@ function RegisterAdminContent() {
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                     {errors.confirmarSenha && (
@@ -419,7 +455,9 @@ function RegisterAdminContent() {
                 </div>
 
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Requisitos da Senha</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    Requisitos da Senha
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                     {passwordRequirements.map((req, idx) => {
                       const isMet = req.test(passwordValue)
@@ -430,7 +468,9 @@ function RegisterAdminContent() {
                           ) : (
                             <Circle className="h-3.5 w-3.5 text-gray-300" />
                           )}
-                          <span className={`text-[11px] font-medium transition-colors ${isMet ? 'text-green-600' : 'text-gray-500'}`}>
+                          <span
+                            className={`text-[11px] font-medium transition-colors ${isMet ? 'text-green-600' : 'text-gray-500'}`}
+                          >
                             {req.label}
                           </span>
                         </div>

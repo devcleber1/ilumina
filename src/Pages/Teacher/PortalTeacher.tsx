@@ -593,15 +593,17 @@ export default function PortalTeacher() {
     <div className="min-h-screen bg-gray-50/50 pb-12 antialiased selection:bg-yellow-100 selection:text-yellow-900">
       {/* HEADER PREMIUM */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40 shadow-sm backdrop-blur-md bg-white/95">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="ONG Ilumina" className="h-12 w-auto object-contain" />
-            <div className="h-8 w-[1px] bg-gray-200" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img src={logo} alt="ONG Ilumina" className="h-9 sm:h-12 w-auto object-contain" />
+            <div className="h-6 sm:h-8 w-[1px] bg-gray-200" />
             <div>
-              <span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest block">
+              <span className="text-[9px] sm:text-[10px] font-black text-yellow-600 uppercase tracking-widest block">
                 Portal do Colaborador
               </span>
-              <h1 className="text-lg font-black text-gray-900 leading-tight">Área do Professor</h1>
+              <h1 className="text-sm sm:text-lg font-black text-gray-900 leading-tight">
+                Área do Professor
+              </h1>
             </div>
           </div>
 
@@ -631,19 +633,19 @@ export default function PortalTeacher() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 space-y-6 sm:space-y-8">
         {/* CARD DO PROFESSOR */}
-        <section className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden">
+        <section className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl sm:rounded-[32px] p-4 sm:p-6 md:p-8 text-white shadow-2xl relative overflow-hidden">
           <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 h-64 w-64 bg-yellow-400 rounded-full opacity-10 blur-3xl" />
           <div className="absolute left-1/3 bottom-0 translate-y-12 h-48 w-48 bg-yellow-400 rounded-full opacity-5 blur-2xl" />
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-center sm:text-left">
               <div className="relative group">
                 <UserAvatar
                   src={data?.professor.foto_perfil_url}
                   name={data?.professor.nome_completo}
-                  className="h-24 w-24 rounded-[28px] border-4 border-yellow-400 shadow-xl"
+                  className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl sm:rounded-[28px] border-4 border-yellow-400 shadow-xl"
                 />
                 <label className="absolute -bottom-2 -right-2 p-2 bg-yellow-400 rounded-xl shadow-lg cursor-pointer hover:scale-115 transition border-2 border-gray-900">
                   <Camera className="h-4 w-4 text-gray-900" />
@@ -663,10 +665,10 @@ export default function PortalTeacher() {
                 <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest block mb-1">
                   Professor Responsável
                 </span>
-                <h2 className="text-2xl font-black tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight">
                   {data?.professor.nome_completo}
                 </h2>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-xs text-gray-300">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 mt-2 text-[11px] sm:text-xs text-gray-300">
                   <span className="flex items-center gap-1">
                     <BookOpen className="h-3.5 w-3.5 text-yellow-400" />
                     {data?.professor.formacao}
@@ -687,7 +689,7 @@ export default function PortalTeacher() {
 
             {/* SELETOR DE OFICINA */}
             {data && data.oficinas.length > 0 && (
-              <div className="bg-white/10 backdrop-blur-md border border-white/10 p-5 rounded-[24px] min-w-[280px]">
+              <div className="bg-white/10 backdrop-blur-md border border-white/10 p-4 sm:p-5 rounded-2xl sm:rounded-[24px] w-full sm:min-w-[280px] sm:w-auto">
                 <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest block mb-2">
                   Oficina Selecionada
                 </span>
@@ -731,29 +733,29 @@ export default function PortalTeacher() {
         </section>
 
         {/* ALUNOS MATRICULADOS */}
-        <section className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <section className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-              <h3 className="text-xl font-black text-gray-900">Alunos Matriculados</h3>
-              <p className="text-xs font-semibold text-gray-500 mt-1">
+              <h3 className="text-lg sm:text-xl font-black text-gray-900">Alunos Matriculados</h3>
+              <p className="text-[11px] sm:text-xs font-semibold text-gray-500 mt-1">
                 Visualizando estudantes vinculados à oficina{' '}
                 <span className="text-yellow-600 font-bold">{activeOficinaName}</span>
               </p>
             </div>
 
-            <div className="flex items-center gap-3 bg-white border border-gray-100 p-2.5 rounded-[20px] shadow-sm">
-              <Users className="h-5 w-5 text-yellow-500 ml-2" />
-              <span className="text-xs font-black uppercase text-gray-400 tracking-wider">
-                Total de Alunos:
+            <div className="flex items-center gap-2 sm:gap-3 bg-white border border-gray-100 p-2 sm:p-2.5 rounded-2xl sm:rounded-[20px] shadow-sm">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 ml-1.5 sm:ml-2" />
+              <span className="text-[10px] sm:text-xs font-black uppercase text-gray-400 tracking-wider">
+                Total:
               </span>
-              <span className="text-sm font-black text-gray-900 bg-yellow-100 px-3 py-1 rounded-xl">
+              <span className="text-xs sm:text-sm font-black text-gray-900 bg-yellow-100 px-2.5 sm:px-3 py-1 rounded-xl">
                 {filteredAlunos.length}
               </span>
             </div>
           </div>
 
           {filteredAlunos.length === 0 ? (
-            <div className="bg-white border border-gray-100 p-16 rounded-[32px] text-center shadow-sm">
+            <div className="bg-white border border-gray-100 p-8 sm:p-16 rounded-2xl sm:rounded-[32px] text-center shadow-sm">
               <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h4 className="text-base font-black text-gray-800">Nenhum aluno matriculado</h4>
               <p className="text-xs text-gray-500 mt-2 max-w-md mx-auto">
@@ -762,7 +764,7 @@ export default function PortalTeacher() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredAlunos.map(aluno => {
                 const advertenciasFiltradas = activeOficinaId
                   ? aluno.advertencias.filter(a => a.oficina_id === activeOficinaId)
@@ -824,7 +826,7 @@ export default function PortalTeacher() {
                 return (
                   <div
                     key={aluno.id}
-                    className="bg-white border border-gray-100 rounded-[32px] p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden"
+                    className="bg-white border border-gray-100 rounded-2xl sm:rounded-[32px] p-4 sm:p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden"
                   >
                     <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/5 rounded-bl-[80px] group-hover:scale-110 transition duration-300 pointer-events-none" />
 
@@ -847,9 +849,9 @@ export default function PortalTeacher() {
                     </div>
 
                     {/* ESTATÍSTICAS */}
-                    <div className="grid grid-cols-3 gap-2 my-5 bg-gray-50/50 p-3 rounded-[20px] border border-gray-100">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 my-4 sm:my-5 bg-gray-50/50 p-2.5 sm:p-3 rounded-2xl sm:rounded-[20px] border border-gray-100">
                       <div className="text-center">
-                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">
+                        <span className="text-[8px] sm:text-[9px] font-black text-gray-400 uppercase tracking-wide sm:tracking-widest block">
                           Presenças
                         </span>
                         <span className="text-sm font-black text-green-600">
@@ -857,7 +859,7 @@ export default function PortalTeacher() {
                         </span>
                       </div>
                       <div className="text-center border-x border-gray-100">
-                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">
+                        <span className="text-[8px] sm:text-[9px] font-black text-gray-400 uppercase tracking-wide sm:tracking-widest block">
                           Faltas
                         </span>
                         <span className="text-sm font-black text-red-500">{faltasOficina}</span>
@@ -948,7 +950,7 @@ export default function PortalTeacher() {
                           </div>
                         ) : (
                           // MODO ESTÁTICO DE VISUALIZAÇÃO COM OPÇÃO DE EDITAR
-                          <div className="flex items-center justify-between p-3 bg-gray-50/50 border border-gray-100 rounded-[20px] transition duration-200 hover:bg-gray-50">
+                          <div className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50/50 border border-gray-100 rounded-2xl sm:rounded-[20px] transition duration-200 hover:bg-gray-50">
                             <div className="flex items-center gap-2">
                               {presencaHoje.presente ? (
                                 <span className="flex items-center gap-1.5 text-xs font-black text-green-700 bg-green-100 px-3 py-1.5 rounded-full shadow-sm shadow-green-100/30">
@@ -1156,20 +1158,20 @@ export default function PortalTeacher() {
 
       {/* MODAL BLOQUEANTE DE EXCESSO DE EDICÕES */}
       {isBlockModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-[32px] max-w-md w-full p-8 text-center shadow-2xl border border-gray-100 animate-scale-up">
-            <div className="h-16 w-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-md w-full p-6 sm:p-8 text-center shadow-2xl border border-gray-100 animate-scale-up">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-inner">
               <AlertOctagon className="h-8 w-8" />
             </div>
 
-            <h3 className="text-xl font-black text-gray-950">Ação Bloqueada</h3>
-            <p className="text-xs font-semibold text-gray-500 mt-3 leading-relaxed">
+            <h3 className="text-lg sm:text-xl font-black text-gray-950">Ação Bloqueada</h3>
+            <p className="text-[11px] sm:text-xs font-semibold text-gray-500 mt-3 leading-relaxed">
               {blockModalMessage}
             </p>
 
             <button
               onClick={() => setIsBlockModalOpen(false)}
-              className="mt-6 w-full bg-gray-900 hover:bg-gray-800 text-white font-black py-4 rounded-[20px] shadow-lg transition active:scale-[0.98] cursor-pointer"
+              className="mt-5 sm:mt-6 w-full bg-gray-900 hover:bg-gray-800 text-white font-black py-3.5 sm:py-4 rounded-2xl sm:rounded-[20px] shadow-lg transition active:scale-[0.98] cursor-pointer"
             >
               Compreendi
             </button>
@@ -1179,8 +1181,8 @@ export default function PortalTeacher() {
 
       {/* MODAL LISTAGEM DE ADVERTÊNCIAS PEDAGÓGICAS */}
       {isAdvertenciasModalOpen && selectedAluno && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-[32px] max-w-2xl w-full p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[85vh] flex flex-col">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[95vh] sm:max-h-[85vh] flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest block">
@@ -1310,8 +1312,8 @@ export default function PortalTeacher() {
 
       {/* MODAL DE CRIAÇÃO DE ADVERTÊNCIA */}
       {isNewAdvertenciaModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4 z-55 animate-fade-in">
-          <div className="bg-white rounded-[32px] max-w-md w-full p-8 shadow-2xl border border-gray-100 animate-scale-up">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-55 animate-fade-in">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-md w-full p-5 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-black text-gray-950">Registrar Ocorrência</h3>
               <button
@@ -1412,8 +1414,8 @@ export default function PortalTeacher() {
 
       {/* MODAL DE EDIÇÃO DE ADVERTÊNCIA */}
       {isEditAdvertenciaModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4 z-55 animate-fade-in">
-          <div className="bg-white rounded-[32px] max-w-md w-full p-8 shadow-2xl border border-gray-100 animate-scale-up">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-55 animate-fade-in">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-md w-full p-5 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-black text-gray-950">Editar Ocorrência</h3>
               <button
@@ -1520,9 +1522,9 @@ export default function PortalTeacher() {
 
       {/* MODAL CONFIGURAÇÕES / MEU PERFIL */}
       {isConfigModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-[32px] max-w-2xl w-full shadow-2xl border border-gray-100 overflow-hidden animate-scale-up flex flex-col max-h-[90vh]">
-            <div className="p-8 bg-gradient-to-r from-yellow-400/20 to-yellow-100/20 border-b border-gray-100 flex justify-between items-center">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-2xl w-full shadow-2xl border border-gray-100 overflow-hidden animate-scale-up flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+            <div className="p-4 sm:p-8 bg-gradient-to-r from-yellow-400/20 to-yellow-100/20 border-b border-gray-100 flex justify-between items-center">
               <div>
                 <span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest block">
                   Configurações Pessoais
@@ -1563,7 +1565,7 @@ export default function PortalTeacher() {
 
             {/* CORPO DE DADOS CADASTRAIS */}
             {activeTab === 'perfil' ? (
-              <div className="p-8 space-y-6 overflow-y-auto max-h-[60vh] custom-scrollbar flex-1">
+              <div className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto flex-1 custom-scrollbar">
                 <div className="flex flex-col items-center gap-4">
                   <div className="relative group">
                     <UserAvatar
@@ -1690,7 +1692,7 @@ export default function PortalTeacher() {
               </div>
             ) : (
               /* CORPO DE SEGURANÇA E SENHA */
-              <div className="p-8 space-y-6 overflow-y-auto max-h-[60vh] custom-scrollbar flex-1">
+              <div className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto flex-1 custom-scrollbar">
                 <div className="bg-yellow-50 border border-yellow-200/50 p-4 rounded-[20px] flex gap-3 text-yellow-800 text-xs font-semibold">
                   <ShieldCheck className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
                   <p>

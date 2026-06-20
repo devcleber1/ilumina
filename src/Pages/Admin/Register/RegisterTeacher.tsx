@@ -245,7 +245,10 @@ function RegisterTeacherContent() {
       const message =
         error.response?.data?.message ||
         'Erro ao cadastrar professor. Verifique os dados e tente novamente.'
-      if (message.toLowerCase().includes('cpf já cadastrado') || message.toLowerCase().includes('documento já cadastrado')) {
+      if (
+        message.toLowerCase().includes('cpf já cadastrado') ||
+        message.toLowerCase().includes('documento já cadastrado')
+      ) {
         setError('cpf', {
           type: 'manual',
           message: 'CPF já cadastrado',
@@ -413,9 +416,9 @@ function RegisterTeacherContent() {
                 <input
                   type="text"
                   {...register('cpf', {
-                    onChange: (e) => {
+                    onChange: e => {
                       e.target.value = formatCPF(e.target.value)
-                    }
+                    },
                   })}
                   placeholder="000.000.000-00"
                   className={`${fieldClass} ${errors.cpf ? 'border-red-500' : ''}`}
@@ -453,9 +456,9 @@ function RegisterTeacherContent() {
                 <input
                   type="text"
                   {...register('telefone', {
-                    onChange: (e) => {
+                    onChange: e => {
                       e.target.value = formatPhone(e.target.value)
-                    }
+                    },
                   })}
                   placeholder="(00) 00000-0000"
                   className={`${fieldClass} ${errors.telefone ? 'border-red-500' : ''}`}

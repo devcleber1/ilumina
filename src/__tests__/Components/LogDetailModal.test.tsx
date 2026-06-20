@@ -9,10 +9,10 @@ vi.mock('../../lib/api', () => ({
       data: {
         totalActions: 10,
         lastSeen: '2026-05-18T10:00:00.000Z',
-        mostFrequentAction: 'UPDATE_USER'
-      }
-    })
-  }
+        mostFrequentAction: 'UPDATE_USER',
+      },
+    }),
+  },
 }))
 
 const mockLog: ILog = {
@@ -28,18 +28,13 @@ const mockLog: ILog = {
   ip: '192.168.0.1',
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
   metadata: { targetUserId: 100 },
-  createdAt: '2026-05-18T10:00:00.000Z'
+  createdAt: '2026-05-18T10:00:00.000Z',
 }
 
 describe('LogDetailModal Component', () => {
   it('deve renderizar os detalhes fundamentais do log quando aberto', async () => {
     render(
-      <LogDetailModal
-        log={mockLog}
-        isOpen={true}
-        onClose={() => {}}
-        onFilterByUser={() => {}}
-      />
+      <LogDetailModal log={mockLog} isOpen={true} onClose={() => {}} onFilterByUser={() => {}} />
     )
 
     // Aguarda o carregamento das estatísticas do usuário para evitar warning de act
@@ -47,11 +42,11 @@ describe('LogDetailModal Component', () => {
 
     // Verifica se os dados principais estão na tela
     expect(screen.getByText('Cleber Junior')).toBeInTheDocument()
-    
+
     // Como os termos são exibidos em português, verificamos cargo e módulo traduzidos
     expect(screen.getByText('Administrador')).toBeInTheDocument()
     expect(screen.getByText('Administração')).toBeInTheDocument()
-    
+
     expect(screen.getByText('Atualização de Usuário')).toBeInTheDocument()
     expect(screen.getByText('Cleber atualizou as configurações do usuário.')).toBeInTheDocument()
     expect(screen.getByText('Sucesso')).toBeInTheDocument()
@@ -59,12 +54,7 @@ describe('LogDetailModal Component', () => {
 
   it('não deve renderizar nada se isOpen for false', () => {
     const { container } = render(
-      <LogDetailModal
-        log={mockLog}
-        isOpen={false}
-        onClose={() => {}}
-        onFilterByUser={() => {}}
-      />
+      <LogDetailModal log={mockLog} isOpen={false} onClose={() => {}} onFilterByUser={() => {}} />
     )
 
     expect(container.firstChild).toBeNull()
@@ -72,12 +62,7 @@ describe('LogDetailModal Component', () => {
 
   it('deve manter a seção colapsável fechada por padrão e abri-la ao clicar', async () => {
     render(
-      <LogDetailModal
-        log={mockLog}
-        isOpen={true}
-        onClose={() => {}}
-        onFilterByUser={() => {}}
-      />
+      <LogDetailModal log={mockLog} isOpen={true} onClose={() => {}} onFilterByUser={() => {}} />
     )
 
     // Aguarda o carregamento das estatísticas do usuário para evitar warning de act
@@ -99,12 +84,7 @@ describe('LogDetailModal Component', () => {
   it('deve chamar onClose ao clicar no botão de fechar', async () => {
     const onCloseMock = vi.fn()
     render(
-      <LogDetailModal
-        log={mockLog}
-        isOpen={true}
-        onClose={onCloseMock}
-        onFilterByUser={() => {}}
-      />
+      <LogDetailModal log={mockLog} isOpen={true} onClose={onCloseMock} onFilterByUser={() => {}} />
     )
 
     // Aguarda o carregamento das estatísticas do usuário para evitar warning de act
@@ -119,7 +99,7 @@ describe('LogDetailModal Component', () => {
   it('deve chamar onFilterByUser com o ID correto e fechar o modal', async () => {
     const onFilterByUserMock = vi.fn()
     const onCloseMock = vi.fn()
-    
+
     render(
       <LogDetailModal
         log={mockLog}

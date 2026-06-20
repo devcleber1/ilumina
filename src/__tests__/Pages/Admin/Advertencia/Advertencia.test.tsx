@@ -49,7 +49,7 @@ describe('Advertencia Page', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/alunos/find')) {
         return { data: [{ id: 1, nome_completo: 'Aluno Teste', cpf: '123.456.789-00' }] }
       }

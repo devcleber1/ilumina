@@ -41,9 +41,19 @@ describe('EditUsers Page', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/admins/find')) {
-        return { data: [{ id: 1, nome_completo: 'Admin Teste', email: 'admin@email.com', nivel_acesso: 'superadmin', status_admin: 'ativo' }] }
+        return {
+          data: [
+            {
+              id: 1,
+              nome_completo: 'Admin Teste',
+              email: 'admin@email.com',
+              nivel_acesso: 'superadmin',
+              status_admin: 'ativo',
+            },
+          ],
+        }
       }
       if (url.includes('/alunos/find')) {
         return { data: [] }

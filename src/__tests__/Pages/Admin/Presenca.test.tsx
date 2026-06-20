@@ -6,7 +6,6 @@ import { AlertProvider } from '../../../contexts/AlertContext'
 import { MemoryRouter } from 'react-router-dom'
 import { api } from '../../../lib/api'
 
-
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
@@ -42,7 +41,7 @@ describe('Presenca Page Admin', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/oficinas/find')) {
         return { data: [{ id: 1, nome_oficina: 'Oficina de Teatro' }] }
       }

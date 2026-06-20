@@ -2,7 +2,6 @@ import { render, screen, act } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import App from '../App'
 
-
 vi.mock('../contexts/AuthContext', () => ({
   AuthProvider: ({ children }: any) => <div data-testid="auth-provider">{children}</div>,
   useAuth: () => ({
@@ -31,7 +30,7 @@ vi.mock('../routes', () => {
 // Mock do window.matchMedia para evitar crash do shadcn/radix ui
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation((query) => ({
+  value: vi.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,

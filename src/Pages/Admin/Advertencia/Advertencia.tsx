@@ -77,7 +77,9 @@ function AdvertenciaContent() {
   const [historySearch, setHistorySearch] = useState('')
 
   const { user: currentUser } = useAuth()
-  const isSuperAdmin = currentUser?.tipo === 'admin' && (currentUser?.nivel_acesso === 'superadmin' || (currentUser as any).isSuperAdmin === true)
+  const isSuperAdmin =
+    currentUser?.tipo === 'admin' &&
+    (currentUser?.nivel_acesso === 'superadmin' || (currentUser as any).isSuperAdmin === true)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Aluno | null>(null)
@@ -247,10 +249,8 @@ function AdvertenciaContent() {
       const studentName = w.aluno?.nome_completo?.toLowerCase() || ''
       const matricula = w.aluno?.numero_matricula || ''
       const type = w.tipo_advertencia?.toLowerCase() || ''
-      
-      return studentName.includes(search) || 
-             matricula.includes(search) || 
-             type.includes(search)
+
+      return studentName.includes(search) || matricula.includes(search) || type.includes(search)
     })
     .reduce((acc: Record<string, Advertencia[]>, curr) => {
       const date = curr.data_advertencia
@@ -362,7 +362,9 @@ function AdvertenciaContent() {
             <button
               onClick={() => setView('registro')}
               className={`py-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
-                view === 'registro' ? 'border-yellow-400 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
+                view === 'registro'
+                  ? 'border-yellow-400 text-gray-900'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
               Registrar Advertência
@@ -370,7 +372,9 @@ function AdvertenciaContent() {
             <button
               onClick={() => setView('historico')}
               className={`py-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
-                view === 'historico' ? 'border-yellow-400 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
+                view === 'historico'
+                  ? 'border-yellow-400 text-gray-900'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
               Histórico de Advertências
@@ -403,9 +407,10 @@ function AdvertenciaContent() {
             ) : (
               <div className="space-y-4 max-w-4xl mx-auto">
                 {students
-                  .filter(s => 
-                    s.nome_completo.toLowerCase().includes(studentSearch.toLowerCase()) ||
-                    s.numero_matricula.includes(studentSearch)
+                  .filter(
+                    s =>
+                      s.nome_completo.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                      s.numero_matricula.includes(studentSearch)
                   )
                   .map(student => {
                     const warns = getStudentWarnings(student.id)
@@ -425,12 +430,18 @@ function AdvertenciaContent() {
                               {student.nome_completo}
                             </h4>
                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                              MATRÍCULA: <span className="text-gray-600">{student.numero_matricula || 'N/A'}</span>
+                              MATRÍCULA:{' '}
+                              <span className="text-gray-600">
+                                {student.numero_matricula || 'N/A'}
+                              </span>
                             </p>
                             {warns.length > 0 && (
                               <div className="flex items-center gap-1.5 mt-2.5 text-[10px] font-black font-title text-red-500 uppercase">
                                 <AlertTriangle className="h-3.5 w-3.5" />
-                                <span>{warns.length} {warns.length === 1 ? 'Ocorrência' : 'Ocorrências'} registrada(s)</span>
+                                <span>
+                                  {warns.length} {warns.length === 1 ? 'Ocorrência' : 'Ocorrências'}{' '}
+                                  registrada(s)
+                                </span>
                               </div>
                             )}
                           </div>
@@ -468,7 +479,9 @@ function AdvertenciaContent() {
             {sortedDates.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-32 opacity-40">
                 <Clock className="h-16 w-16 text-gray-300 mb-4" />
-                <p className="font-black text-sm text-gray-400 uppercase tracking-widest">Nenhuma ocorrência registrada</p>
+                <p className="font-black text-sm text-gray-400 uppercase tracking-widest">
+                  Nenhuma ocorrência registrada
+                </p>
               </div>
             ) : (
               <div className="max-w-5xl mx-auto space-y-10">
@@ -477,7 +490,9 @@ function AdvertenciaContent() {
                     <div className="flex items-center gap-4">
                       <div className="bg-white px-6 py-2 rounded-full border border-gray-100 shadow-sm">
                         <span className="text-[10px] font-black font-title text-gray-900 uppercase tracking-widest">
-                          {new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { dateStyle: 'full' })}
+                          {new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
+                            dateStyle: 'full',
+                          })}
                         </span>
                       </div>
                       <div className="h-px flex-1 bg-gray-200" />
@@ -501,11 +516,14 @@ function AdvertenciaContent() {
                                   {adv.aluno?.nome_completo}
                                 </h4>
                                 <p className="text-[10px] text-gray-400 font-bold font-body uppercase tracking-widest mt-1">
-                                  MATRÍCULA: <span className="text-gray-600">{adv.aluno?.numero_matricula || 'N/A'}</span>
+                                  MATRÍCULA:{' '}
+                                  <span className="text-gray-600">
+                                    {adv.aluno?.numero_matricula || 'N/A'}
+                                  </span>
                                 </p>
                               </div>
                             </div>
-                            
+
                             {isSuperAdmin && (
                               <div className="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
                                 <button
@@ -561,7 +579,12 @@ function AdvertenciaContent() {
                           <div className="flex items-center justify-between pt-2 px-1">
                             <div className="flex items-center gap-2 text-[9px] font-black font-title text-gray-400 uppercase tracking-tighter">
                               <User className="h-3.5 w-3.5" />
-                              Por: <span className="text-gray-600">{adv.professor_registrador?.nome_completo || adv.admin_registrador?.nome_completo || 'Sistema'}</span>
+                              Por:{' '}
+                              <span className="text-gray-600">
+                                {adv.professor_registrador?.nome_completo ||
+                                  adv.admin_registrador?.nome_completo ||
+                                  'Sistema'}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -805,7 +828,6 @@ function AdvertenciaContent() {
     </main>
   )
 }
-
 
 function OpenSidebarButton() {
   const { toggleSidebar, open } = useSidebar()

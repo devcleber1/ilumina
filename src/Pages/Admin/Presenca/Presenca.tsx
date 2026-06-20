@@ -54,7 +54,7 @@ function PresencaContent() {
   const [history, setHistory] = useState<any[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [view, setView] = useState<'chamada' | 'historico'>('chamada')
-  
+
   const [studentSearch, setStudentSearch] = useState('')
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const [historyDate, setHistoryDate] = useState('')
@@ -66,7 +66,10 @@ function PresencaContent() {
   const [isRollCallDone, setIsRollCallDone] = useState(false)
 
   const { user: currentUser } = useAuth()
-  const isAdmin = currentUser?.tipo === 'admin' || currentUser?.nivel_acesso === 'admin' || currentUser?.nivel_acesso === 'superadmin'
+  const isAdmin =
+    currentUser?.tipo === 'admin' ||
+    currentUser?.nivel_acesso === 'admin' ||
+    currentUser?.nivel_acesso === 'superadmin'
   const isSuperAdmin = currentUser?.tipo === 'admin' && currentUser?.nivel_acesso === 'superadmin'
 
   const [loading, setLoading] = useState(true)
@@ -168,7 +171,7 @@ function PresencaContent() {
       const response = await api.get('/presencas/listar-presenca', {
         params: { oficina_id: selectedWorkshop.id },
       })
-      
+
       const grouped = (response.data.data || []).reduce((acc: any, curr: any) => {
         const d = curr.data
         if (!acc[d]) acc[d] = { date: d, present: 0, total: 0 }
@@ -176,8 +179,8 @@ function PresencaContent() {
         if (curr.presente) acc[d].present++
         return acc
       }, {})
-      
-      const historyArray = Object.values(grouped).sort((a: any, b: any) => 
+
+      const historyArray = Object.values(grouped).sort((a: any, b: any) =>
         b.date.localeCompare(a.date)
       )
       setHistory(historyArray)
@@ -242,22 +245,22 @@ function PresencaContent() {
       const promises = Object.values(historyAttendance)
         .filter(record => changedHistoryStudents.has(record.aluno_id))
         .map(async record => {
-        if (record.id) {
-          return api.put(`/presencas/atualizar/${record.id}`, {
-            presente: record.presente,
-            data: historyDate,
-            justificativa: record.justificativa,
-          })
-        } else {
-          return api.post('/presencas/registrar', {
-            aluno_id: record.aluno_id,
-            oficina_id: selectedWorkshop.id,
-            data: historyDate,
-            presente: record.presente,
-            justificativa: record.justificativa,
-          })
-        }
-      })
+          if (record.id) {
+            return api.put(`/presencas/atualizar/${record.id}`, {
+              presente: record.presente,
+              data: historyDate,
+              justificativa: record.justificativa,
+            })
+          } else {
+            return api.post('/presencas/registrar', {
+              aluno_id: record.aluno_id,
+              oficina_id: selectedWorkshop.id,
+              data: historyDate,
+              presente: record.presente,
+              justificativa: record.justificativa,
+            })
+          }
+        })
 
       if (promises.length === 0) return
 
@@ -443,9 +446,10 @@ function PresencaContent() {
     w.nome_oficina.toLowerCase().includes(search.toLowerCase())
   )
 
-  const filteredStudents = students.filter(s =>
-    s.nome_completo.toLowerCase().includes(studentSearch.toLowerCase()) ||
-    s.numero_matricula.toLowerCase().includes(studentSearch.toLowerCase())
+  const filteredStudents = students.filter(
+    s =>
+      s.nome_completo.toLowerCase().includes(studentSearch.toLowerCase()) ||
+      s.numero_matricula.toLowerCase().includes(studentSearch.toLowerCase())
   )
 
   if (!selectedWorkshop) {
@@ -578,7 +582,9 @@ function PresencaContent() {
                   setStudentSearch('')
                 }}
                 className={`py-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
-                  view === 'chamada' ? 'border-yellow-400 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
+                  view === 'chamada'
+                    ? 'border-yellow-400 text-gray-900'
+                    : 'border-transparent text-gray-400 hover:text-gray-600'
                 }`}
               >
                 Realizar Chamada
@@ -590,7 +596,9 @@ function PresencaContent() {
                 setStudentSearch('')
               }}
               className={`py-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
-                view === 'historico' ? 'border-yellow-400 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
+                view === 'historico'
+                  ? 'border-yellow-400 text-gray-900'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
               Histórico de Presenças
@@ -612,7 +620,7 @@ function PresencaContent() {
                 onChange={e => setStudentSearch(e.target.value)}
               />
               {studentSearch && (
-                <button 
+                <button
                   onClick={() => setStudentSearch('')}
                   className="p-1 hover:bg-gray-100 rounded-full text-gray-400"
                 >
@@ -633,11 +641,13 @@ function PresencaContent() {
               <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="h-8 w-8 text-gray-300" />
               </div>
-              <h3 className="font-title text-lg font-bold text-gray-900">Nenhum aluno encontrado</h3>
+              <h3 className="font-title text-lg font-bold text-gray-900">
+                Nenhum aluno encontrado
+              </h3>
               <p className="text-gray-400 text-sm mt-2">
                 Tente ajustar sua busca por nome ou matrícula.
               </p>
-              <button 
+              <button
                 onClick={() => setStudentSearch('')}
                 className="mt-4 text-yellow-600 text-sm font-bold hover:underline"
               >
@@ -647,117 +657,119 @@ function PresencaContent() {
           ) : (
             <div className="space-y-4">
               {filteredStudents.map(student => {
-              const record = attendance[student.id] || { presente: true, justificativa: '' }
-              return (
-                <div
-                  key={student.id}
-                  className={`bg-white rounded-3xl p-4 border transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden ${
-                    record.presente ? 'border-green-100' : 'border-red-100'
-                  }`}
-                >
-                  {/* Overlay de Bloqueio - 2 Edições (Exceto SuperAdmin) */}
-                  {record.total_edicoes !== undefined && record.total_edicoes >= 2 && !isSuperAdmin && (
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-20 flex items-center justify-center p-4">
-                      <div className="bg-white/90 border border-gray-100 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-3 animate-in zoom-in-95 duration-300">
-                        <div className="bg-yellow-400 p-1.5 rounded-lg">
-                          <Lock className="h-4 w-4 text-gray-900" />
+                const record = attendance[student.id] || { presente: true, justificativa: '' }
+                return (
+                  <div
+                    key={student.id}
+                    className={`bg-white rounded-3xl p-4 border transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden ${
+                      record.presente ? 'border-green-100' : 'border-red-100'
+                    }`}
+                  >
+                    {/* Overlay de Bloqueio - 2 Edições (Exceto SuperAdmin) */}
+                    {record.total_edicoes !== undefined &&
+                      record.total_edicoes >= 2 &&
+                      !isSuperAdmin && (
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-20 flex items-center justify-center p-4">
+                          <div className="bg-white/90 border border-gray-100 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-3 animate-in zoom-in-95 duration-300">
+                            <div className="bg-yellow-400 p-1.5 rounded-lg">
+                              <Lock className="h-4 w-4 text-gray-900" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black text-gray-900 uppercase tracking-tighter">
+                                Registro Bloqueado
+                              </span>
+                              <span className="text-[9px] text-gray-500 font-medium">
+                                Limite de 2 edições atingido
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-black text-gray-900 uppercase tracking-tighter">
-                            Registro Bloqueado
-                          </span>
-                          <span className="text-[9px] text-gray-500 font-medium">
-                            Limite de 2 edições atingido
+                      )}
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <UserAvatar
+                          src={student.foto_perfil_url}
+                          name={student.nome_completo}
+                          className="h-12 w-12 rounded-2xl border border-gray-200"
+                        />
+                        <div>
+                          <h4 className="font-title font-bold text-gray-900">
+                            {student.nome_completo}
+                          </h4>
+                          <span className="text-[10px] text-gray-400 font-medium tracking-wider">
+                            MATRÍCULA: {student.numero_matricula}
                           </span>
                         </div>
                       </div>
-                    </div>
-                  )}
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <UserAvatar
-                        src={student.foto_perfil_url}
-                        name={student.nome_completo}
-                        className="h-12 w-12 rounded-2xl border border-gray-200"
-                      />
-                      <div>
-                        <h4 className="font-title font-bold text-gray-900">
-                          {student.nome_completo}
-                        </h4>
-                        <span className="text-[10px] text-gray-400 font-medium tracking-wider">
-                          MATRÍCULA: {student.numero_matricula}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleTogglePresence(student.id, true)}
+                          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            record.presente
+                              ? 'bg-green-500 text-white shadow-lg shadow-green-100'
+                              : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                          }`}
+                        >
+                          <UserCheck className="h-4 w-4" />
+                          Presente
+                        </button>
+                        <button
+                          onClick={() => handleTogglePresence(student.id, false)}
+                          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            !record.presente
+                              ? 'bg-red-500 text-white shadow-lg shadow-red-100'
+                              : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                          }`}
+                        >
+                          <UserX className="h-4 w-4" />
+                          Ausente
+                        </button>
+
+                        {changedStudents.has(student.id) && (
+                          <button
+                            onClick={() => handleSaveSingleAttendance(student.id)}
+                            disabled={savingStudentId === student.id}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-yellow-400 text-gray-900 shadow-lg shadow-yellow-100 hover:bg-yellow-300 transition-all animate-in zoom-in-95 duration-200 cursor-pointer"
+                          >
+                            {savingStudentId === student.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Save className="h-4 w-4" />
+                            )}
+                            Salvar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {!record.presente && (
+                      <div className="mt-4 pt-4 border-t border-red-50">
+                        <label className="text-[10px] font-bold text-red-400 mb-1.5 block uppercase tracking-wider">
+                          Justificativa da Ausência
+                        </label>
+                        <textarea
+                          value={record.justificativa}
+                          onChange={e => handleJustificationChange(student.id, e.target.value)}
+                          placeholder="Informe o motivo da falta..."
+                          className="w-full bg-red-50/50 border border-red-100 rounded-xl p-3 text-xs text-gray-700 outline-none focus:ring-1 focus:ring-red-200 transition-all resize-none h-20 placeholder:text-red-200"
+                        />
+                      </div>
+                    )}
+
+                    {record.total_edicoes !== undefined && record.total_edicoes > 0 && (
+                      <div className="mt-3 flex items-center gap-1.5 text-[9px] text-gray-400 italic">
+                        <Info className="h-3 w-3" />
+                        <span>
+                          Registro atualizado {record.total_edicoes}{' '}
+                          {record.total_edicoes === 1 ? 'vez' : 'vezes'}
                         </span>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleTogglePresence(student.id, true)}
-                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          record.presente
-                            ? 'bg-green-500 text-white shadow-lg shadow-green-100'
-                            : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
-                        }`}
-                      >
-                        <UserCheck className="h-4 w-4" />
-                        Presente
-                      </button>
-                      <button
-                        onClick={() => handleTogglePresence(student.id, false)}
-                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          !record.presente
-                            ? 'bg-red-500 text-white shadow-lg shadow-red-100'
-                            : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
-                        }`}
-                      >
-                        <UserX className="h-4 w-4" />
-                        Ausente
-                      </button>
-
-                      {changedStudents.has(student.id) && (
-                        <button
-                          onClick={() => handleSaveSingleAttendance(student.id)}
-                          disabled={savingStudentId === student.id}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-yellow-400 text-gray-900 shadow-lg shadow-yellow-100 hover:bg-yellow-300 transition-all animate-in zoom-in-95 duration-200 cursor-pointer"
-                        >
-                          {savingStudentId === student.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Save className="h-4 w-4" />
-                          )}
-                          Salvar
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
-
-                  {!record.presente && (
-                    <div className="mt-4 pt-4 border-t border-red-50">
-                      <label className="text-[10px] font-bold text-red-400 mb-1.5 block uppercase tracking-wider">
-                        Justificativa da Ausência
-                      </label>
-                      <textarea
-                        value={record.justificativa}
-                        onChange={e => handleJustificationChange(student.id, e.target.value)}
-                        placeholder="Informe o motivo da falta..."
-                        className="w-full bg-red-50/50 border border-red-100 rounded-xl p-3 text-xs text-gray-700 outline-none focus:ring-1 focus:ring-red-200 transition-all resize-none h-20 placeholder:text-red-200"
-                      />
-                    </div>
-                  )}
-
-                  {record.total_edicoes !== undefined && record.total_edicoes > 0 && (
-                    <div className="mt-3 flex items-center gap-1.5 text-[9px] text-gray-400 italic">
-                      <Info className="h-3 w-3" />
-                      <span>
-                        Registro atualizado {record.total_edicoes}{' '}
-                        {record.total_edicoes === 1 ? 'vez' : 'vezes'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                )
+              })}
             </div>
           )
         ) : (
@@ -793,18 +805,19 @@ function PresencaContent() {
                           weekday: 'long',
                           year: 'numeric',
                           month: 'long',
-                          day: 'numeric'
+                          day: 'numeric',
                         })}
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-green-500" 
+                          <div
+                            className="h-full bg-green-500"
                             style={{ width: `${(item.present / item.total) * 100}%` }}
                           />
                         </div>
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                          {item.present} de {item.total} Presentes ({Math.round((item.present / item.total) * 100)}%)
+                          {item.present} de {item.total} Presentes (
+                          {Math.round((item.present / item.total) * 100)}%)
                         </span>
                       </div>
                     </div>
@@ -834,7 +847,11 @@ function PresencaContent() {
                 </h2>
                 <div className="flex items-center gap-2 text-xs font-bold text-yellow-600 mt-1">
                   <Calendar className="h-3.5 w-3.5" />
-                  <span>{new Date(historyDate + 'T12:00:00').toLocaleDateString('pt-BR', { dateStyle: 'full' })}</span>
+                  <span>
+                    {new Date(historyDate + 'T12:00:00').toLocaleDateString('pt-BR', {
+                      dateStyle: 'full',
+                    })}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -844,7 +861,11 @@ function PresencaContent() {
                     disabled={savingHistory}
                     className="flex items-center gap-2 rounded-2xl bg-yellow-400 px-6 py-3 text-sm font-black text-gray-900 shadow-xl shadow-yellow-400/20 transition hover:bg-yellow-300 disabled:opacity-50"
                   >
-                    {savingHistory ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {savingHistory ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
                     Salvar Todos ({changedHistoryStudents.size})
                   </button>
                 )}
@@ -860,7 +881,10 @@ function PresencaContent() {
             {/* Conteúdo do Modal */}
             <div className="flex-1 overflow-y-auto p-8 space-y-4">
               {students.map(student => {
-                const record = historyAttendance[student.id] || { presente: true, justificativa: '' }
+                const record = historyAttendance[student.id] || {
+                  presente: true,
+                  justificativa: '',
+                }
                 return (
                   <div
                     key={student.id}
@@ -869,23 +893,25 @@ function PresencaContent() {
                     }`}
                   >
                     {/* Overlay de Bloqueio - 2 Edições (Exceto SuperAdmin) no Modal */}
-                    {record.total_edicoes !== undefined && record.total_edicoes >= 2 && !isSuperAdmin && (
-                      <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-20 flex items-center justify-center p-4">
-                        <div className="bg-white/90 border border-gray-100 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-3 animate-in zoom-in-95 duration-300">
-                          <div className="bg-yellow-400 p-1.5 rounded-lg">
-                            <Lock className="h-4 w-4 text-gray-900" />
-                          </div>
-                          <div className="flex flex-col text-left">
-                            <span className="text-[10px] font-black text-gray-900 uppercase tracking-tighter">
-                              Registro Bloqueado
-                            </span>
-                            <span className="text-[9px] text-gray-500 font-medium">
-                              Limite atingido
-                            </span>
+                    {record.total_edicoes !== undefined &&
+                      record.total_edicoes >= 2 &&
+                      !isSuperAdmin && (
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-20 flex items-center justify-center p-4">
+                          <div className="bg-white/90 border border-gray-100 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-3 animate-in zoom-in-95 duration-300">
+                            <div className="bg-yellow-400 p-1.5 rounded-lg">
+                              <Lock className="h-4 w-4 text-gray-900" />
+                            </div>
+                            <div className="flex flex-col text-left">
+                              <span className="text-[10px] font-black text-gray-900 uppercase tracking-tighter">
+                                Registro Bloqueado
+                              </span>
+                              <span className="text-[9px] text-gray-500 font-medium">
+                                Limite atingido
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <UserAvatar
@@ -948,7 +974,9 @@ function PresencaContent() {
                       <div className="mt-4 pt-4 border-t border-red-50">
                         <textarea
                           value={record.justificativa}
-                          onChange={e => handleHistoryJustificationChange(student.id, e.target.value)}
+                          onChange={e =>
+                            handleHistoryJustificationChange(student.id, e.target.value)
+                          }
                           placeholder="Informe o motivo da falta..."
                           className="w-full bg-red-50/50 border border-red-100 rounded-2xl p-4 text-xs text-gray-700 outline-none focus:ring-1 focus:ring-red-200 transition-all resize-none h-24 placeholder:text-red-200"
                         />

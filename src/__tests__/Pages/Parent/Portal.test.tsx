@@ -173,11 +173,11 @@ describe('PortalResponsavel', () => {
     // Deve exibir no máximo 5 registros. As datas formatadas ordenadas decrescentemente:
     // 25 mai. 2026 (index 4) -> 24 mai. 2026 (index 5) -> 22 mai. 2026 (index 2) -> 20 mai. 2026 (index 1) -> 19 mai. 2026 (index 6)
     // 18 mai. 2026 (index 3) deve ficar oculto por padrão (limite de 5)
-    expect(screen.getByText('25 mai. 2026')).toBeInTheDocument()
-    expect(screen.getByText('24 mai. 2026')).toBeInTheDocument()
-    expect(screen.getByText('22 mai. 2026')).toBeInTheDocument()
-    expect(screen.getByText('20 mai. 2026')).toBeInTheDocument()
-    expect(screen.getByText('19 mai. 2026')).toBeInTheDocument()
+    expect(screen.getAllByText('25 mai. 2026')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('24 mai. 2026')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('22 mai. 2026')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('20 mai. 2026')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('19 mai. 2026')[0]).toBeInTheDocument()
     expect(screen.queryByText('18 mai. 2026')).not.toBeInTheDocument()
   })
 

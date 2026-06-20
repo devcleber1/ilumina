@@ -31,7 +31,6 @@ import * as Yup from 'yup'
 import { getSocket } from '../../lib/socket'
 import { storageService } from '../../lib/storageService'
 
-
 interface PortalData {
   pai: {
     nome: string
@@ -150,7 +149,11 @@ export default function PortalResponsavel() {
                 const shownKey = `presenca_shown_${p.id}`
                 if (!storageService.getItem(shownKey, true)) {
                   const statusStr = p.presente ? 'presente' : 'ausente'
-                  showAlert('info', 'Presença de Hoje', `Seu filho(a) ${filho.nome_completo} esteve ${statusStr} na oficina de ${p.oficina}.`)
+                  showAlert(
+                    'info',
+                    'Presença de Hoje',
+                    `Seu filho(a) ${filho.nome_completo} esteve ${statusStr} na oficina de ${p.oficina}.`
+                  )
                   storageService.setItem(shownKey, 'true', true)
                 }
               }
@@ -185,26 +188,29 @@ export default function PortalResponsavel() {
     if (!data) return
 
     const socket = getSocket()
-    
+
     const handleNovaPresenca = (eventoInfo: any) => {
       const filhoAtendido = data.filhos?.find((f: Filho) => f.id === eventoInfo.aluno_id)
       if (filhoAtendido) {
         const statusStr = eventoInfo.presente ? 'presente' : 'ausente'
-        
+
         // Se houver data, formatamos. Caso contrário usamos Hoje como fallback
-        const dataFormatada = eventoInfo.data 
+        const dataFormatada = eventoInfo.data
           ? new Date(eventoInfo.data + 'T12:00:00').toLocaleDateString('pt-BR')
           : 'hoje'
-          
+
         let titulo = 'Nova Presença!'
         let mensagem = `Seu filho(a) ${filhoAtendido.nome_completo} foi marcado(a) como ${statusStr} na oficina de ${eventoInfo.oficina_nome} (Data: ${dataFormatada}).`
 
         if (eventoInfo.isEdit) {
-           titulo = 'Atenção: Presença Editada'
-           const horaEdicao = eventoInfo.data_edicao 
-             ? new Date(eventoInfo.data_edicao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-             : 'agora'
-           mensagem = `O registro do dia ${dataFormatada} para seu filho(a) ${filhoAtendido.nome_completo} foi corrigido para ${statusStr} na oficina de ${eventoInfo.oficina_nome} (Editado às ${horaEdicao}).`
+          titulo = 'Atenção: Presença Editada'
+          const horaEdicao = eventoInfo.data_edicao
+            ? new Date(eventoInfo.data_edicao).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : 'agora'
+          mensagem = `O registro do dia ${dataFormatada} para seu filho(a) ${filhoAtendido.nome_completo} foi corrigido para ${statusStr} na oficina de ${eventoInfo.oficina_nome} (Editado às ${horaEdicao}).`
         }
 
         showAlert('info', titulo, mensagem)
@@ -231,7 +237,11 @@ export default function PortalResponsavel() {
     const handleAdvertenciaDeletada = (eventoInfo: any) => {
       const filhoAtendido = data.filhos?.find((f: Filho) => f.id === eventoInfo.aluno_id)
       if (filhoAtendido) {
-        showAlert('info', 'Advertência Removida', `Uma advertência registrada para seu filho(a) ${filhoAtendido.nome_completo} foi excluída/removida.`)
+        showAlert(
+          'info',
+          'Advertência Removida',
+          `Uma advertência registrada para seu filho(a) ${filhoAtendido.nome_completo} foi excluída/removida.`
+        )
       }
       refetchSilencioso()
     }
@@ -277,35 +287,35 @@ export default function PortalResponsavel() {
     navigate('/')
   }
 
-
   const profileSchema = Yup.object().shape({
     nome: Yup.string().required('Nome é obrigatório').min(3, 'Nome muito curto'),
     email: Yup.string().email('E-mail inválido').required('E-mail é obrigatório'),
     telefone: Yup.string().required('Telefone é obrigatório'),
     data_nascimento: Yup.string().required('Data de nascimento é obrigatória'),
-    ...(isChangingPassword ? {
-      atual: Yup.string().required('Senha atual é obrigatória'),
-      nova: Yup.string()
-        .required('Nova senha é obrigatória')
-        .min(12, 'Senha deve ter no mínimo 12 caracteres')
-        .matches(/[a-z]/, 'Deve conter letras minúsculas')
-        .matches(/[A-Z]/, 'Deve conter letras maiúsculas')
-        .matches(/[0-9]/, 'Deve conter números')
-        .matches(/[@$!%*?&#]/, 'Deve conter caracteres especiais (@$!%*?&#)'),
-      confirmar: Yup.string()
-        .oneOf([Yup.ref('nova')], 'As senhas não coincidem')
-        .required('Confirmação é obrigatória'),
-    } : {})
-
+    ...(isChangingPassword
+      ? {
+          atual: Yup.string().required('Senha atual é obrigatória'),
+          nova: Yup.string()
+            .required('Nova senha é obrigatória')
+            .min(12, 'Senha deve ter no mínimo 12 caracteres')
+            .matches(/[a-z]/, 'Deve conter letras minúsculas')
+            .matches(/[A-Z]/, 'Deve conter letras maiúsculas')
+            .matches(/[0-9]/, 'Deve conter números')
+            .matches(/[@$!%*?&#]/, 'Deve conter caracteres especiais (@$!%*?&#)'),
+          confirmar: Yup.string()
+            .oneOf([Yup.ref('nova')], 'As senhas não coincidem')
+            .required('Confirmação é obrigatória'),
+        }
+      : {}),
   })
 
   const handleSaveProfile = async () => {
     try {
       setErrors({})
-      
+
       const validateData = {
         ...profileForm,
-        ...(isChangingPassword ? passwords : {})
+        ...(isChangingPassword ? passwords : {}),
       }
 
       await profileSchema.validate(validateData, { abortEarly: false })
@@ -316,12 +326,14 @@ export default function PortalResponsavel() {
         telefone: profileForm.telefone,
         email: profileForm.email,
         data_nascimento: profileForm.data_nascimento,
-        ...(isChangingPassword ? { 
-          senhaAtual: passwords.atual, 
-          novaSenha: passwords.nova 
-        } : {})
+        ...(isChangingPassword
+          ? {
+              senhaAtual: passwords.atual,
+              novaSenha: passwords.nova,
+            }
+          : {}),
       })
-      
+
       showAlert('success', 'Sucesso', 'Perfil atualizado com sucesso!')
       setIsProfileModalOpen(false)
       setIsChangingPassword(false)
@@ -338,7 +350,7 @@ export default function PortalResponsavel() {
         setErrors(validationErrors)
         return
       }
-      
+
       // Trata erro de senha atual incorreta vindo do backend
       if (err.response?.status === 400 && err.response?.data?.message?.includes('Senha atual')) {
         setErrors({ ...errors, atual: 'Senha atual incorreta' })
@@ -355,8 +367,6 @@ export default function PortalResponsavel() {
       setIsSaving(false)
     }
   }
-
-
 
   if (loading) {
     return (
@@ -419,12 +429,12 @@ export default function PortalResponsavel() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
         {/* Saudação e Resumo */}
         <section className="animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <h2 className="font-title text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter">
+              <h2 className="font-title text-xl sm:text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter">
                 Olá, {data?.pai.nome.split(' ')[0]} 👋
               </h2>
               <p className="text-gray-400 font-medium">
@@ -432,48 +442,56 @@ export default function PortalResponsavel() {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 w-full md:w-auto">
-              <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
+            <div className="grid grid-cols-3 gap-2 md:gap-4 w-full md:w-auto">
+              <div className="bg-white p-3 md:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
                 <Users className="h-5 w-5 text-blue-500 mb-1" />
-                <span className="text-xl font-black text-gray-900">
+                <span className="text-lg md:text-xl font-black text-gray-900 leading-none">
                   {data?.resumo.total_filhos}
                 </span>
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                <span className="text-[7px] md:text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
                   Filhos
                 </span>
               </div>
-              <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
+              <div className="bg-white p-3 md:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
                 <Activity className="h-5 w-5 text-green-500 mb-1" />
-                <span className="text-xl font-black text-gray-900">
+                <span className="text-lg md:text-xl font-black text-gray-900 leading-none">
                   {data?.resumo.media_presenca}%
                 </span>
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                <span className="text-[7px] md:text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
                   Presença
                 </span>
               </div>
-              <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center relative group/alerta cursor-help">
-                <AlertTriangle className={`h-5 w-5 mb-1 ${
-                  (data?.resumo.total_advertencias_pendentes || 0) > 0
-                    ? 'text-red-500'
-                    : (data?.resumo.total_advertencias_resolvidas || 0) > 0
-                      ? 'text-blue-500'
-                      : 'text-green-500'
-                }`} />
-                <span className={`text-xl font-black ${
-                  (data?.resumo.total_advertencias_pendentes || 0) > 0
-                    ? 'text-red-500'
-                    : (data?.resumo.total_advertencias_resolvidas || 0) > 0
-                      ? 'text-blue-500'
-                      : 'text-green-500'
-                }`}>
+              <div className="bg-white p-3 md:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center relative group/alerta cursor-help">
+                <AlertTriangle
+                  className={`h-5 w-5 mb-1 ${
+                    (data?.resumo.total_advertencias_pendentes || 0) > 0
+                      ? 'text-red-500'
+                      : (data?.resumo.total_advertencias_resolvidas || 0) > 0
+                        ? 'text-blue-500'
+                        : 'text-green-500'
+                  }`}
+                />
+                <span
+                  className={`text-lg md:text-xl font-black leading-none ${
+                    (data?.resumo.total_advertencias_pendentes || 0) > 0
+                      ? 'text-red-500'
+                      : (data?.resumo.total_advertencias_resolvidas || 0) > 0
+                        ? 'text-blue-500'
+                        : 'text-green-500'
+                  }`}
+                >
                   {data?.resumo.total_advertencias}
                 </span>
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                <span className="text-[7px] md:text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
                   Alertas
                 </span>
                 <div className="absolute top-full mt-2 hidden group-hover/alerta:flex flex-col bg-gray-900 text-white text-[9px] font-black uppercase p-3 rounded-2xl shadow-xl z-50 w-32 border border-gray-800 text-left gap-1 animate-in fade-in duration-200">
-                  <span className="text-red-400">● {data?.resumo.total_advertencias_pendentes || 0} Pendentes</span>
-                  <span className="text-green-400">● {data?.resumo.total_advertencias_resolvidas || 0} Resolvidas</span>
+                  <span className="text-red-400">
+                    ● {data?.resumo.total_advertencias_pendentes || 0} Pendentes
+                  </span>
+                  <span className="text-green-400">
+                    ● {data?.resumo.total_advertencias_resolvidas || 0} Resolvidas
+                  </span>
                 </div>
               </div>
             </div>
@@ -487,9 +505,9 @@ export default function PortalResponsavel() {
             <h3 className="font-title text-lg font-black text-gray-900 uppercase">Meus Filhos</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {!data?.filhos || data.filhos.length === 0 ? (
-              <div className="col-span-full bg-white rounded-[40px] p-8 sm:p-12 border border-gray-100 shadow-xl shadow-gray-100/40 text-center space-y-6 max-w-2xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+              <div className="col-span-full bg-white rounded-3xl sm:rounded-[40px] p-6 sm:p-12 border border-gray-100 shadow-xl shadow-gray-100/40 text-center space-y-4 sm:space-y-6 max-w-2xl mx-auto animate-in fade-in zoom-in-95 duration-500">
                 <div className="mx-auto w-20 h-20 bg-yellow-50 rounded-[32px] flex items-center justify-center text-yellow-500 border border-yellow-100/50 shadow-inner">
                   <Users className="h-10 w-10" />
                 </div>
@@ -498,19 +516,20 @@ export default function PortalResponsavel() {
                     Nenhum Filho Vinculado
                   </h4>
                   <p className="text-gray-400 text-sm font-medium leading-relaxed">
-                    Você não possui filho vinculado a este perfil.
-                    Para visualizar o desempenho escolar, frequência e advertências, é necessário realizar o vínculo.
+                    Você não possui filho vinculado a este perfil. Para visualizar o desempenho
+                    escolar, frequência e advertências, é necessário realizar o vínculo.
                   </p>
                 </div>
                 <div className="p-4 bg-yellow-50/50 rounded-2xl border border-yellow-100/30 text-[11px] font-bold text-yellow-700 uppercase tracking-wider max-w-md mx-auto">
-                  📞 Por favor, entre em contato com a secretaria da ONG para solicitar a vinculação.
+                  📞 Por favor, entre em contato com a secretaria da ONG para solicitar a
+                  vinculação.
                 </div>
               </div>
             ) : (
               data.filhos.map((filho, idx) => (
                 <div
                   key={filho.id}
-                  className="group bg-white rounded-[40px] p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95"
+                  className="group bg-white rounded-3xl sm:rounded-[40px] p-4 sm:p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in-95"
                   style={{ animationDelay: `${idx * 100}ms` }}
                 >
                   <div className="flex items-center gap-4 mb-6">
@@ -573,10 +592,13 @@ export default function PortalResponsavel() {
                             {filho.total_advertencias}
                           </span>
                           <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter mt-0.5">
-                            ({filho.total_advertencias_pendentes || 0} P • {filho.total_advertencias_resolvidas || 0} R)
+                            ({filho.total_advertencias_pendentes || 0} P •{' '}
+                            {filho.total_advertencias_resolvidas || 0} R)
                           </span>
                         </div>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">Advertências</p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">
+                          Advertências
+                        </p>
                       </div>
                       <div className="w-px h-6 bg-gray-100" />
                       <div className="text-center">
@@ -603,16 +625,16 @@ export default function PortalResponsavel() {
       {/* Detalhes do Filho */}
       {selectedFilho && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-4xl max-h-[95vh] sm:rounded-[48px] overflow-hidden flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-500">
-            <div className="p-6 sm:p-10 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="bg-white w-full max-w-4xl max-h-[95vh] rounded-t-3xl sm:rounded-[48px] overflow-hidden flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-500">
+            <div className="p-3 sm:p-10 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
               <div className="flex items-center gap-5">
                 <UserAvatar
                   src={selectedFilho.foto_perfil_url}
                   name={selectedFilho.nome_completo}
-                  className="h-16 w-16 rounded-3xl border-4 border-white shadow-xl"
+                  className="h-12 w-12 sm:h-16 sm:w-16 rounded-2xl sm:rounded-3xl border-4 border-white shadow-xl"
                 />
                 <div>
-                  <h3 className="font-title text-xl sm:text-2xl font-black text-gray-900 uppercase tracking-tighter">
+                  <h3 className="font-title text-base sm:text-2xl font-black text-gray-900 uppercase tracking-tighter">
                     {selectedFilho.nome_completo}
                   </h3>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
@@ -628,14 +650,22 @@ export default function PortalResponsavel() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 sm:p-10 custom-scrollbar space-y-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-10 custom-scrollbar space-y-5 sm:space-y-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8">
                 <div className="space-y-6">
                   <SectionTitle title="Dados do Aluno" icon={User} />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoItem
                       label="Data de Nascimento"
-                      value={selectedFilho.data_nascimento ? selectedFilho.data_nascimento.split('T')[0].split('-').reverse().join('/') : '—'}
+                      value={
+                        selectedFilho.data_nascimento
+                          ? selectedFilho.data_nascimento
+                              .split('T')[0]
+                              .split('-')
+                              .reverse()
+                              .join('/')
+                          : '—'
+                      }
                     />
                     <InfoItem label="Idade" value={`${selectedFilho.idade} anos`} />
                     <InfoItem label="Matrícula" value={selectedFilho.matricula} />
@@ -644,29 +674,25 @@ export default function PortalResponsavel() {
                 </div>
                 <div className="space-y-6">
                   <SectionTitle title="Visão Geral Presença" icon={Activity} />
-                  <div className="h-40 w-full bg-gray-50 rounded-[32px] p-4 border border-gray-100">
+                  <div className="h-40 w-full bg-gray-50 rounded-2xl sm:rounded-[32px] p-2 sm:p-4 border border-gray-100">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={selectedFilho.oficinas || []}>
-                        <XAxis 
-                          dataKey="nome" 
-                          hide={false} 
-                          axisLine={false} 
-                          tickLine={false} 
+                        <XAxis
+                          dataKey="nome"
+                          hide={false}
+                          axisLine={false}
+                          tickLine={false}
                           tick={{ fontSize: 8, fontWeight: 'bold', fill: '#9CA3AF' }}
                           interval={0}
                         />
                         <Bar dataKey="percentual" radius={[4, 4, 0, 0]} minPointSize={4}>
                           {(selectedFilho.oficinas || []).map((entry, index) => {
-                            let barColor = '#F87171'; // Default Red (0-49)
-                            if (entry.percentual >= 80) barColor = '#4ADE80'; // Green (80-100)
-                            else if (entry.percentual >= 50) barColor = '#FB923C'; // Orange (50-79)
-                            
-                            return (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={barColor}
-                              />
-                            );
+                            let barColor = '#F87171' // Default Red (0-49)
+                            if (entry.percentual >= 80)
+                              barColor = '#4ADE80' // Green (80-100)
+                            else if (entry.percentual >= 50) barColor = '#FB923C' // Orange (50-79)
+
+                            return <Cell key={`cell-${index}`} fill={barColor} />
                           })}
                         </Bar>
 
@@ -681,7 +707,6 @@ export default function PortalResponsavel() {
                           }}
                         />
                       </BarChart>
-
                     </ResponsiveContainer>
                   </div>
                 </div>
@@ -689,11 +714,11 @@ export default function PortalResponsavel() {
 
               <div className="space-y-6">
                 <SectionTitle title="Oficinas & Frequência" icon={Clock} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {(selectedFilho.oficinas || []).map(oficina => (
                     <div
                       key={oficina.id}
-                      className="p-5 rounded-[32px] bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all"
+                      className="p-4 sm:p-5 rounded-2xl sm:rounded-[32px] bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all"
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div>
@@ -751,12 +776,16 @@ export default function PortalResponsavel() {
                 </div>
 
                 {((selectedFilho as any).total_advertencias_pendentes || 0) > 0 && (
-                  <div className="p-6 rounded-[32px] bg-yellow-50 border border-yellow-200 text-gray-900 flex items-start gap-4 animate-in slide-in-from-top-2 duration-300">
+                  <div className="p-4 sm:p-6 rounded-2xl sm:rounded-[32px] bg-yellow-50 border border-yellow-200 text-gray-900 flex items-start gap-3 sm:gap-4 animate-in slide-in-from-top-2 duration-300">
                     <AlertTriangle className="h-5 w-5 text-yellow-650 shrink-0 mt-0.5" />
                     <div className="space-y-1.5 flex-1">
-                      <h5 className="text-[10px] font-black uppercase tracking-widest text-yellow-700">Ação Requerida Presencialmente</h5>
+                      <h5 className="text-[10px] font-black uppercase tracking-widest text-yellow-700">
+                        Ação Requerida Presencialmente
+                      </h5>
                       <p className="text-xs text-gray-700 font-semibold leading-relaxed">
-                        Detectamos ocorrência(s) pendente(s) de resolução para seu filho(a). É necessário o comparecimento presencial na ONG Iluminando o Futuro para regularização pedagógica e assinatura de ciência.
+                        Detectamos ocorrência(s) pendente(s) de resolução para seu filho(a). É
+                        necessário o comparecimento presencial na ONG Iluminando o Futuro para
+                        regularização pedagógica e assinatura de ciência.
                       </p>
                       <button
                         onClick={() => setIsResolveModalOpen(true)}
@@ -771,11 +800,11 @@ export default function PortalResponsavel() {
                 {(selectedFilho.advertencias_list || []).length > 0 ? (
                   <div className="space-y-3">
                     {(selectedFilho.advertencias_list || []).map(adv => {
-                      const isResolvida = adv.status === 'resolvida' || (adv as any).resolvida;
+                      const isResolvida = adv.status === 'resolvida' || (adv as any).resolvida
                       return (
                         <div
                           key={adv.id}
-                          className={`p-6 rounded-[32px] border border-dashed flex flex-col sm:flex-row justify-between gap-4 transition-all ${
+                          className={`p-4 sm:p-6 rounded-2xl sm:rounded-[32px] border border-dashed flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 transition-all ${
                             isResolvida
                               ? 'bg-green-50/20 border-green-100'
                               : 'bg-red-50/50 border-red-100'
@@ -783,36 +812,46 @@ export default function PortalResponsavel() {
                         >
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                                isResolvida ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'
-                              }`}>
+                              <span
+                                className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                  isResolvida
+                                    ? 'text-green-600 bg-green-100'
+                                    : 'text-red-600 bg-red-100'
+                                }`}
+                              >
                                 {adv.tipo}
                               </span>
                               <span className="text-xs font-bold text-gray-400">
-                                {adv.data ? adv.data.split('T')[0].split('-').reverse().join('/') : '—'}
+                                {adv.data
+                                  ? adv.data.split('T')[0].split('-').reverse().join('/')
+                                  : '—'}
                               </span>
                             </div>
                             <p className="text-sm font-bold text-gray-900">{adv.oficina}</p>
                             <p className="text-xs text-gray-600 italic">"{adv.descricao}"</p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <div className={`p-2 rounded-xl ${isResolvida ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                            <div
+                              className={`p-2 rounded-xl ${isResolvida ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
+                            >
                               {isResolvida ? (
                                 <CheckCircle2 className="h-5 w-5" />
                               ) : (
                                 <AlertTriangle className="h-5 w-5" />
                               )}
                             </div>
-                            <span className={`text-[10px] font-black uppercase ${isResolvida ? 'text-green-600' : 'text-red-600'}`}>
+                            <span
+                              className={`text-[10px] font-black uppercase ${isResolvida ? 'text-green-600' : 'text-red-600'}`}
+                            >
                               {isResolvida ? 'Resolvida' : 'Pendente'}
                             </span>
                           </div>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 ) : (
-                  <div className="p-10 rounded-[48px] bg-green-50 border border-green-100 text-center space-y-2">
+                  <div className="p-6 sm:p-10 rounded-3xl sm:rounded-[48px] bg-green-50 border border-green-100 text-center space-y-2">
                     <p className="text-2xl">🎉</p>
                     <p className="text-sm font-black text-green-700 uppercase tracking-widest">
                       Nenhuma advertência registrada.
@@ -827,16 +866,19 @@ export default function PortalResponsavel() {
               <div className="space-y-6">
                 <SectionTitle title="Histórico Recente" icon={CalendarCheck} />
                 {(() => {
-                  const sortedHistorico = [...(selectedFilho.historico_presenca || [])].sort((a, b) => {
-                    const dateA = a.data ? new Date(a.data).getTime() : 0
-                    const dateB = b.data ? new Date(b.data).getTime() : 0
-                    return dateB - dateA
-                  })
+                  const sortedHistorico = [...(selectedFilho.historico_presenca || [])].sort(
+                    (a, b) => {
+                      const dateA = a.data ? new Date(a.data).getTime() : 0
+                      const dateB = b.data ? new Date(b.data).getTime() : 0
+                      return dateB - dateA
+                    }
+                  )
                   const limitedHistorico = sortedHistorico.slice(0, 5)
 
                   return (
                     <>
-                      <div className="overflow-x-auto">
+                      {/* Tabela Desktop */}
+                      <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left">
                           <thead>
                             <tr className="border-b border-gray-100">
@@ -870,7 +912,9 @@ export default function PortalResponsavel() {
                                     {selectedFilho.nome_completo}
                                   </td>
                                 )}
-                                <td className="py-4 text-xs font-medium text-gray-600">{p.oficina}</td>
+                                <td className="py-4 text-xs font-medium text-gray-600">
+                                  {p.oficina}
+                                </td>
                                 <td className="py-4 text-center">
                                   <span
                                     className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase ${
@@ -889,6 +933,43 @@ export default function PortalResponsavel() {
                             ))}
                           </tbody>
                         </table>
+                      </div>
+
+                      {/* Cards Mobile */}
+                      <div className="md:hidden space-y-3">
+                        {limitedHistorico.map(p => (
+                          <div
+                            key={p.id}
+                            className={`p-3.5 rounded-2xl border border-dashed flex items-center justify-between gap-3 ${
+                              p.presente
+                                ? 'bg-green-50/10 border-green-100/50'
+                                : 'bg-red-50/10 border-red-100/50'
+                            }`}
+                          >
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
+                                {formatarDataPortal(p.data)}
+                              </span>
+                              <h5 className="text-xs font-black text-gray-900 leading-tight truncate">
+                                {p.oficina}
+                              </h5>
+                              {p.observacoes && (
+                                <p className="text-[10px] text-gray-400 italic mt-0.5 leading-snug truncate">
+                                  "{p.observacoes}"
+                                </p>
+                              )}
+                            </div>
+                            <span
+                              className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                                p.presente
+                                  ? 'bg-green-100 text-green-600'
+                                  : 'bg-red-100 text-red-600'
+                              }`}
+                            >
+                              {p.presente ? 'Presente' : 'Ausente'}
+                            </span>
+                          </div>
+                        ))}
                       </div>
 
                       {sortedHistorico.length > 5 && (
@@ -913,9 +994,9 @@ export default function PortalResponsavel() {
 
       {/* Perfil */}
       {isProfileModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-            <div className="flex items-center justify-between p-8 border-b border-gray-100">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200 overflow-hidden max-h-[95vh] sm:max-h-[90vh]">
+            <div className="flex items-center justify-between p-4 sm:p-8 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-yellow-100 rounded-2xl text-yellow-600">
                   <Settings className="h-6 w-6" />
@@ -938,7 +1019,7 @@ export default function PortalResponsavel() {
               </button>
             </div>
 
-            <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh] custom-scrollbar">
+            <div className="p-4 sm:p-8 space-y-6 sm:space-y-8 overflow-y-auto flex-1 custom-scrollbar">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative group">
                   <UserAvatar
@@ -948,22 +1029,22 @@ export default function PortalResponsavel() {
                   />
                   <label className="absolute -bottom-2 -right-2 p-2 bg-yellow-400 rounded-2xl shadow-lg cursor-pointer hover:scale-110 transition border-4 border-white">
                     <Camera className="h-5 w-5 text-gray-900" />
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*" 
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={async e => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
 
-                        const formData = new FormData();
-                        formData.append('foto_perfil_url', file);
+                        const formData = new FormData()
+                        formData.append('foto_perfil_url', file)
 
                         try {
-                          setIsSaving(true);
+                          setIsSaving(true)
                           const response = await api.patch('/pais/me/photo', formData, {
-                            headers: { 'Content-Type': 'multipart/form-data' }
-                          });
+                            headers: { 'Content-Type': 'multipart/form-data' },
+                          })
 
                           if (response.data.success) {
                             // Atualiza o estado local para refletir a nova foto
@@ -972,22 +1053,21 @@ export default function PortalResponsavel() {
                                 ...data,
                                 pai: {
                                   ...data.pai,
-                                  foto_perfil_url: response.data.foto_perfil_url
-                                }
-                              });
+                                  foto_perfil_url: response.data.foto_perfil_url,
+                                },
+                              })
                             }
-                            showAlert('success', 'Sucesso', 'Foto de perfil atualizada!');
+                            showAlert('success', 'Sucesso', 'Foto de perfil atualizada!')
                           }
                         } catch (error) {
-                          console.error('Erro ao subir foto:', error);
-                          showAlert('destructive', 'Erro', 'Erro ao atualizar foto de perfil');
+                          console.error('Erro ao subir foto:', error)
+                          showAlert('destructive', 'Erro', 'Erro ao atualizar foto de perfil')
                         } finally {
-                          setIsSaving(false);
+                          setIsSaving(false)
                         }
                       }}
                     />
                   </label>
-
                 </div>
                 <div className="text-center">
                   <h3 className="font-bold text-gray-900">{data?.pai.nome}</h3>
@@ -1062,10 +1142,9 @@ export default function PortalResponsavel() {
                   </div>
                 )}
               </div>
-
             </div>
 
-            <div className="p-8 bg-gray-50/50 border-t border-gray-100">
+            <div className="p-4 sm:p-8 bg-gray-50/50 border-t border-gray-100">
               <button
                 onClick={handleSaveProfile}
                 disabled={isSaving}
@@ -1087,9 +1166,9 @@ export default function PortalResponsavel() {
 
       {/* Modal de Instruções de Resolução de Advertências */}
       {isResolveModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in zoom-in-95 duration-400 overflow-hidden border border-gray-50">
-            <div className="flex items-center justify-between p-8 border-b border-gray-100 bg-yellow-50">
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-t-3xl sm:rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-400 overflow-hidden border border-gray-50 max-h-[95vh] sm:max-h-[90vh]">
+            <div className="flex items-center justify-between p-4 sm:p-8 border-b border-gray-100 bg-yellow-50">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-yellow-100 rounded-2xl text-yellow-650">
                   <AlertTriangle className="h-6 w-6" />
@@ -1109,43 +1188,53 @@ export default function PortalResponsavel() {
               </button>
             </div>
 
-            <div className="p-8 space-y-6 overflow-y-auto max-h-[60vh] custom-scrollbar text-sm text-gray-700">
+            <div className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto flex-1 custom-scrollbar text-sm text-gray-700">
               <div className="space-y-2">
-                <p className="font-black text-gray-900 uppercase tracking-widest text-[10px] text-yellow-650">📍 O que fazer agora?</p>
+                <p className="font-black text-gray-900 uppercase tracking-widest text-[10px] text-yellow-650">
+                  📍 O que fazer agora?
+                </p>
                 <p className="leading-relaxed font-semibold text-gray-900">
-                  Para garantir o melhor acompanhamento pedagógico e a segurança de seu filho(a), solicitamos o comparecimento presencial do responsável legal à secretaria da <strong>ONG Iluminando o Futuro</strong> o quanto antes.
+                  Para garantir o melhor acompanhamento pedagógico e a segurança de seu filho(a),
+                  solicitamos o comparecimento presencial do responsável legal à secretaria da{' '}
+                  <strong>ONG Iluminando o Futuro</strong> o quanto antes.
                 </p>
               </div>
 
-              <div className="space-y-4 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+              <div className="space-y-4 bg-gray-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100">
                 <h4 className="font-black text-gray-900 uppercase tracking-wider text-[11px] flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-yellow-400" /> Etapas para Resolução:
                 </h4>
                 <ol className="space-y-3 text-xs font-semibold text-gray-600 pl-4 list-decimal leading-relaxed">
                   <li>
-                    Comparecer à secretaria da ONG durante o horário de atendimento (Segunda a Sexta, das 08:00 às 17:00).
+                    Comparecer à secretaria da ONG durante o horário de atendimento (Segunda a
+                    Sexta, das 08:00 às 17:00).
                   </li>
                   <li>
                     Apresentar um documento de identificação com foto do responsável pedagógico.
                   </li>
                   <li>
-                    Realizar a leitura conjunta e assinatura do <strong>Termo de Ciência de Ocorrência Pedagógica</strong>.
+                    Realizar a leitura conjunta e assinatura do{' '}
+                    <strong>Termo de Ciência de Ocorrência Pedagógica</strong>.
                   </li>
                   <li>
-                    Alinhar as diretrizes de apoio e acompanhamento pedagógico com a equipe de coordenação.
+                    Alinhar as diretrizes de apoio e acompanhamento pedagógico com a equipe de
+                    coordenação.
                   </li>
                 </ol>
               </div>
 
               <div className="p-5 bg-yellow-50 rounded-3xl border border-yellow-100 text-xs font-bold text-gray-900 leading-relaxed space-y-1">
-                <p className="font-black uppercase tracking-wider text-yellow-700 text-[10px]">📞 Dúvidas ou Agendamento?</p>
+                <p className="font-black uppercase tracking-wider text-yellow-700 text-[10px]">
+                  📞 Dúvidas ou Agendamento?
+                </p>
                 <p className="text-gray-700">
-                  Caso precise alinhar um horário específico ou tirar dúvidas, entre em contato direto com a nossa secretaria pelo telefone de suporte pedagógico da ONG.
+                  Caso precise alinhar um horário específico ou tirar dúvidas, entre em contato
+                  direto com a nossa secretaria pelo telefone de suporte pedagógico da ONG.
                 </p>
               </div>
             </div>
 
-            <div className="p-8 bg-gray-50/50 border-t border-gray-100">
+            <div className="p-4 sm:p-8 bg-gray-50/50 border-t border-gray-100">
               <button
                 onClick={() => setIsResolveModalOpen(false)}
                 className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-4 rounded-[24px] shadow-xl shadow-yellow-100 transition transform active:scale-[0.98] uppercase tracking-widest text-xs cursor-pointer"
@@ -1175,7 +1264,10 @@ export default function PortalResponsavel() {
                   <CalendarCheck className="h-6 w-6" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 id="modal-presencas-titulo" className="font-title text-sm sm:text-xl font-black text-gray-900 uppercase tracking-tight break-words">
+                  <h2
+                    id="modal-presencas-titulo"
+                    className="font-title text-sm sm:text-xl font-black text-gray-900 uppercase tracking-tight break-words"
+                  >
                     Histórico de presenças — {selectedFilho.nome_completo}
                   </h2>
                   <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider mt-0.5">
@@ -1295,9 +1387,7 @@ export default function PortalResponsavel() {
                       <div className="shrink-0">
                         <span
                           className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider ${
-                            p.presente
-                              ? 'bg-green-100 text-green-600'
-                              : 'bg-red-100 text-red-600'
+                            p.presente ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
                           }`}
                         >
                           {p.presente ? 'Presente' : 'Ausente'}
@@ -1349,7 +1439,7 @@ function SectionTitle({ title, icon: Icon }: { title: string; icon: any }) {
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+    <div className="p-3 sm:p-4 bg-gray-50 rounded-xl sm:rounded-2xl border border-gray-100">
       <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</p>
       <p className="text-xs font-bold text-gray-900">{value}</p>
     </div>
@@ -1383,7 +1473,9 @@ function InputItem({
           value={value}
           onChange={e => onChange?.(e.target.value)}
           className={`w-full bg-gray-50 border ${
-            error ? 'border-red-400 focus:ring-red-400/20' : 'border-gray-100 focus:ring-yellow-400/20 focus:border-yellow-400'
+            error
+              ? 'border-red-400 focus:ring-red-400/20'
+              : 'border-gray-100 focus:ring-yellow-400/20 focus:border-yellow-400'
           } rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 outline-none transition pr-12`}
         />
         {isPassword && (
@@ -1404,4 +1496,3 @@ function InputItem({
     </div>
   )
 }
-

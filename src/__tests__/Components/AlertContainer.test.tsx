@@ -3,7 +3,6 @@ import { describe, it, expect, vi } from 'vitest'
 import { AlertContainer } from '../../Components/AlertContainer'
 import { useAlert } from '../../contexts/AlertContext'
 
-
 vi.mock('../../contexts/AlertContext', () => ({
   useAlert: vi.fn(),
 }))

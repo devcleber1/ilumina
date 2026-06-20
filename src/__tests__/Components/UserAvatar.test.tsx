@@ -6,9 +6,9 @@ import { UserAvatar, getInitials, getImageUrl } from '../../Components/UserAvata
 vi.mock('../../lib/api', () => ({
   api: {
     defaults: {
-      baseURL: 'http://localhost:3001/api'
-    }
-  }
+      baseURL: 'http://localhost:3001/api',
+    },
+  },
 }))
 
 describe('UserAvatar Component', () => {

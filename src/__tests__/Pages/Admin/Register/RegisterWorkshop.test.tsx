@@ -41,9 +41,11 @@ describe('RegisterWorkshop Page', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/professores/find')) {
-        return { data: [{ id: 10, nome_completo: 'Professor da Oficina', formacao: 'Artes Plásticas' }] }
+        return {
+          data: [{ id: 10, nome_completo: 'Professor da Oficina', formacao: 'Artes Plásticas' }],
+        }
       }
       return { data: [] }
     })

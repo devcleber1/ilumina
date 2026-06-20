@@ -24,7 +24,6 @@ describe('index.html PWA tags', () => {
     expect(content).toContain('apple-touch-icon')
   })
 
-
   it('tem worker-src no CSP', () => {
     expect(content).toContain("worker-src 'self'")
   })

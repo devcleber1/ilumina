@@ -7,8 +7,8 @@ const isLocalhost = Boolean(
   window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
 )
 
-const DEFAULT_API_URL = isLocalhost 
-  ? 'http://localhost:3001' 
+const DEFAULT_API_URL = isLocalhost
+  ? 'http://localhost:3001'
   : 'https://back-end-ilumina-production.up.railway.app'
 
 export const api = axios.create({

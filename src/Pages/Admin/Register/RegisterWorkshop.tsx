@@ -123,7 +123,11 @@ function RegisterWorkshopContent() {
           })
         } catch (linkError) {
           console.error('Erro ao vincular professor:', linkError)
-          showAlert('warning', 'Atenção', 'Oficina criada, mas houve um erro ao vincular o professor responsável.')
+          showAlert(
+            'warning',
+            'Atenção',
+            'Oficina criada, mas houve um erro ao vincular o professor responsável.'
+          )
         }
       }
 

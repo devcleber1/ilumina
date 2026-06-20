@@ -108,7 +108,7 @@ function SidebarProvider({
   const contextValue = React.useMemo<SidebarContextProps>(
     () => ({
       state,
-      open,
+      open: isMobile ? openMobile : open,
       setOpen,
       isMobile,
       openMobile,

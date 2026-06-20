@@ -41,9 +41,18 @@ describe('ResetPassword Page', () => {
       logout: vi.fn(),
     } as any)
 
-    vi.mocked(api.get).mockImplementation(async (url) => {
+    vi.mocked(api.get).mockImplementation(async url => {
       if (url.includes('/admins/find')) {
-        return { data: [{ id: 1, nome_completo: 'Admin Teste', email: 'admin@email.com', nivel_acesso: 'superadmin' }] }
+        return {
+          data: [
+            {
+              id: 1,
+              nome_completo: 'Admin Teste',
+              email: 'admin@email.com',
+              nivel_acesso: 'superadmin',
+            },
+          ],
+        }
       }
       if (url.includes('/professores/find')) {
         return { data: [] }
