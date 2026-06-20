@@ -130,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           storageService.setItem('user', data.user)
           storageService.setItem('expiresAt', String(newExpiresAt))
+          storageService.setItem('accessToken', data.accessToken)
 
           setExpiresAt(newExpiresAt)
           setIsAuthenticated(true)
@@ -173,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     storageService.removeItem('user')
     storageService.removeItem('expiresAt')
+    storageService.removeItem('accessToken')
     setIsAuthenticated(false)
     setUser(null)
     setExpiresAt(null)
@@ -200,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       showAlert('success', 'Sessão renovada', 'Sua conexão permanecerá ativa.')
 
       if (accessToken) {
-        // O backend atualiza o cookie HttpOnly; o frontend não persiste o token.
+        storageService.setItem('accessToken', accessToken)
       }
     } catch (error) {
       console.error('Erro ao renovar sessão:', error)

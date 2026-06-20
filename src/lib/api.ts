@@ -20,6 +20,17 @@ export const api = axios.create({
 api.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 api.defaults.headers.common['Content-Type'] = 'application/json'
 
+api.interceptors.request.use(
+  config => {
+    const token = storageService.getItem<string>('accessToken')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  error => Promise.reject(error)
+)
+
 let isRefreshing = false
 let failedQueue: any[] = []
 
@@ -84,7 +95,7 @@ api.interceptors.response.use(
         const { accessToken } = response.data
 
         if (accessToken) {
-          // O backend atualiza o cookie HttpOnly; apenas renovamos o fluxo de sessão local.
+          storageService.setItem('accessToken', accessToken)
         }
 
         const newExpiresAt = Date.now() + 15 * 60 * 1000
@@ -102,6 +113,7 @@ api.interceptors.response.use(
         // Se falhar o refresh, desloga limpando completamente a sessão
         storageService.removeItem('user')
         storageService.removeItem('expiresAt')
+        storageService.removeItem('accessToken')
 
         if (window.location.pathname !== '/') {
           window.location.href = '/'
