@@ -320,7 +320,7 @@ function WorkshopsContent() {
                         </span>
                       )}
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                  <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition">
                     <button
                       onClick={() => handleOpenLinkProfModal(workshop)}
                       className="p-2 rounded-xl hover:bg-green-50 text-green-500 transition cursor-pointer"
