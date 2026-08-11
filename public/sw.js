@@ -50,8 +50,19 @@ self.addEventListener('fetch', event => {
   if (event.request.mode === 'navigate' && isSameOrigin) {
     event.respondWith(
       fetch(event.request)
-        .then(response => response)
-        .catch(() => caches.match(OFFLINE_URL))
+        .then(response => {
+          if (!response || response.status === 404) {
+            return caches.match('/index.html').then(cachedIndex => {
+              return cachedIndex || fetch('/')
+            })
+          }
+          return response
+        })
+        .catch(() => {
+          return caches.match('/index.html').then(cachedIndex => {
+            return cachedIndex || caches.match(OFFLINE_URL)
+          })
+        })
     )
     return
   }
