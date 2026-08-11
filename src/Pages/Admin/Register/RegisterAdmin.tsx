@@ -22,6 +22,7 @@ import * as yup from 'yup'
 import { api } from '../../../lib/api'
 import { useAlert } from '../../../contexts/AlertContext'
 import { useAuth } from '../../../contexts/AuthContext'
+import { useSecureFormPersist } from '../../../hooks/useSecureFormPersist'
 
 interface AdminAttributes {
   nome_completo: string
@@ -126,18 +127,22 @@ function RegisterAdminContent() {
     }
   }, [user, navigate, showAlert])
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<AdminAttributes>({
+  const form = useForm<AdminAttributes>({
     resolver: yupResolver(schema) as any,
     defaultValues: {
       nivel_acesso: 'admin',
       status_admin: 'ativo',
     },
   })
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = form
+
+  const { clearDraft } = useSecureFormPersist('register_admin', form, ['senha', 'confirmarSenha'])
 
   const passwordValue = watch('senha', '')
 
@@ -224,6 +229,7 @@ function RegisterAdminContent() {
       })
 
       showAlert('success', 'Sucesso', 'Administrador cadastrado com sucesso!')
+      clearDraft()
       navigate('/dashboard/editar-usuarios')
     } catch (error: any) {
       console.error('Erro ao salvar admin:', error)

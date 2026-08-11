@@ -10,6 +10,7 @@ import * as yup from 'yup'
 import { api } from '../../../lib/api'
 import { formatCPF, formatPhone } from '../../../utils/formatters'
 import { useAlert } from '../../../contexts/AlertContext'
+import { useSecureFormPersist } from '../../../hooks/useSecureFormPersist'
 
 interface ProfessorAttributes {
   id?: number
@@ -89,17 +90,21 @@ function RegisterTeacherContent() {
   const { showAlert } = useAlert()
   const [mediaErrors, setMediaErrors] = useState<Record<string, string>>({})
 
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors },
-  } = useForm<ProfessorAttributes>({
+  const form = useForm<ProfessorAttributes>({
     resolver: yupResolver(schema) as any,
     defaultValues: {
       status_professor: 'ativo',
     },
   })
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = form
+
+  const { clearDraft } = useSecureFormPersist('register_teacher', form)
 
   const [profilePhotoSrc, setProfilePhotoSrc] = useState<string | null>(null)
   const [profilePhotoBlob, setProfilePhotoBlob] = useState<Blob | null>(null)
@@ -239,6 +244,7 @@ function RegisterTeacherContent() {
       })
 
       showAlert('success', 'Sucesso', 'Professor cadastrado com sucesso!')
+      clearDraft()
       navigate('/dashboard')
     } catch (error: any) {
       console.error('Erro ao salvar professor:', error)

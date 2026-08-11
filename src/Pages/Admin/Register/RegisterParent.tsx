@@ -10,6 +10,7 @@ import * as yup from 'yup'
 import { api } from '../../../lib/api'
 import { formatCPF, formatCNH, formatPhone } from '../../../utils/formatters'
 import { useAlert } from '../../../contexts/AlertContext'
+import { useSecureFormPersist } from '../../../hooks/useSecureFormPersist'
 
 interface PaiAttributes {
   id?: number
@@ -92,19 +93,23 @@ function RegisterParentContent() {
   const { showAlert } = useAlert()
   const [mediaErrors, setMediaErrors] = useState<Record<string, string>>({})
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setError,
-    formState: { errors },
-  } = useForm<PaiAttributes>({
+  const form = useForm<PaiAttributes>({
     resolver: yupResolver(schema) as any,
     defaultValues: {
       tipo_documento: 'CPF',
       recebe_beneficio_social: false,
     },
   })
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setError,
+    formState: { errors },
+  } = form
+
+  const { clearDraft } = useSecureFormPersist('register_parent', form, ['senha'])
 
   const [profilePhotoSrc, setProfilePhotoSrc] = useState<string | null>(null)
   const [profilePhotoBlob, setProfilePhotoBlob] = useState<Blob | null>(null)
@@ -245,6 +250,7 @@ function RegisterParentContent() {
       })
 
       showAlert('success', 'Sucesso', 'Pai cadastrado com sucesso!')
+      clearDraft()
       navigate('/dashboard')
     } catch (error: any) {
       console.error('Erro ao salvar pai:', error)

@@ -21,6 +21,7 @@ import * as yup from 'yup'
 import { api } from '../../../lib/api'
 import { formatCPF, formatPhone } from '../../../utils/formatters'
 import { useAlert } from '../../../contexts/AlertContext'
+import { useSecureFormPersist } from '../../../hooks/useSecureFormPersist'
 
 interface AlunoAttributes {
   id?: number
@@ -106,17 +107,21 @@ function RegisterStudentContent() {
   const { showAlert } = useAlert()
   const [mediaErrors, setMediaErrors] = useState<Record<string, string>>({})
 
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors },
-  } = useForm<AlunoAttributes>({
+  const form = useForm<AlunoAttributes>({
     resolver: yupResolver(schema) as any,
     defaultValues: {
       status_aluno: 'ativo',
     },
   })
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = form
+
+  const { clearDraft } = useSecureFormPersist('register_student', form)
 
   const [parents, setParents] = useState<PaiCard[]>([])
   const [paiSearch, setPaiSearch] = useState('')
@@ -294,6 +299,7 @@ function RegisterStudentContent() {
       }
 
       showAlert('success', 'Sucesso', 'Aluno cadastrado com sucesso!')
+      clearDraft()
       navigate('/dashboard')
     } catch (error: any) {
       console.error('Erro ao salvar aluno:', error)
