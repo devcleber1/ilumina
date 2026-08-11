@@ -24,7 +24,7 @@ type FormData = {
 }
 
 export default function Auth() {
-  const { login, user, logout } = useAuth()
+  const { login, user, logout, isLoggingOut } = useAuth()
   const navigate = useNavigate()
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false)
   const [isAuthenticating, setIsAuthenticating] = useState(false)
@@ -55,7 +55,12 @@ export default function Auth() {
 
   // Monitorar mudança no user após login para abrir o modal ou redirecionar com animação
   useEffect(() => {
-    if (user) {
+    if (isLoggingOut) {
+      setIsAuthenticating(false)
+      return
+    }
+
+    if (user && !isLoggingOut) {
       setAuthUserName(user.nome || user.tipo)
       if (user.precisa_trocar_senha) {
         setIsChangePasswordModalOpen(true)
@@ -74,7 +79,7 @@ export default function Auth() {
         return () => clearTimeout(timer)
       }
     }
-  }, [user, navigate])
+  }, [user, navigate, isLoggingOut])
 
   return (
     <div
@@ -83,29 +88,29 @@ export default function Auth() {
         background: 'linear-gradient(135deg, #FFEA01 0%, #FBC329 50%, #FBC02D 100%)',
       }}
     >
-      {/* Overlay Animado Pós-Login */}
-      {isAuthenticating && (
-        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
-          <div className="relative flex items-center justify-center mb-6">
+      {/* Overlay Animado e Responsivo Pós-Login */}
+      {isAuthenticating && !isLoggingOut && (
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 animate-in fade-in duration-500 select-none">
+          <div className="relative flex items-center justify-center mb-5 sm:mb-6">
             <div className="absolute inset-0 rounded-full bg-yellow-400/30 animate-ping duration-1000" />
             <img
               src={logo}
               alt="Logo ONG Ilumina"
-              className="h-24 w-24 rounded-full object-cover shadow-2xl border-4 border-yellow-400 relative z-10 animate-bounce"
+              className="h-16 w-16 sm:h-24 sm:w-24 rounded-full object-cover shadow-2xl border-4 border-yellow-400 relative z-10 animate-bounce"
             />
           </div>
-          <div className="space-y-2 text-center">
-            <h3 className="font-title text-2xl font-black text-white tracking-wide uppercase">
+          <div className="space-y-1.5 sm:space-y-2 text-center max-w-xs sm:max-w-md">
+            <h3 className="font-title text-xl sm:text-2xl font-black text-white tracking-wide uppercase">
               {authUserName ? `Seja bem-vindo(a)!` : 'Autenticando...'}
             </h3>
-            <p className="font-body text-sm font-semibold text-yellow-300 animate-pulse">
+            <p className="font-body text-xs sm:text-sm font-semibold text-yellow-300 animate-pulse">
               Carregando seu portal com segurança...
             </p>
           </div>
-          <div className="mt-6 flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-400 animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-3 h-3 rounded-full bg-yellow-400 animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-3 h-3 rounded-full bg-yellow-400 animate-bounce" />
+          <div className="mt-5 sm:mt-6 flex items-center gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400 animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400 animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400 animate-bounce" />
           </div>
         </div>
       )}

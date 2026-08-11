@@ -3,6 +3,7 @@ import { api, setLoggingOut } from '../lib/api'
 import { useAlert } from './AlertContext'
 import { SessionTimeoutModal } from '../Components/SessionTimeoutModal'
 import { storageService } from '../lib/storageService'
+import { LogOut } from 'lucide-react'
 
 interface User {
   id: number
@@ -21,6 +22,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   renewSession: () => Promise<void>
   loading: boolean
+  isLoggingOut: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -35,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [isModalDismissed, setIsModalDismissed] = useState(false)
+  const [isLoggingOutState, setIsLoggingOutState] = useState(false)
   const [expiresAt, setExpiresAt] = useState<number | null>(() => {
     const saved = storageService.getItem<string>('expiresAt')
     return saved ? Number(saved) : null
@@ -89,13 +92,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const response = await api.get('/auth/me')
-        if (response.data.success) {
-          const userData = response.data.user
-          setUser(userData)
-          storageService.setItem('user', userData)
+        if (response.data?.user) {
+          setUser(response.data.user)
+          storageService.setItem('user', response.data.user)
 
-          if (!storageService.getItem('expiresAt')) {
-            const newExpiresAt = Date.now() + 15 * 60 * 1000
+          if (response.data.expiresAt) {
+            storageService.setItem('expiresAt', String(response.data.expiresAt))
+            setExpiresAt(response.data.expiresAt)
+          } else {
+            const expirationTime = 15 * 60 * 1000
+            const newExpiresAt = Date.now() + expirationTime
             storageService.setItem('expiresAt', String(newExpiresAt))
             setExpiresAt(newExpiresAt)
           }
@@ -166,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
+    setIsLoggingOutState(true)
     setLoggingOut(true)
     try {
       await api.post('/auth/logout')
@@ -183,8 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showAlert('success', 'Sessão encerrada', 'Logout realizado com sucesso.')
 
     setTimeout(() => {
+      setIsLoggingOutState(false)
       setLoggingOut(false)
-    }, 1000)
+    }, 1200)
   }
 
   const renewSession = async () => {
@@ -211,8 +219,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, renewSession, loading }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        login,
+        logout,
+        renewSession,
+        loading,
+        isLoggingOut: isLoggingOutState,
+      }}
+    >
       {children}
+
+      {/* Overlay Animado e Responsivo de Logout */}
+      {isLoggingOutState && (
+        <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300 select-none">
+          <div className="relative flex items-center justify-center mb-5 sm:mb-6">
+            <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping duration-1000" />
+            <div className="h-16 w-16 sm:h-24 sm:w-24 rounded-full bg-gray-900 border-4 border-red-500 flex items-center justify-center text-red-500 shadow-2xl relative z-10 animate-pulse">
+              <LogOut className="h-8 w-8 sm:h-12 sm:w-12" />
+            </div>
+          </div>
+          <div className="space-y-1.5 sm:space-y-2 text-center max-w-xs sm:max-w-md">
+            <h3 className="font-title text-xl sm:text-2xl font-black text-white tracking-wide uppercase">
+              Encerrando Sessão...
+            </h3>
+            <p className="font-body text-xs sm:text-sm font-semibold text-gray-300 animate-pulse">
+              Limpando suas credenciais com segurança. Até breve!
+            </p>
+          </div>
+          <div className="mt-5 sm:mt-6 flex items-center gap-2">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-bounce" />
+          </div>
+        </div>
+      )}
+
       <SessionTimeoutModal
         isOpen={showSessionModal}
         onRenew={renewSession}
