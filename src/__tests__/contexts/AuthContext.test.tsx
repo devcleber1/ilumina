@@ -100,6 +100,43 @@ describe('AuthContext', () => {
 
     expect(screen.getByTestId('auth-state')).toHaveTextContent('logged-out')
     expect(screen.getByTestId('user-email')).toHaveTextContent('no-user')
-    expect(storageService.getItem('token')).toBeNull()
+    expect(storageService.getItem('user')).toBeNull()
+    expect(storageService.getItem('accessToken')).toBeNull()
+  })
+
+  it('deve exibir o overlay animado de logout e garantir que nenhuma senha é exposta no DOM', async () => {
+    storageService.setItem('user', { email: 'secure@test.com', tipo: 'admin' })
+    vi.mocked(api.post).mockResolvedValueOnce({ status: 200 })
+
+    const SecureConsumer = () => {
+      const { logout, isLoggingOut } = useAuth()
+      return (
+        <div>
+          <span data-testid="logging-out-state">{isLoggingOut ? 'yes' : 'no'}</span>
+          <button onClick={logout}>Encerrar</button>
+        </div>
+      )
+    }
+
+    render(
+      <AlertProvider>
+        <AuthProvider>
+          <SecureConsumer />
+        </AuthProvider>
+      </AlertProvider>
+    )
+
+    await act(async () => {
+      screen.getByText('Encerrar').click()
+    })
+
+    // Garantir que a tela de logout com texto seguro é exibida
+    expect(screen.getByText('Encerrando Sessão...')).toBeInTheDocument()
+    expect(screen.getByText('Limpando suas credenciais com segurança. Até breve!')).toBeInTheDocument()
+
+    // Garantir que tokens e dados sensíveis não são vazados no DOM
+    const bodyHtml = document.body.innerHTML
+    expect(bodyHtml).not.toContain('senha123')
+    expect(bodyHtml).not.toContain('valid-jwt-token')
   })
 })
