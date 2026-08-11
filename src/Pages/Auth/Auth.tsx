@@ -27,11 +27,14 @@ export default function Auth() {
   const { login, user, logout } = useAuth()
   const navigate = useNavigate()
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const [authUserName, setAuthUserName] = useState('')
+
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   })
@@ -39,7 +42,9 @@ export default function Auth() {
   const onSubmit = async (data: FormData) => {
     try {
       const success = await login(data.email, data.password)
-      if (!success) {
+      if (success) {
+        setIsAuthenticating(true)
+      } else {
         setError('root', { type: 'server', message: 'E-mail ou senha incorretos' })
       }
     } catch (error: any) {
@@ -48,31 +53,63 @@ export default function Auth() {
     }
   }
 
-  // Monitorar mudança no user após login para abrir o modal se necessário
+  // Monitorar mudança no user após login para abrir o modal ou redirecionar com animação
   useEffect(() => {
     if (user) {
+      setAuthUserName(user.nome || user.tipo)
       if (user.precisa_trocar_senha) {
         setIsChangePasswordModalOpen(true)
+        setIsAuthenticating(false)
       } else {
-        // Se não precisa trocar e está autenticado, vai para a tela correspondente
-        if (user.tipo === 'pai') {
-          navigate('/portal')
-        } else if (user.tipo === 'professor') {
-          navigate('/portal-professor')
-        } else {
-          navigate('/dashboard')
-        }
+        setIsAuthenticating(true)
+        const timer = setTimeout(() => {
+          if (user.tipo === 'pai') {
+            navigate('/portal')
+          } else if (user.tipo === 'professor') {
+            navigate('/portal-professor')
+          } else {
+            navigate('/dashboard')
+          }
+        }, 900)
+        return () => clearTimeout(timer)
       }
     }
   }, [user, navigate])
 
   return (
     <div
-      className="flex min-h-[100dvh] items-center justify-center p-3 md:p-6"
+      className="flex min-h-[100dvh] items-center justify-center p-3 md:p-6 relative overflow-hidden"
       style={{
         background: 'linear-gradient(135deg, #FFEA01 0%, #FBC329 50%, #FBC02D 100%)',
       }}
     >
+      {/* Overlay Animado Pós-Login */}
+      {isAuthenticating && (
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
+          <div className="relative flex items-center justify-center mb-6">
+            <div className="absolute inset-0 rounded-full bg-yellow-400/30 animate-ping duration-1000" />
+            <img
+              src={logo}
+              alt="Logo ONG Ilumina"
+              className="h-24 w-24 rounded-full object-cover shadow-2xl border-4 border-yellow-400 relative z-10 animate-bounce"
+            />
+          </div>
+          <div className="space-y-2 text-center">
+            <h3 className="font-title text-2xl font-black text-white tracking-wide uppercase">
+              {authUserName ? `Seja bem-vindo(a)!` : 'Autenticando...'}
+            </h3>
+            <p className="font-body text-sm font-semibold text-yellow-300 animate-pulse">
+              Carregando seu portal com segurança...
+            </p>
+          </div>
+          <div className="mt-6 flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-yellow-400 animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-3 h-3 rounded-full bg-yellow-400 animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-3 h-3 rounded-full bg-yellow-400 animate-bounce" />
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row w-full max-w-[860px] min-h-0 md:min-h-[500px] rounded-[24px] md:rounded-[28px] overflow-hidden shadow-2xl">
         {/* Lado esquerdo — imagem (oculta no mobile) */}
         <div className="hidden md:block md:w-[380px] flex-shrink-0">
@@ -134,10 +171,18 @@ export default function Auth() {
             {/* Botão */}
             <button
               type="submit"
-              className="font-body flex w-full justify-center rounded-xl px-4 py-3 text-sm tracking-widest text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg hover:brightness-90 active:translate-y-0 cursor-pointer"
+              disabled={isSubmitting || isAuthenticating}
+              className="font-body flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm tracking-widest text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg hover:brightness-90 active:translate-y-0 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               style={{ background: '#FFD700' }}
             >
-              SIGN IN
+              {isSubmitting || isAuthenticating ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span>ENTRANDO...</span>
+                </>
+              ) : (
+                <span>SIGN IN</span>
+              )}
             </button>
           </form>
         </div>
