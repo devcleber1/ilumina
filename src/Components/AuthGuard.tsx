@@ -18,13 +18,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return <Navigate to="/" />
   }
 
-  // Se o user ainda não foi carregado (estado transitório no F5), espera
   if (!user) {
-    return (
-      <div className="fixed inset-0 bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-      </div>
-    )
+    return <Navigate to="/" replace />
   }
 
   // Bloqueio Global para Não-Admins (com exceção das telas permitidas)

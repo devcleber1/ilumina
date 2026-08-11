@@ -19,6 +19,7 @@ import logoImg from '../../../assets/logo.png'
 import { useAlert } from '../../../contexts/AlertContext'
 import { useAuth } from '../../../contexts/AuthContext'
 import { formatCPF, formatCNH, formatPhone } from '../../../utils/formatters'
+import { validateImageFile } from '../../../utils/imageValidation'
 import * as yup from 'yup'
 import { UserAvatar } from '../../../Components/UserAvatar'
 
@@ -584,6 +585,7 @@ function EditUsersContent() {
                       onChange={e => {
                         const file = e.target.files?.[0]
                         if (file) {
+                          if (!validateImageFile(file, showAlert)) return
                           setEditData({
                             ...editData,
                             newPhotoFile: file,
@@ -868,6 +870,7 @@ function EditUsersContent() {
                           onChange={e => {
                             const file = e.target.files?.[0]
                             if (file) {
+                              if (!validateImageFile(file, showAlert)) return
                               setEditData({
                                 ...editData,
                                 newDocFile: file,
@@ -914,6 +917,7 @@ function EditUsersContent() {
                           onChange={e => {
                             const file = e.target.files?.[0]
                             if (file) {
+                              if (!validateImageFile(file, showAlert)) return
                               setEditData({
                                 ...editData,
                                 newDocBackFile: file,

@@ -133,9 +133,13 @@
   }
   input,
   textarea,
+  select,
   [contenteditable='true'] {
     -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
     user-select: text !important;
+    pointer-events: auto !important;
     font-size: 16px !important;
   }
   @media (max-width: 768px) {

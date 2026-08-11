@@ -506,7 +506,7 @@ function DashboardContent() {
       {/* Modal de Detalhes da Advertência */}
       {selectedAdv && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-t-2xl sm:rounded-[32px] w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 max-h-[95vh] flex flex-col">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 max-h-[85vh] sm:max-h-[95vh] mt-10 sm:mt-0 flex flex-col">
             <div className="bg-red-500 px-5 sm:px-8 py-4 sm:py-6 flex items-center justify-between text-white shrink-0">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />

@@ -31,6 +31,8 @@ import logo from '../../assets/logo.png'
 import { UserAvatar } from '../../Components/UserAvatar'
 import { useNavigate } from 'react-router-dom'
 import * as Yup from 'yup'
+import { storageService } from '../../lib/storageService'
+import { validateImageFile } from '../../utils/imageValidation'
 import { getSocket } from '../../lib/socket'
 
 interface TeacherData {
@@ -550,6 +552,11 @@ export default function PortalTeacher() {
 
   // Upload Foto de Perfil
   const handleUploadPhoto = async (file: File) => {
+    const error = validateImageFile(file)
+    if (error) {
+      showAlert('destructive', 'Erro', error)
+      return
+    }
     const formData = new FormData()
     formData.append('foto_perfil_url', file)
 
@@ -666,7 +673,7 @@ export default function PortalTeacher() {
                   Professor Responsável
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-                  {data?.professor.nome_completo}
+                  Olá, {data?.professor?.nome_completo ? data.professor.nome_completo.split(' ')[0] : 'Professor'} 👋
                 </h2>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 mt-2 text-[11px] sm:text-xs text-gray-300">
                   <span className="flex items-center gap-1">
@@ -1182,7 +1189,7 @@ export default function PortalTeacher() {
       {/* MODAL LISTAGEM DE ADVERTÊNCIAS PEDAGÓGICAS */}
       {isAdvertenciasModalOpen && selectedAluno && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[95vh] sm:max-h-[85vh] flex flex-col">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[85vh] sm:max-h-[85vh] mt-10 sm:mt-0 flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest block">
@@ -1313,7 +1320,7 @@ export default function PortalTeacher() {
       {/* MODAL DE CRIAÇÃO DE ADVERTÊNCIA */}
       {isNewAdvertenciaModalOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-55 animate-fade-in">
-          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-md w-full p-5 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-md w-full p-5 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[85vh] sm:max-h-[90vh] mt-10 sm:mt-0 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-black text-gray-950">Registrar Ocorrência</h3>
               <button
@@ -1415,7 +1422,7 @@ export default function PortalTeacher() {
       {/* MODAL DE EDIÇÃO DE ADVERTÊNCIA */}
       {isEditAdvertenciaModalOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-55 animate-fade-in">
-          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-md w-full p-5 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-md w-full p-5 sm:p-8 shadow-2xl border border-gray-100 animate-scale-up max-h-[85vh] sm:max-h-[90vh] mt-10 sm:mt-0 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-black text-gray-950">Editar Ocorrência</h3>
               <button
@@ -1523,7 +1530,7 @@ export default function PortalTeacher() {
       {/* MODAL CONFIGURAÇÕES / MEU PERFIL */}
       {isConfigModalOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-2xl w-full shadow-2xl border border-gray-100 overflow-hidden animate-scale-up flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[32px] max-w-2xl w-full shadow-2xl border border-gray-100 overflow-hidden animate-scale-up flex flex-col max-h-[85vh] sm:max-h-[90vh] mt-10 sm:mt-0">
             <div className="p-4 sm:p-8 bg-gradient-to-r from-yellow-400/20 to-yellow-100/20 border-b border-gray-100 flex justify-between items-center">
               <div>
                 <span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest block">
@@ -1581,13 +1588,16 @@ export default function PortalTeacher() {
                         accept="image/*"
                         onChange={e => {
                           const file = e.target.files?.[0]
-                          if (file) handleUploadPhoto(file)
+                          if (file) {
+                            if (!validateImageFile(file, showAlert)) return
+                            handleUploadPhoto(file)
+                          }
                         }}
                       />
                     </label>
                   </div>
                   <div className="text-center">
-                    <h4 className="font-bold text-gray-900">{data?.professor.nome_completo}</h4>
+                    <h4 className="font-bold text-gray-900">{data?.professor?.nome_completo || 'Professor'}</h4>
                     <p className="text-[9px] font-black text-yellow-600 uppercase tracking-widest">
                       Educador Ilumina
                     </p>

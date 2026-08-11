@@ -16,8 +16,8 @@ describe('index.html PWA tags', () => {
     expect(content).toContain('#FFD700')
   })
 
-  it('tem meta apple-mobile-web-app-capable', () => {
-    expect(content).toContain('apple-mobile-web-app-capable')
+  it('não tem meta apple-mobile-web-app-capable obsoleta', () => {
+    expect(content).not.toContain('apple-mobile-web-app-capable')
   })
 
   it('tem apple-touch-icon', () => {

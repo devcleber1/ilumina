@@ -30,6 +30,7 @@ import { UserAvatar } from '../../Components/UserAvatar'
 import * as Yup from 'yup'
 import { getSocket } from '../../lib/socket'
 import { storageService } from '../../lib/storageService'
+import { validateImageFile } from '../../utils/imageValidation'
 
 interface PortalData {
   pai: {
@@ -414,7 +415,7 @@ export default function PortalResponsavel() {
                   className="h-8 w-8 rounded-full border border-yellow-200"
                 />
                 <span className="text-xs font-bold text-gray-700 hidden sm:inline">
-                  {data?.pai.nome.split(' ')[0]}
+                  {data?.pai?.nome ? data.pai.nome.split(' ')[0] : 'Usuário'}
                 </span>
               </button>
 
@@ -435,35 +436,35 @@ export default function PortalResponsavel() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
               <h2 className="font-title text-xl sm:text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter">
-                Olá, {data?.pai.nome.split(' ')[0]} 👋
+                Olá, {data?.pai?.nome ? data.pai.nome.split(' ')[0] : 'Usuário'} 👋
               </h2>
               <p className="text-gray-400 font-medium">
                 Acompanhe o desempenho e frequência dos seus filhos.
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 md:gap-4 w-full md:w-auto">
-              <div className="bg-white p-3 md:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
-                <Users className="h-5 w-5 text-blue-500 mb-1" />
-                <span className="text-lg md:text-xl font-black text-gray-900 leading-none">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-4 w-full md:w-auto">
+              <div className="bg-white p-2 sm:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mb-1" />
+                <span className="text-sm sm:text-lg md:text-xl font-black text-gray-900 leading-none">
                   {data?.resumo.total_filhos}
                 </span>
                 <span className="text-[7px] md:text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
                   Filhos
                 </span>
               </div>
-              <div className="bg-white p-3 md:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
-                <Activity className="h-5 w-5 text-green-500 mb-1" />
-                <span className="text-lg md:text-xl font-black text-gray-900 leading-none">
+              <div className="bg-white p-2 sm:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
+                <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mb-1" />
+                <span className="text-sm sm:text-lg md:text-xl font-black text-gray-900 leading-none">
                   {data?.resumo.media_presenca}%
                 </span>
                 <span className="text-[7px] md:text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
                   Presença
                 </span>
               </div>
-              <div className="bg-white p-3 md:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center relative group/alerta cursor-help">
+              <div className="bg-white p-2 sm:p-4 rounded-3xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center relative group/alerta cursor-help">
                 <AlertTriangle
-                  className={`h-5 w-5 mb-1 ${
+                  className={`h-4 w-4 sm:h-5 sm:w-5 mb-1 ${
                     (data?.resumo.total_advertencias_pendentes || 0) > 0
                       ? 'text-red-500'
                       : (data?.resumo.total_advertencias_resolvidas || 0) > 0
@@ -472,7 +473,7 @@ export default function PortalResponsavel() {
                   }`}
                 />
                 <span
-                  className={`text-lg md:text-xl font-black leading-none ${
+                  className={`text-sm sm:text-lg md:text-xl font-black leading-none ${
                     (data?.resumo.total_advertencias_pendentes || 0) > 0
                       ? 'text-red-500'
                       : (data?.resumo.total_advertencias_resolvidas || 0) > 0
@@ -624,8 +625,8 @@ export default function PortalResponsavel() {
 
       {/* Detalhes do Filho */}
       {selectedFilho && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-4xl max-h-[95vh] rounded-t-3xl sm:rounded-[48px] overflow-hidden flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-500">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-4xl max-h-[85vh] sm:max-h-[95vh] mt-10 sm:mt-0 rounded-t-3xl sm:rounded-[48px] overflow-hidden flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-500">
             <div className="p-3 sm:p-10 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
               <div className="flex items-center gap-5">
                 <UserAvatar
@@ -995,7 +996,7 @@ export default function PortalResponsavel() {
       {/* Perfil */}
       {isProfileModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200 overflow-hidden max-h-[95vh] sm:max-h-[90vh]">
+          <div className="bg-white rounded-t-3xl sm:rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200 overflow-hidden max-h-[85vh] sm:max-h-[90vh] mt-10 sm:mt-0">
             <div className="flex items-center justify-between p-4 sm:p-8 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-yellow-100 rounded-2xl text-yellow-600">
@@ -1036,6 +1037,7 @@ export default function PortalResponsavel() {
                       onChange={async e => {
                         const file = e.target.files?.[0]
                         if (!file) return
+                        if (!validateImageFile(file, showAlert)) return
 
                         const formData = new FormData()
                         formData.append('foto_perfil_url', file)
@@ -1070,7 +1072,7 @@ export default function PortalResponsavel() {
                   </label>
                 </div>
                 <div className="text-center">
-                  <h3 className="font-bold text-gray-900">{data?.pai.nome}</h3>
+                  <h3 className="font-bold text-gray-900">{data?.pai?.nome || 'Usuário'}</h3>
                   <p className="text-[10px] font-black text-yellow-600 uppercase tracking-widest">
                     Responsável Legal
                   </p>
@@ -1167,7 +1169,7 @@ export default function PortalResponsavel() {
       {/* Modal de Instruções de Resolução de Advertências */}
       {isResolveModalOpen && (
         <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-t-3xl sm:rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-400 overflow-hidden border border-gray-50 max-h-[95vh] sm:max-h-[90vh]">
+          <div className="bg-white rounded-t-3xl sm:rounded-[40px] max-w-xl w-full shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-400 overflow-hidden border border-gray-50 max-h-[85vh] sm:max-h-[90vh] mt-10 sm:mt-0">
             <div className="flex items-center justify-between p-4 sm:p-8 border-b border-gray-100 bg-yellow-50">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-yellow-100 rounded-2xl text-yellow-650">
